@@ -1,0 +1,94 @@
+{
+  "name": "org_inline",
+  "rules": {
+    "inline": {
+      "type": "CHOICE",
+      "members": [
+        {
+          "type": "SYMBOL",
+          "name": "title_with_tags"
+        },
+        {
+          "type": "SYMBOL",
+          "name": "title_only"
+        },
+        {
+          "type": "SYMBOL",
+          "name": "text"
+        }
+      ]
+    },
+    "title_with_tags": {
+      "type": "SEQ",
+      "members": [
+        {
+          "type": "FIELD",
+          "name": "title",
+          "content": {
+            "type": "ALIAS",
+            "content": {
+              "type": "SYMBOL",
+              "name": "TITLE_TEXT"
+            },
+            "named": true,
+            "value": "title"
+          }
+        },
+        {
+          "type": "STRING",
+          "value": " "
+        },
+        {
+          "type": "FIELD",
+          "name": "tags",
+          "content": {
+            "type": "ALIAS",
+            "content": {
+              "type": "SYMBOL",
+              "name": "TAGS"
+            },
+            "named": true,
+            "value": "tags"
+          }
+        }
+      ]
+    },
+    "title_only": {
+      "type": "FIELD",
+      "name": "title",
+      "content": {
+        "type": "ALIAS",
+        "content": {
+          "type": "SYMBOL",
+          "name": "TITLE_TEXT"
+        },
+        "named": true,
+        "value": "title"
+      }
+    },
+    "text": {
+      "type": "PATTERN",
+      "value": "[^\\n]+"
+    }
+  },
+  "extras": [
+    {
+      "type": "PATTERN",
+      "value": "\\s"
+    }
+  ],
+  "conflicts": [],
+  "precedences": [],
+  "externals": [
+    {
+      "type": "SYMBOL",
+      "name": "TITLE_TEXT"
+    },
+    {
+      "type": "SYMBOL",
+      "name": "TAGS"
+    }
+  ],
+  "inline": [],
+  "supertypes": []
+}
