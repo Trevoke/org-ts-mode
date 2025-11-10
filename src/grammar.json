@@ -70,6 +70,14 @@
         },
         {
           "type": "PREC",
+          "value": 2,
+          "content": {
+            "type": "SYMBOL",
+            "name": "horizontal_rule"
+          }
+        },
+        {
+          "type": "PREC",
           "value": 1,
           "content": {
             "type": "SYMBOL",
@@ -1335,6 +1343,22 @@
     "drawer_content": {
       "type": "PATTERN",
       "value": "([^:]|:[^eE]|:[eE][^nN]|:[eE][nN][^dD]|:[eE][nN][dD][^:])+"
+    },
+    "horizontal_rule": {
+      "type": "TOKEN",
+      "content": {
+        "type": "SEQ",
+        "members": [
+          {
+            "type": "PATTERN",
+            "value": "-----+"
+          },
+          {
+            "type": "STRING",
+            "value": "\n"
+          }
+        ]
+      }
     },
     "paragraph": {
       "type": "SEQ",

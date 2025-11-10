@@ -1,0 +1,66 @@
+==================
+Simple horizontal rule
+==================
+
+-----
+
+(document)
+
+==================
+Longer horizontal rule
+==================
+
+----------
+
+(document)
+
+==================
+Horizontal rule under headline
+==================
+
+* Section One
+
+-----
+
+(document
+  (headline
+    (stars)
+    (title)))
+
+==================
+Horizontal rules between content
+==================
+
+First paragraph.
+
+-----
+
+(document
+  (paragraph))
+
+==================
+Multiple horizontal rules
+==================
+
+-----
+
+----------
+
+(document
+  (horizontal_rule))
+
+==================
+Horizontal rule with list
+==================
+
+- List item one
+- List item two
+
+-----
+
+(document
+  (list
+    (list_item
+      (bullet))
+    (list_item
+      (bullet))))

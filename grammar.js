@@ -24,6 +24,7 @@ module.exports = grammar({
       $.entity,
       prec(-1, $.subscript),
       prec(-1, $.superscript),
+      prec(2, $.horizontal_rule),
       prec(1, $.list),
       $.block,
       $.directive,
@@ -341,6 +342,12 @@ module.exports = grammar({
     // Drawer content: any text until :end:
     // Use negative lookahead pattern to stop before :end:
     drawer_content: $ => /([^:]|:[^eE]|:[eE][^nN]|:[eE][nN][^dD]|:[eE][nN][dD][^:])+/,
+
+    // Horizontal rule: 5 or more dashes on a line
+    horizontal_rule: $ => token(seq(
+      /-----+/,  // 5 or more dashes (5 fixed plus zero or more)
+      '\n'
+    )),
 
     // Paragraph: any line that doesn't start with special characters
     // Excludes: *, #, |, [, -, +, :, {, digits, lowercase letters

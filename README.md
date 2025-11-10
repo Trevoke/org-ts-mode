@@ -228,6 +228,24 @@ This is an early-stage implementation following TDD principles. The grammar is b
 
 **Key Technical Insight**: When atomic tokens have potential to match substrings of other constructs, pattern specificity is more important than precedence. Initial greedy pattern caused widespread failures. Solution: restrict pattern to narrow, well-defined scope (alphanumeric words only).
 
+####✅ Horizontal Rules (100% test coverage)
+- [x] Simple horizontal rule (5 dashes)
+- [x] Longer horizontal rule (10+ dashes)
+- [x] Under headlines
+- [x] Between content
+- [x] Multiple horizontal rules
+- [x] With adjacent list items
+
+**Tests**: 6/6 passing
+
+**Bounding Success**: Horizontal rules require 5+ consecutive dashes on a line, which is highly distinctive from list bullets (single dash). Initial challenge: List bullet token (`-`) competed with horizontal rule pattern at lexical level. **Solution**: Used atomic token with pattern `/-----+/` (5 literal dashes followed by one or more dashes). Higher precedence (`prec(2)`) ensures horizontal rules are matched before lists. Zero cascading failures.
+
+**Implementation Notes**: Block-level element (full line). Atomic token implementation prevents lexer from matching as multiple list bullets. Pattern uses `/-----+/` rather than `/-{5,}/` because tree-sitter's regex engine doesn't support `{n,}` quantifier syntax.
+
+**Key Technical Insight**: Tree-sitter regex patterns don't support all standard regex quantifiers. The `{n,}` quantifier (n or more) doesn't work - must use explicit repetition like `/-----+/` (5 fixed + zero or more) instead. This was discovered through extensive debugging when `/-{5,}/` pattern compiled successfully but never matched input.
+
+**Regex Quantifier Support**: ✓ `+` (one or more), ✓ `*` (zero or more), ✓ `?` (optional), ✗ `{n,}` (n or more), ✗ `{n,m}` (n to m). Use workarounds like `/pattern+/` for "one or more".
+
 ### TODO (Priority Order)
 
 #### Next Sprint

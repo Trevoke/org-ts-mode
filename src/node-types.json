@@ -125,6 +125,10 @@
           "named": true
         },
         {
+          "type": "horizontal_rule",
+          "named": true
+        },
+        {
           "type": "latex_fragment",
           "named": true
         },
@@ -488,6 +492,10 @@
   },
   {
     "type": "footnote_reference",
+    "named": true
+  },
+  {
+    "type": "horizontal_rule",
     "named": true
   },
   {
