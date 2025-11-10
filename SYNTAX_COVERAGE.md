@@ -88,7 +88,7 @@ These should be parsed by the inline grammar within paragraphs, titles, table ce
 | **Regular Links (inline)** | 📋 | Currently block-level, need inline |
 | **Targets** | ❌ | `<<TARGET>>` |
 | **Radio Targets** | ❌ | `<<<RADIO>>>` |
-| **Statistics Cookies** | ❌ | `[50%]`, `[1/2]` |
+| **Statistics Cookies** | ✅ | `[50%]`, `[1/2]` - both percentage and fraction formats |
 | **Table Cells (objects)** | 🟡 | Tables exist, but cell contents not parsed for objects |
 | **Text Markup** | ✅ | Bold `*`, Italic `/`, Underline `_`, Code `~`, Verbatim `=`, Strike `+` all implemented |
 | **Plain Text** | ✅ | Default object type in inline grammar |
@@ -99,6 +99,7 @@ These should be parsed by the inline grammar within paragraphs, titles, table ce
 - ✅ Title/tags separation (8/8 tests)
 - ✅ External scanner for tag detection
 - ✅ Text markup: bold, italic, underline, code, verbatim, strike-through (11/11 tests)
+- ✅ Statistics cookies: percentage and fraction formats (11/11 tests)
 - ✅ Plain text with proper whitespace handling
 - ✅ Colons in titles (distinct from tags)
 
@@ -110,7 +111,6 @@ These should be parsed by the inline grammar within paragraphs, titles, table ce
 - Export snippets
 - Inline babel/source blocks
 - Citations (Org 9.5+)
-- Statistics cookies
 
 ---
 
@@ -161,8 +161,10 @@ These should be parsed by the inline grammar within paragraphs, titles, table ce
    - **Complexity**: Medium - need link type detection
 
 8. **Statistics Cookies** (`[50%]`, `[1/2]`)
-   - **Impact**: Used in task lists
-   - **Complexity**: Low
+   - **Status**: ✅ **COMPLETE** (11/11 tests passing)
+   - **Impact**: Used in task lists and progress tracking
+   - **Location**: Inline grammar
+   - **Bounding**: Excellent - bracket-delimited, self-contained, graceful degradation
 
 9. **Export Snippets** (`@@backend:content@@`)
    - **Impact**: Used for multi-format export
@@ -215,10 +217,10 @@ These should be parsed by the inline grammar within paragraphs, titles, table ce
 
 ### Inline Grammar (tree-sitter-org-inline)
 - **Total Objects**: ~25 types
-- **Implemented**: ~7 types (title/tags, 6 markup types, plain text)
+- **Implemented**: ~8 types (title/tags, 6 markup types, statistics cookies, plain text)
 - **In Block (Should Move)**: ~7 types (entities, latex, footnotes, links, macros, sub/super, timestamps)
-- **Missing**: ~11 types
-- **Test Coverage**: 19/19 tests passing
+- **Missing**: ~10 types
+- **Test Coverage**: 30/30 tests passing
 
 ### Overall Syntax Coverage
 - **Fully Functional**: ~35%
@@ -237,6 +239,7 @@ These should be parsed by the inline grammar within paragraphs, titles, table ce
 ✅ Fixed width areas
 ✅ Title/tags separation (inline grammar)
 ✅ **Complete text markup** (all 6 types: bold, italic, underline, code, verbatim, strike-through)
+✅ **Statistics cookies** (progress tracking: [50%], [2/5])
 
 ### What's Missing That Users Will Notice
 ❌ Inline links in paragraphs - **Very Common**
