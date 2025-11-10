@@ -7,27 +7,25 @@
 #define LANGUAGE_VERSION 14
 #define STATE_COUNT 7
 #define LARGE_STATE_COUNT 2
-#define SYMBOL_COUNT 8
+#define SYMBOL_COUNT 7
 #define ALIAS_COUNT 0
-#define TOKEN_COUNT 5
+#define TOKEN_COUNT 4
 #define EXTERNAL_TOKEN_COUNT 2
 #define FIELD_COUNT 2
-#define MAX_ALIAS_SEQUENCE_LENGTH 3
+#define MAX_ALIAS_SEQUENCE_LENGTH 2
 #define PRODUCTION_ID_COUNT 3
 
 enum ts_symbol_identifiers {
-  anon_sym_SPACE = 1,
-  sym_text = 2,
-  sym_TITLE_TEXT = 3,
-  sym_TAGS = 4,
-  sym_inline = 5,
-  sym_title_with_tags = 6,
-  sym_title_only = 7,
+  sym_text = 1,
+  sym_TITLE_TEXT = 2,
+  sym_TAGS = 3,
+  sym_inline = 4,
+  sym_title_with_tags = 5,
+  sym_title_only = 6,
 };
 
 static const char * const ts_symbol_names[] = {
   [ts_builtin_sym_end] = "end",
-  [anon_sym_SPACE] = " ",
   [sym_text] = "text",
   [sym_TITLE_TEXT] = "title",
   [sym_TAGS] = "tags",
@@ -38,7 +36,6 @@ static const char * const ts_symbol_names[] = {
 
 static const TSSymbol ts_symbol_map[] = {
   [ts_builtin_sym_end] = ts_builtin_sym_end,
-  [anon_sym_SPACE] = anon_sym_SPACE,
   [sym_text] = sym_text,
   [sym_TITLE_TEXT] = sym_TITLE_TEXT,
   [sym_TAGS] = sym_TAGS,
@@ -51,10 +48,6 @@ static const TSSymbolMetadata ts_symbol_metadata[] = {
   [ts_builtin_sym_end] = {
     .visible = false,
     .named = true,
-  },
-  [anon_sym_SPACE] = {
-    .visible = true,
-    .named = false,
   },
   [sym_text] = {
     .visible = true,
@@ -102,7 +95,7 @@ static const TSFieldMapEntry ts_field_map_entries[] = {
   [0] =
     {field_title, 0},
   [1] =
-    {field_tags, 2},
+    {field_tags, 1},
     {field_title, 0},
 };
 
@@ -129,56 +122,27 @@ static bool ts_lex(TSLexer *lexer, TSStateId state) {
   eof = lexer->eof(lexer);
   switch (state) {
     case 0:
-      if (eof) ADVANCE(3);
+      if (eof) ADVANCE(1);
       if (lookahead == '\n') SKIP(0);
-      if (lookahead == ' ') ADVANCE(4);
-      if (('\t' <= lookahead && lookahead <= '\r')) ADVANCE(6);
-      if (lookahead != 0) ADVANCE(8);
+      if (('\t' <= lookahead && lookahead <= '\r') ||
+          lookahead == ' ') ADVANCE(2);
+      if (lookahead != 0) ADVANCE(3);
       END_STATE();
     case 1:
-      if (lookahead == '\n') SKIP(1);
-      if (('\t' <= lookahead && lookahead <= '\r') ||
-          lookahead == ' ') ADVANCE(7);
-      if (lookahead != 0) ADVANCE(8);
-      END_STATE();
-    case 2:
-      if (eof) ADVANCE(3);
-      if (lookahead == ' ') ADVANCE(5);
-      if (('\t' <= lookahead && lookahead <= '\r')) SKIP(2);
-      END_STATE();
-    case 3:
       ACCEPT_TOKEN(ts_builtin_sym_end);
       END_STATE();
-    case 4:
-      ACCEPT_TOKEN(anon_sym_SPACE);
-      if (lookahead == ' ') ADVANCE(4);
-      if (lookahead == '\t' ||
-          (0x0b <= lookahead && lookahead <= '\r')) ADVANCE(6);
-      END_STATE();
-    case 5:
-      ACCEPT_TOKEN(anon_sym_SPACE);
-      if (lookahead == ' ') ADVANCE(5);
-      END_STATE();
-    case 6:
-      ACCEPT_TOKEN(sym_text);
-      if (lookahead == ' ') ADVANCE(4);
-      if (lookahead == '\t' ||
-          (0x0b <= lookahead && lookahead <= '\r')) ADVANCE(6);
-      if (lookahead != 0 &&
-          (lookahead < '\t' || '\r' < lookahead)) ADVANCE(8);
-      END_STATE();
-    case 7:
+    case 2:
       ACCEPT_TOKEN(sym_text);
       if (lookahead == '\t' ||
           (0x0b <= lookahead && lookahead <= '\r') ||
-          lookahead == ' ') ADVANCE(7);
+          lookahead == ' ') ADVANCE(2);
       if (lookahead != 0 &&
-          (lookahead < '\t' || '\r' < lookahead)) ADVANCE(8);
+          (lookahead < '\t' || '\r' < lookahead)) ADVANCE(3);
       END_STATE();
-    case 8:
+    case 3:
       ACCEPT_TOKEN(sym_text);
       if (lookahead != 0 &&
-          lookahead != '\n') ADVANCE(8);
+          lookahead != '\n') ADVANCE(3);
       END_STATE();
     default:
       return false;
@@ -187,26 +151,25 @@ static bool ts_lex(TSLexer *lexer, TSStateId state) {
 
 static const TSLexMode ts_lex_modes[STATE_COUNT] = {
   [0] = {.lex_state = 0, .external_lex_state = 1},
-  [1] = {.lex_state = 1, .external_lex_state = 2},
-  [2] = {.lex_state = 2},
+  [1] = {.lex_state = 0, .external_lex_state = 2},
+  [2] = {.lex_state = 0, .external_lex_state = 3},
   [3] = {.lex_state = 0},
   [4] = {.lex_state = 0},
-  [5] = {.lex_state = 0, .external_lex_state = 3},
+  [5] = {.lex_state = 0},
   [6] = {.lex_state = 0},
 };
 
 static const uint16_t ts_parse_table[LARGE_STATE_COUNT][SYMBOL_COUNT] = {
   [0] = {
     [ts_builtin_sym_end] = ACTIONS(1),
-    [anon_sym_SPACE] = ACTIONS(1),
     [sym_text] = ACTIONS(1),
     [sym_TITLE_TEXT] = ACTIONS(1),
     [sym_TAGS] = ACTIONS(1),
   },
   [1] = {
     [sym_inline] = STATE(4),
-    [sym_title_with_tags] = STATE(3),
-    [sym_title_only] = STATE(3),
+    [sym_title_with_tags] = STATE(5),
+    [sym_title_only] = STATE(5),
     [sym_text] = ACTIONS(3),
     [sym_TITLE_TEXT] = ACTIONS(5),
   },
@@ -217,7 +180,7 @@ static const uint16_t ts_small_parse_table[] = {
     ACTIONS(7), 1,
       ts_builtin_sym_end,
     ACTIONS(9), 1,
-      anon_sym_SPACE,
+      sym_TAGS,
   [7] = 1,
     ACTIONS(11), 1,
       ts_builtin_sym_end,
@@ -225,10 +188,10 @@ static const uint16_t ts_small_parse_table[] = {
     ACTIONS(13), 1,
       ts_builtin_sym_end,
   [15] = 1,
-    ACTIONS(15), 1,
-      sym_TAGS,
+    ACTIONS(11), 1,
+      ts_builtin_sym_end,
   [19] = 1,
-    ACTIONS(17), 1,
+    ACTIONS(15), 1,
       ts_builtin_sym_end,
 };
 
@@ -246,11 +209,10 @@ static const TSParseActionEntry ts_parse_actions[] = {
   [3] = {.entry = {.count = 1, .reusable = true}}, SHIFT(3),
   [5] = {.entry = {.count = 1, .reusable = true}}, SHIFT(2),
   [7] = {.entry = {.count = 1, .reusable = true}}, REDUCE(sym_title_only, 1, 0, 1),
-  [9] = {.entry = {.count = 1, .reusable = true}}, SHIFT(5),
+  [9] = {.entry = {.count = 1, .reusable = true}}, SHIFT(6),
   [11] = {.entry = {.count = 1, .reusable = true}}, REDUCE(sym_inline, 1, 0, 0),
   [13] = {.entry = {.count = 1, .reusable = true}},  ACCEPT_INPUT(),
-  [15] = {.entry = {.count = 1, .reusable = true}}, SHIFT(6),
-  [17] = {.entry = {.count = 1, .reusable = true}}, REDUCE(sym_title_with_tags, 3, 0, 2),
+  [15] = {.entry = {.count = 1, .reusable = true}}, REDUCE(sym_title_with_tags, 2, 0, 2),
 };
 
 enum ts_external_scanner_symbol_identifiers {

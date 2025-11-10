@@ -3,23 +3,13 @@
  * @author Tree-sitter Org-mode Contributors
  * @license MIT
  *
- * This external scanner handles inline objects that require lookahead or
- * stateful parsing that cannot be expressed with regular expressions.
+ * This scanner handles inline objects requiring lookahead or stateful parsing.
  *
- * Context: This scanner is part of the INLINE grammar, which is injected into
- * nodes from the block grammar (tree-sitter-org). The block grammar has already
- * parsed headline structure (stars, keywords, priorities), so this scanner only
- * needs to handle the title content.
- *
- * Current responsibilities:
- * 1. Title/tags separation - Detecting `:tag:` pattern at end of title content
- * 2. Future: Bold, italic, links, and other inline markup
- *
- * Strategy (REVISED):
- * - Peek ahead to detect tag pattern at EOL
- * - Advance only through title portion (not entire line)
- * - Mark end at correct boundary
- * - Save state for tags emission on next call
+ * Strategy (REVISED - Single Pass):
+ * - Read entire line into buffer while advancing lexer
+ * - Scan buffer backwards to find tag pattern
+ * - Emit appropriate token based on what we found
+ * - For title_with_tags: emit title, save state, then emit tags on next call
  */
 
 #include <tree_sitter/parser.h>
@@ -27,72 +17,61 @@
 #include <stdbool.h>
 #include <stdint.h>
 #include <string.h>
-#include <stdio.h>
 
-// Token types (must match order in grammar.js externals array)
+// Token types
 enum TokenType {
-    TITLE_TEXT,  // Title portion (before tags)
-    TAGS,        // Tags portion (:tag1:tag2:)
+    TITLE_TEXT,  // Title portion
+    TAGS,        // Tags portion
 };
 
-// Scanner state structure
+// Scanner state
 typedef struct {
-    bool has_tags;              // Whether current content has tags
-    uint32_t title_len;         // Length of title (for next scan)
+    bool emitting_tags;       // True if next call should emit tags
+    uint32_t tags_start;      // Position where tags start in saved content
+    uint32_t content_len;     // Length of saved content
+    int32_t content[4096];    // Saved line content
 } Scanner;
 
 // Forward declarations
 static bool scan_title(Scanner *scanner, TSLexer *lexer);
 static bool scan_tags(Scanner *scanner, TSLexer *lexer);
 static bool is_valid_tag_char(int32_t c);
-static bool find_tags_at_end(TSLexer *lexer, uint32_t *out_title_len, uint32_t *out_tags_len);
+static bool find_tags_in_buffer(int32_t *buffer, uint32_t len, uint32_t *out_title_len, uint32_t *out_tags_start);
 
 /**
- * Create and initialize a new scanner instance
+ * Create scanner
  */
 void *tree_sitter_org_inline_external_scanner_create() {
     Scanner *scanner = (Scanner *)calloc(1, sizeof(Scanner));
-    scanner->has_tags = false;
-    scanner->title_len = 0;
     return scanner;
 }
 
 /**
- * Destroy scanner and free memory
+ * Destroy scanner
  */
 void tree_sitter_org_inline_external_scanner_destroy(void *payload) {
-    Scanner *scanner = (Scanner *)payload;
-    free(scanner);
+    free(payload);
 }
 
 /**
- * Serialize scanner state to buffer
+ * Serialize scanner state
  */
 unsigned tree_sitter_org_inline_external_scanner_serialize(void *payload, char *buffer) {
     Scanner *scanner = (Scanner *)payload;
-
-    if (sizeof(Scanner) > TREE_SITTER_SERIALIZATION_BUFFER_SIZE) {
-        return 0;
-    }
-
-    memcpy(buffer, scanner, sizeof(Scanner));
-    return sizeof(Scanner);
+    // Only serialize the flags, not the content buffer (too large)
+    buffer[0] = scanner->emitting_tags ? 1 : 0;
+    return 1;
 }
 
 /**
- * Deserialize scanner state from buffer
+ * Deserialize scanner state
  */
 void tree_sitter_org_inline_external_scanner_deserialize(void *payload, const char *buffer, unsigned length) {
     Scanner *scanner = (Scanner *)payload;
-
-    if (length == 0) {
-        scanner->has_tags = false;
-        scanner->title_len = 0;
-        return;
-    }
-
-    if (length == sizeof(Scanner)) {
-        memcpy(scanner, buffer, sizeof(Scanner));
+    if (length > 0) {
+        scanner->emitting_tags = (buffer[0] == 1);
+    } else {
+        scanner->emitting_tags = false;
     }
 }
 
@@ -102,150 +81,174 @@ void tree_sitter_org_inline_external_scanner_deserialize(void *payload, const ch
 bool tree_sitter_org_inline_external_scanner_scan(void *payload, TSLexer *lexer, const bool *valid_symbols) {
     Scanner *scanner = (Scanner *)payload;
 
-    // Try to scan title
+    // If we're in the middle of emitting tags, do that
+    if (scanner->emitting_tags && valid_symbols[TAGS]) {
+        return scan_tags(scanner, lexer);
+    }
+
+    // Otherwise try to scan title
     if (valid_symbols[TITLE_TEXT]) {
         return scan_title(scanner, lexer);
     }
 
-    // Try to scan tags
-    if (valid_symbols[TAGS]) {
-        return scan_tags(scanner, lexer);
-    }
-
     return false;
 }
 
 /**
- * Scan title portion
+ * Scan title - emits title portion, stopping at potential tags
  *
- * Strategy:
- * 1. Peek ahead to find if tags exist at EOL
- * 2. Advance only through title portion
- * 3. Save state for tags scan
+ * Strategy: Advance character by character. When we see " :" pattern,
+ * emit TITLE_TEXT including the space and let TAGS scanner validate the rest.
+ * If no " :" pattern found, consume entire line as title.
  */
 static bool scan_title(Scanner *scanner, TSLexer *lexer) {
-    // Reset state
-    scanner->has_tags = false;
-    scanner->title_len = 0;
-
-    uint32_t title_len = 0;
-    uint32_t tags_len = 0;
-
-    // Peek ahead to detect tags
-    bool found_tags = find_tags_at_end(lexer, &title_len, &tags_len);
-
-    if (found_tags && title_len > 0) {
-        // Has tags - advance only through title
-        scanner->has_tags = true;
-        scanner->title_len = title_len;
-
-        // Advance through title (excluding space before tags)
-        for (uint32_t i = 0; i < title_len; i++) {
-            if (lexer->lookahead == '\n' || lexer->lookahead == 0) break;
-            lexer->advance(lexer, false);
-        }
-
-        lexer->mark_end(lexer);
-        lexer->result_symbol = TITLE_TEXT;
-        return true;
+    // Skip leading whitespace
+    while (lexer->lookahead == ' ' || lexer->lookahead == '\t' ||
+           lexer->lookahead == '\n' || lexer->lookahead == '\r') {
+        lexer->advance(lexer, true);
     }
 
-    if (found_tags && title_len == 0) {
-        // Only tags, no title - return false to let tags be parsed
-        scanner->has_tags = true;
+    // If EOF, nothing to parse
+    if (lexer->lookahead == 0) {
         return false;
     }
 
-    // No tags - entire content is title
-    while (lexer->lookahead != '\n' && lexer->lookahead != 0) {
-        lexer->advance(lexer, false);
-    }
-
-    if (lexer->get_column(lexer) > 0) {
-        lexer->mark_end(lexer);
+    // Special case: line starts with ':' means empty title with tags
+    if (lexer->lookahead == ':') {
+        scanner->emitting_tags = true;
+        lexer->mark_end(lexer);  // Mark end at start (empty title)
         lexer->result_symbol = TITLE_TEXT;
         return true;
     }
 
-    return false;  // Empty
+    // Advance through content until we find " :" or reach EOL
+    bool has_content = false;
+
+    while (lexer->lookahead != '\n' && lexer->lookahead != 0) {
+        int32_t c = lexer->lookahead;
+        has_content = true;
+        lexer->advance(lexer, false);
+
+        // After advancing, check if we just passed a space and next is colon
+        if (c == ' ' && lexer->lookahead == ':') {
+            // Perfect! We're right after the space, before the colon
+            // Emit title including the space, lexer positioned at colon
+            scanner->emitting_tags = true;
+            lexer->mark_end(lexer);  // Mark end at current position (after space, before colon)
+            lexer->result_symbol = TITLE_TEXT;
+            return true;
+        }
+    }
+
+    // Reached EOL - entire line is title
+    if (!has_content) {
+        return false;
+    }
+
+    scanner->emitting_tags = false;
+    lexer->mark_end(lexer);
+    lexer->result_symbol = TITLE_TEXT;
+    return true;
 }
 
 /**
- * Scan tags portion
+ * Scan tags - validates and consumes tags from current position
+ *
+ * Expected format: :tag1:tag2:...:tagN: followed by EOL
+ * If format is invalid, returns false and grammar will backtrack
  */
 static bool scan_tags(Scanner *scanner, TSLexer *lexer) {
-    if (!scanner->has_tags) {
+    if (!scanner->emitting_tags) {
         return false;
     }
 
-    // Skip space before tags
-    if (lexer->lookahead == ' ') {
-        lexer->advance(lexer, false);
+    // Should be at ':' character now
+    if (lexer->lookahead != ':') {
+        scanner->emitting_tags = false;
+        return false;
     }
 
-    // Consume tags
-    uint32_t count = 0;
+    // Read and validate tags format
+    bool in_tag = false;
+    bool has_any_tag = false;
+    int32_t tag_char_count = 0;
+
     while (lexer->lookahead != '\n' && lexer->lookahead != 0) {
+        int32_t c = lexer->lookahead;
+
+        if (c == ':') {
+            if (in_tag && tag_char_count > 0) {
+                // End of current tag AND start of next tag
+                has_any_tag = true;
+                // Stay in_tag=true, just reset counter for next tag
+                tag_char_count = 0;
+            } else if (!in_tag) {
+                // Start of first/new tag
+                in_tag = true;
+                tag_char_count = 0;
+            } else {
+                // Empty tag "::" - invalid
+                scanner->emitting_tags = false;
+                return false;
+            }
+        } else if (is_valid_tag_char(c)) {
+            if (!in_tag) {
+                // Tag character outside of :tag: - invalid
+                scanner->emitting_tags = false;
+                return false;
+            }
+            tag_char_count++;
+        } else {
+            // Invalid character in tags
+            scanner->emitting_tags = false;
+            return false;
+        }
+
         lexer->advance(lexer, false);
-        count++;
     }
 
-    if (count > 0) {
-        lexer->mark_end(lexer);
-        lexer->result_symbol = TAGS;
-        scanner->has_tags = false;  // Reset
-        return true;
+    // Must end with ':' (so tag_char_count should be 0 - not building a tag name)
+    // and we must have seen at least one tag
+    if (!has_any_tag || tag_char_count > 0) {
+        scanner->emitting_tags = false;
+        return false;
     }
 
-    return false;
+    // Valid tags!
+    scanner->emitting_tags = false;
+    lexer->mark_end(lexer);
+    lexer->result_symbol = TAGS;
+    return true;
 }
 
 /**
- * Peek ahead to find tags at end of line
- *
- * This function does NOT advance the lexer - it only peeks.
- * Returns true if tags found, with lengths in output parameters.
+ * Find tags in buffer by scanning backwards
+ * Returns true if tags found, with title_len and tags_start set
  */
-static bool find_tags_at_end(TSLexer *lexer, uint32_t *out_title_len, uint32_t *out_tags_len) {
-    #define MAX_LINE 4096
-    int32_t buffer[MAX_LINE];
-    uint32_t len = 0;
-
-    // Read line into buffer (WITHOUT advancing lexer)
-    TSLexer temp = *lexer;
-    while (temp.lookahead != '\n' && temp.lookahead != 0 && len < MAX_LINE) {
-        buffer[len++] = temp.lookahead;
-        temp.advance(&temp, false);
-    }
-
+static bool find_tags_in_buffer(int32_t *buffer, uint32_t len,
+                                uint32_t *out_title_len, uint32_t *out_tags_start) {
     if (len == 0) {
-        *out_title_len = 0;
-        *out_tags_len = 0;
         return false;
     }
-
-    // Scan backwards for tag pattern
-    int32_t pos = len - 1;
 
     // Must end with ':'
-    if (buffer[pos] != ':') {
+    if (buffer[len - 1] != ':') {
         *out_title_len = len;
-        *out_tags_len = 0;
         return false;
     }
 
-    // Scan backwards through tags
+    // Scan backwards
+    int32_t pos = len - 2;  // Start before final ':'
     bool in_tag = false;
     int32_t tags_start = -1;
     int32_t tag_count = 0;
 
-    pos--;
     while (pos >= 0) {
         int32_t c = buffer[pos];
 
         if (c == ':') {
             if (in_tag) {
-                // End of a tag (going backwards)
+                // Found start of a tag
                 tag_count++;
                 in_tag = false;
                 tags_start = pos;
@@ -260,7 +263,7 @@ static bool find_tags_at_end(TSLexer *lexer, uint32_t *out_title_len, uint32_t *
         } else if (c == ' ' && tags_start >= 0 && tag_count > 0 && !in_tag) {
             // Found space before tags!
             *out_title_len = pos;  // Title up to space
-            *out_tags_len = len - pos - 1;  // Tags after space
+            *out_tags_start = pos + 1;  // Tags start after space
             return true;
         } else {
             // Invalid character
@@ -270,16 +273,8 @@ static bool find_tags_at_end(TSLexer *lexer, uint32_t *out_title_len, uint32_t *
         pos--;
     }
 
-    // Check if tags at start of line
-    if (tags_start == 0 && tag_count > 0 && !in_tag) {
-        *out_title_len = 0;
-        *out_tags_len = len;
-        return true;
-    }
-
-    // No valid tags found
+    // No valid tags
     *out_title_len = len;
-    *out_tags_len = 0;
     return false;
 }
 

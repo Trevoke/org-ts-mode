@@ -27,23 +27,24 @@ module.exports = grammar({
 
   rules: {
     // Root: Inline content can be title with tags, or just text
+    // Use prec to prefer external scanner tokens over text fallback
     inline: $ => choice(
-      $.title_with_tags,
-      $.title_only,
-      $.text
+      prec(2, $.title_with_tags),
+      prec(2, $.title_only),
+      prec(1, $.text)
     ),
 
     // Title with tags: "Some title :tag1:tag2:"
+    // Note: TITLE_TEXT includes the trailing space before tags
     title_with_tags: $ => seq(
       field('title', alias($.TITLE_TEXT, $.title)),
-      ' ',
       field('tags', alias($.TAGS, $.tags))
     ),
 
     // Title only: "Some title" (no tags)
     title_only: $ => field('title', alias($.TITLE_TEXT, $.title)),
 
-    // Plain text (fallback)
+    // Plain text (fallback) - lower precedence
     text: $ => /[^\n]+/,
   }
 });

@@ -393,14 +393,16 @@ Tree-sitter's injection mechanism:
 ### Current Implementation Status
 
 - ✅ **Block Grammar**: Complete, 100% test coverage (112/112 tests passing)
-- 🚧 **Inline Grammar**: In development
-- 📋 **Injection Queries**: Planned
+- ✅ **Inline Grammar**: Title/tags separation implemented (8/8 tests passing)
+  - External scanner working correctly for tag detection
+  - Handles edge cases: empty title, multiple tags, special characters
+- ✅ **Injection Queries**: Created for block→inline injection
 
 ### Challenges & Solutions
 
 **Challenge 1: Tags at End of Headlines**
 - **Problem**: Can't separate `:tag:` from title with regex alone (no lookahead)
-- **Solution**: Inline grammar uses external scanner to scan backwards from EOL
+- **Solution**: External scanner detects ` :` pattern while advancing, marks title end before tags, validates tag format on next call. Handles edge cases like `:` in title text (e.g., "Read: book title") by validating full tag pattern.
 
 **Challenge 2: Inline Markup Context-Sensitivity**
 - **Problem**: `*` means headline at line start, bold within text
