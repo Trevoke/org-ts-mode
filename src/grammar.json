@@ -1,0 +1,225 @@
+{
+  "$schema": "https://tree-sitter.github.io/tree-sitter/assets/schemas/grammar.schema.json",
+  "name": "org",
+  "rules": {
+    "document": {
+      "type": "REPEAT",
+      "content": {
+        "type": "SYMBOL",
+        "name": "_element"
+      }
+    },
+    "_element": {
+      "type": "CHOICE",
+      "members": [
+        {
+          "type": "SYMBOL",
+          "name": "headline"
+        },
+        {
+          "type": "SYMBOL",
+          "name": "paragraph"
+        }
+      ]
+    },
+    "headline": {
+      "type": "SEQ",
+      "members": [
+        {
+          "type": "SYMBOL",
+          "name": "stars"
+        },
+        {
+          "type": "STRING",
+          "value": " "
+        },
+        {
+          "type": "CHOICE",
+          "members": [
+            {
+              "type": "SEQ",
+              "members": [
+                {
+                  "type": "FIELD",
+                  "name": "keyword",
+                  "content": {
+                    "type": "SYMBOL",
+                    "name": "keyword"
+                  }
+                },
+                {
+                  "type": "STRING",
+                  "value": " "
+                }
+              ]
+            },
+            {
+              "type": "BLANK"
+            }
+          ]
+        },
+        {
+          "type": "CHOICE",
+          "members": [
+            {
+              "type": "SEQ",
+              "members": [
+                {
+                  "type": "FIELD",
+                  "name": "priority",
+                  "content": {
+                    "type": "SYMBOL",
+                    "name": "priority"
+                  }
+                },
+                {
+                  "type": "STRING",
+                  "value": " "
+                }
+              ]
+            },
+            {
+              "type": "BLANK"
+            }
+          ]
+        },
+        {
+          "type": "CHOICE",
+          "members": [
+            {
+              "type": "FIELD",
+              "name": "title",
+              "content": {
+                "type": "SYMBOL",
+                "name": "title"
+              }
+            },
+            {
+              "type": "BLANK"
+            }
+          ]
+        },
+        {
+          "type": "CHOICE",
+          "members": [
+            {
+              "type": "FIELD",
+              "name": "tags",
+              "content": {
+                "type": "SYMBOL",
+                "name": "tags"
+              }
+            },
+            {
+              "type": "BLANK"
+            }
+          ]
+        },
+        {
+          "type": "STRING",
+          "value": "\n"
+        }
+      ]
+    },
+    "stars": {
+      "type": "PATTERN",
+      "value": "\\*+"
+    },
+    "keyword": {
+      "type": "TOKEN",
+      "content": {
+        "type": "PREC",
+        "value": 1,
+        "content": {
+          "type": "CHOICE",
+          "members": [
+            {
+              "type": "STRING",
+              "value": "TODO"
+            },
+            {
+              "type": "STRING",
+              "value": "DONE"
+            },
+            {
+              "type": "STRING",
+              "value": "NEXT"
+            },
+            {
+              "type": "STRING",
+              "value": "WAITING"
+            },
+            {
+              "type": "STRING",
+              "value": "CANCELED"
+            }
+          ]
+        }
+      }
+    },
+    "priority": {
+      "type": "TOKEN",
+      "content": {
+        "type": "PREC",
+        "value": 1,
+        "content": {
+          "type": "PATTERN",
+          "value": "\\[#[A-Z]\\]"
+        }
+      }
+    },
+    "title": {
+      "type": "PREC",
+      "value": -1,
+      "content": {
+        "type": "PATTERN",
+        "value": "[^\\n]+"
+      }
+    },
+    "tags": {
+      "type": "SEQ",
+      "members": [
+        {
+          "type": "REPEAT1",
+          "content": {
+            "type": "SYMBOL",
+            "name": "tag"
+          }
+        },
+        {
+          "type": "STRING",
+          "value": ":"
+        }
+      ]
+    },
+    "tag": {
+      "type": "PATTERN",
+      "value": ":[a-zA-Z0-9_@#%]+"
+    },
+    "paragraph": {
+      "type": "SEQ",
+      "members": [
+        {
+          "type": "PATTERN",
+          "value": "[^*\\n][^\\n]*"
+        },
+        {
+          "type": "PATTERN",
+          "value": "\\n"
+        }
+      ]
+    }
+  },
+  "extras": [
+    {
+      "type": "PATTERN",
+      "value": "\\s"
+    }
+  ],
+  "conflicts": [],
+  "precedences": [],
+  "externals": [],
+  "inline": [],
+  "supertypes": [],
+  "reserved": {}
+}

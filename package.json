@@ -1,0 +1,33 @@
+{
+  "name": "tree-sitter-org",
+  "version": "0.1.0",
+  "description": "Org-mode grammar for tree-sitter",
+  "main": "bindings/node",
+  "types": "bindings/node",
+  "scripts": {
+    "build": "tree-sitter generate && node-gyp build",
+    "test": "tree-sitter test"
+  },
+  "keywords": [
+    "tree-sitter",
+    "parser",
+    "org-mode",
+    "emacs"
+  ],
+  "author": "",
+  "license": "MIT",
+  "dependencies": {
+    "node-addon-api": "^7.1.0",
+    "node-gyp": "^10.0.1"
+  },
+  "devDependencies": {
+    "tree-sitter-cli": "^0.22.6"
+  },
+  "tree-sitter": [
+    {
+      "scope": "source.org",
+      "file-types": ["org"],
+      "injection-regex": "org"
+    }
+  ]
+}

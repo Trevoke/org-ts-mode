@@ -1,0 +1,131 @@
+[
+  {
+    "type": "document",
+    "named": true,
+    "root": true,
+    "fields": {},
+    "children": {
+      "multiple": true,
+      "required": false,
+      "types": [
+        {
+          "type": "headline",
+          "named": true
+        },
+        {
+          "type": "paragraph",
+          "named": true
+        }
+      ]
+    }
+  },
+  {
+    "type": "headline",
+    "named": true,
+    "fields": {
+      "keyword": {
+        "multiple": false,
+        "required": false,
+        "types": [
+          {
+            "type": "keyword",
+            "named": true
+          }
+        ]
+      },
+      "priority": {
+        "multiple": false,
+        "required": false,
+        "types": [
+          {
+            "type": "priority",
+            "named": true
+          }
+        ]
+      },
+      "tags": {
+        "multiple": false,
+        "required": false,
+        "types": [
+          {
+            "type": "tags",
+            "named": true
+          }
+        ]
+      },
+      "title": {
+        "multiple": false,
+        "required": false,
+        "types": [
+          {
+            "type": "title",
+            "named": true
+          }
+        ]
+      }
+    },
+    "children": {
+      "multiple": false,
+      "required": true,
+      "types": [
+        {
+          "type": "stars",
+          "named": true
+        }
+      ]
+    }
+  },
+  {
+    "type": "paragraph",
+    "named": true,
+    "fields": {}
+  },
+  {
+    "type": "tags",
+    "named": true,
+    "fields": {},
+    "children": {
+      "multiple": true,
+      "required": true,
+      "types": [
+        {
+          "type": "tag",
+          "named": true
+        }
+      ]
+    }
+  },
+  {
+    "type": "title",
+    "named": true,
+    "fields": {}
+  },
+  {
+    "type": "\n",
+    "named": false
+  },
+  {
+    "type": " ",
+    "named": false
+  },
+  {
+    "type": ":",
+    "named": false
+  },
+  {
+    "type": "keyword",
+    "named": true
+  },
+  {
+    "type": "priority",
+    "named": true
+  },
+  {
+    "type": "stars",
+    "named": true
+  },
+  {
+    "type": "tag",
+    "named": true
+  }
+]

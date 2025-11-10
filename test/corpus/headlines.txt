@@ -1,0 +1,110 @@
+==================
+Simple headline
+==================
+
+* Headline
+
+---
+
+(document
+  (headline
+    (stars)
+    (title)))
+
+==================
+Multiple headlines
+==================
+
+* First headline
+** Second level
+* Another top level
+
+---
+
+(document
+  (headline
+    (stars)
+    (title))
+  (headline
+    (stars)
+    (title))
+  (headline
+    (stars)
+    (title)))
+
+==================
+Headline with TODO keyword
+==================
+
+* TODO Task to do
+
+---
+
+(document
+  (headline
+    (stars)
+    (keyword)
+    (title)))
+
+==================
+Headline with priority
+==================
+
+* [#A] Important task
+
+---
+
+(document
+  (headline
+    (stars)
+    (priority)
+    (title)))
+
+==================
+Headline with text
+==================
+
+* Headline with some text content
+
+---
+
+(document
+  (headline
+    (stars)
+    (title)))
+
+==================
+Complete headline with keyword and priority
+==================
+
+* TODO [#A] Important task to complete
+
+---
+
+(document
+  (headline
+    (stars)
+    (keyword)
+    (priority)
+    (title)))
+
+==================
+Headline with multiple levels
+==================
+
+* Level 1
+** Level 2
+*** Level 3
+
+---
+
+(document
+  (headline
+    (stars)
+    (title))
+  (headline
+    (stars)
+    (title))
+  (headline
+    (stars)
+    (title)))
