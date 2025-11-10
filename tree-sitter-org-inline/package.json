@@ -1,0 +1,44 @@
+{
+  "name": "tree-sitter-org-inline",
+  "version": "0.1.0",
+  "description": "Inline (object-level) grammar for Org-mode - handles tags, markup, links",
+  "main": "bindings/node",
+  "types": "bindings/node",
+  "scripts": {
+    "build": "tree-sitter generate && node-gyp build",
+    "test": "tree-sitter test"
+  },
+  "keywords": [
+    "tree-sitter",
+    "parser",
+    "org-mode",
+    "emacs",
+    "inline",
+    "markup"
+  ],
+  "author": "",
+  "license": "MIT",
+  "dependencies": {
+    "node-addon-api": "^7.1.0",
+    "node-gyp": "^10.0.1",
+    "node-gyp-build": "^4.8.0"
+  },
+  "peerDependencies": {
+    "tree-sitter": "^0.21.0"
+  },
+  "peerDependenciesMeta": {
+    "tree_sitter": {
+      "optional": true
+    }
+  },
+  "devDependencies": {
+    "tree-sitter-cli": "^0.22.6",
+    "prebuildify": "^6.0.0"
+  },
+  "tree-sitter": [
+    {
+      "scope": "source.org_inline",
+      "injection-regex": "org_inline"
+    }
+  ]
+}
