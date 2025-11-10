@@ -117,6 +117,10 @@
           "named": true
         },
         {
+          "type": "list",
+          "named": true
+        },
+        {
           "type": "paragraph",
           "named": true
         },
@@ -205,6 +209,36 @@
         },
         {
           "type": "link_target",
+          "named": true
+        }
+      ]
+    }
+  },
+  {
+    "type": "list",
+    "named": true,
+    "fields": {},
+    "children": {
+      "multiple": true,
+      "required": true,
+      "types": [
+        {
+          "type": "list_item",
+          "named": true
+        }
+      ]
+    }
+  },
+  {
+    "type": "list_item",
+    "named": true,
+    "fields": {},
+    "children": {
+      "multiple": false,
+      "required": true,
+      "types": [
+        {
+          "type": "bullet",
           "named": true
         }
       ]
@@ -346,6 +380,10 @@
   },
   {
     "type": "block_type",
+    "named": true
+  },
+  {
+    "type": "bullet",
     "named": true
   },
   {

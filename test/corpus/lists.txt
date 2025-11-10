@@ -1,0 +1,94 @@
+==================
+Simple unordered list with dash
+==================
+
+- Item 1
+- Item 2
+- Item 3
+
+---
+
+(document
+  (list
+    (list_item
+      (bullet))
+    (list_item
+      (bullet))
+    (list_item
+      (bullet))))
+
+==================
+Simple unordered list with plus
+==================
+
++ Item 1
++ Item 2
+
+---
+
+(document
+  (list
+    (list_item
+      (bullet))
+    (list_item
+      (bullet))))
+
+==================
+Simple ordered list
+==================
+
+1. First item
+2. Second item
+3. Third item
+
+---
+
+(document
+  (list
+    (list_item
+      (bullet))
+    (list_item
+      (bullet))
+    (list_item
+      (bullet))))
+
+==================
+List under headline
+==================
+
+* TODO Tasks
+
+- Task 1
+- Task 2
+
+---
+
+(document
+  (headline
+    (stars)
+    (keyword)
+    (title))
+  (list
+    (list_item
+      (bullet))
+    (list_item
+      (bullet))))
+
+==================
+Ordered list with letter bullets
+==================
+
+a. First
+b. Second
+c. Third
+
+---
+
+(document
+  (list
+    (list_item
+      (bullet))
+    (list_item
+      (bullet))
+    (list_item
+      (bullet))))

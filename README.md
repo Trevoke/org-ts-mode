@@ -106,6 +106,25 @@ This is an early-stage implementation following TDD principles. The grammar is b
 
 **Implementation Notes**: Links are currently block-level elements (full lines). In Org-mode, links are inline objects that can appear within paragraphs. Future enhancement will require restructuring paragraphs to support inline elements.
 
+#### ✅ Lists (100% test coverage)
+- [x] Unordered lists with `-` bullet
+- [x] Unordered lists with `+` bullet
+- [x] Ordered lists with numbers (`1.`, `2.`)
+- [x] Ordered lists with letters (`a.`, `b.`)
+- [x] Lists under headlines
+- [x] Nested list support (via indentation)
+
+**Tests**: 5/5 passing
+
+**Bounding Success**: List bullets (-, +, digits, letters) are distinctive start patterns. Modified paragraph rule to exclude `-`, `+`, digits, and lowercase letters at start (changed to `/[^*#|\[\-+0-9a-z\n]/`). Used `prec.right(repeat1(...))` for grouping consecutive list items. List precedence set to prec(1) to prefer lists over paragraphs. Zero cascading failures.
+
+**Implementation Notes**: Bullets wrapped in `token()` for atomic matching. List items support optional indentation for nesting.
+
+**Known Limitations**:
+- Checkboxes (`[ ]`, `[X]`, `[-]`) not yet implemented - parsing conflicts with content pattern
+- Description lists (tags with `::`) not yet implemented
+- Multi-line list items not supported
+
 ### TODO (Priority Order)
 
 #### Next Sprint

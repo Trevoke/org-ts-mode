@@ -17,6 +17,7 @@ module.exports = grammar({
       $.headline,
       prec(2, $.planning_line),
       $.link,
+      prec(1, $.list),
       $.block,
       $.directive,
       $.comment,
@@ -97,6 +98,28 @@ module.exports = grammar({
       ']]',
       '\n'
     ),
+
+    // List: consecutive list items
+    list: $ => prec.right(repeat1($.list_item)),
+
+    // List item: BULLET CONTENT
+    list_item: $ => seq(
+      optional(/[ \t]+/),
+      $.bullet,
+      ' ',
+      /[^\n]*/,
+      '\n'
+    ),
+
+    // Bullet: -, +, 1., a), etc.
+    bullet: $ => token(choice(
+      '-',
+      '+',
+      seq(/[0-9]+/, '.'),
+      seq(/[0-9]+/, ')'),
+      seq(/[a-zA-Z]/, '.'),
+      seq(/[a-zA-Z]/, ')')
+    )),
 
     // Block: #+begin_NAME ... #+end_NAME
     block: $ => seq(
@@ -209,8 +232,9 @@ module.exports = grammar({
     value: $ => /[^\n]+/,
 
     // Paragraph: any line that doesn't start with special characters
+    // Excludes: *, #, |, [, -, +, digits, lowercase letters (for list bullets)
     paragraph: $ => seq(
-      /[^*#|\[\n][^\n]*/,
+      /[^*#|\[\-+0-9a-z\n][^\n]*/,
       /\n/
     ),
   }
