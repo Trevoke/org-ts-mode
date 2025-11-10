@@ -100,6 +100,10 @@
           "named": true
         },
         {
+          "type": "clock",
+          "named": true
+        },
+        {
           "type": "comment",
           "named": true
         },
@@ -463,6 +467,10 @@
   },
   {
     "type": "bullet",
+    "named": true
+  },
+  {
+    "type": "clock",
     "named": true
   },
   {

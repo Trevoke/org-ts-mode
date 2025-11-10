@@ -16,6 +16,7 @@ module.exports = grammar({
     _element: $ => choice(
       $.headline,
       prec(2, $.planning_line),
+      prec(2, $.clock),
       $.link,
       prec(2, $.footnote_reference),
       $.timestamp,
@@ -86,6 +87,37 @@ module.exports = grammar({
         seq('<', /[^>\n]+/, '>'),
         // Inactive timestamp: [2024-01-01 Mon 14:30]
         seq('[', /[^\]\n]+/, ']')
+      ),
+      '\n'
+    )),
+
+    // Clock: CLOCK: timestamp or CLOCK: timestamp--timestamp => duration
+    // Match entire line as atomic token to avoid conflicts
+    // Case-insensitive keyword
+    clock: $ => token(seq(
+      optional(/[ \t]+/),  // Optional leading whitespace
+      /[Cc][Ll][Oo][Cc][Kk]/,  // Case-insensitive CLOCK
+      ':',
+      /[ \t]+/,
+      choice(
+        // Format 1: CLOCK: [timestamp]--[timestamp] => HH:MM
+        seq(
+          seq('[', /\d[^\]\n]*/, ']'),  // First inactive timestamp
+          '--',
+          seq('[', /\d[^\]\n]*/, ']'),  // Second inactive timestamp
+          /[ \t]+/,
+          '=>',
+          /[ \t]+/,
+          /\d+:\d{2}/  // Duration HH:MM
+        ),
+        // Format 2: CLOCK: [timestamp]
+        seq('[', /\d[^\]\n]*/, ']'),
+        // Format 3: CLOCK: => HH:MM
+        seq(
+          '=>',
+          /[ \t]+/,
+          /\d+:\d{2}/
+        )
       ),
       '\n'
     )),
