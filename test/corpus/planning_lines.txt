@@ -1,0 +1,104 @@
+==================
+Simple SCHEDULED
+==================
+
+* TODO Task
+SCHEDULED: <2024-01-01 Mon>
+
+---
+
+(document
+  (headline
+    (stars)
+    (keyword)
+    (title))
+  (planning_line))
+
+==================
+Simple DEADLINE
+==================
+
+* TODO Task
+DEADLINE: <2024-01-15 Mon>
+
+---
+
+(document
+  (headline
+    (stars)
+    (keyword)
+    (title))
+  (planning_line))
+
+==================
+Simple CLOSED
+==================
+
+* DONE Completed task
+CLOSED: [2024-01-10 Wed 14:30]
+
+---
+
+(document
+  (headline
+    (stars)
+    (keyword)
+    (title))
+  (planning_line))
+
+==================
+Multiple planning keywords
+==================
+
+* TODO Important task
+SCHEDULED: <2024-01-01 Mon>
+DEADLINE: <2024-01-15 Mon>
+
+---
+
+(document
+  (headline
+    (stars)
+    (keyword)
+    (title))
+  (planning_line)
+  (planning_line))
+
+==================
+All three planning keywords
+==================
+
+* DONE Finished task
+CLOSED: [2024-01-10 Wed 14:30]
+SCHEDULED: <2024-01-01 Mon>
+DEADLINE: <2024-01-15 Mon>
+
+---
+
+(document
+  (headline
+    (stars)
+    (keyword)
+    (title))
+  (planning_line)
+  (planning_line)
+  (planning_line))
+
+==================
+Planning with content after
+==================
+
+* TODO Task
+SCHEDULED: <2024-01-01 Mon>
+
+Some paragraph content.
+
+---
+
+(document
+  (headline
+    (stars)
+    (keyword)
+    (title))
+  (planning_line)
+  (paragraph))

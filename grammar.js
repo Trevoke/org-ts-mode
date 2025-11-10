@@ -15,6 +15,7 @@ module.exports = grammar({
 
     _element: $ => choice(
       $.headline,
+      prec(2, $.planning_line),
       $.block,
       $.directive,
       $.comment,
@@ -67,6 +68,22 @@ module.exports = grammar({
     ),
 
     tag: $ => /:[a-zA-Z0-9_@#%]+/,
+
+    // Planning line: KEYWORD: TIMESTAMP
+    // Match entire line as atomic token to avoid conflicts
+    planning_line: $ => token(seq(
+      optional(/[ \t]+/),  // Optional leading whitespace
+      choice('DEADLINE', 'SCHEDULED', 'CLOSED'),
+      ':',
+      /[ \t]+/,
+      choice(
+        // Active timestamp: <2024-01-01 Mon 14:30>
+        seq('<', /[^>\n]+/, '>'),
+        // Inactive timestamp: [2024-01-01 Mon 14:30]
+        seq('[', /[^\]\n]+/, ']')
+      ),
+      '\n'
+    )),
 
     // Block: #+begin_NAME ... #+end_NAME
     block: $ => seq(

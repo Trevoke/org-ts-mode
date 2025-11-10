@@ -79,6 +79,19 @@ This is an early-stage implementation following TDD principles. The grammar is b
 
 **Bounding Success**: Directives use `#+KEYWORD:` pattern (uppercase keyword + colon). Distinct from blocks (`#+begin_`), comments (`# `). Originally named "keyword" but renamed to "directive" to avoid conflict with headline TODO keywords. Perfect isolation - zero cascading failures.
 
+#### ✅ Planning Lines (100% test coverage)
+- [x] SCHEDULED planning lines
+- [x] DEADLINE planning lines
+- [x] CLOSED planning lines
+- [x] Multiple planning keywords
+- [x] Planning with content after
+
+**Tests**: 6/6 passing
+
+**Bounding Success**: Planning lines use uppercase keywords (DEADLINE, SCHEDULED, CLOSED) followed by `:` and timestamp. Implemented as atomic token (`token(seq(...))`) to prevent internal components from leaking. Higher precedence (`prec(2, ...)`) ensures they're matched before paragraphs. Zero cascading failures.
+
+**Implementation Notes**: Initial attempt with separate timestamp components (date, day_name, time) caused massive cascading failures as patterns matched everywhere. Solution: make entire planning line atomic, including timestamp content. Timestamp matching uses simple regex patterns (`<[^>\n]+>` and `[^\]\n]+]`) rather than complex structured rules.
+
 ### TODO (Priority Order)
 
 #### Next Sprint
@@ -94,9 +107,8 @@ This is an early-stage implementation following TDD principles. The grammar is b
 #### Future
 - [ ] Lists (ordered, unordered, description)
 - [ ] Links
-- [ ] Timestamps
+- [ ] Timestamps (standalone, not just in planning lines)
 - [ ] Footnotes
-- [ ] Property drawers
 
 ## Development Approach
 
