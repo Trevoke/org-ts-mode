@@ -1,0 +1,149 @@
+==================
+Simple bold in text
+==================
+
+This is *bold* text.
+
+---
+
+(inline
+  (text_markup
+    (bold)))
+
+==================
+Bold at start of line
+==================
+
+*Bold* at start
+
+---
+
+(inline
+  (text_markup
+    (bold)))
+
+==================
+Bold at end of line
+==================
+
+Text with *bold*
+
+---
+
+(inline
+  (text_markup
+    (bold)))
+
+==================
+Bold with PRE characters (hyphen)
+==================
+
+Text-*bold* here
+
+---
+
+(inline
+  (text_markup
+    (bold)))
+
+==================
+Bold with PRE characters (parenthesis)
+==================
+
+Text(*bold*) here
+
+---
+
+(inline
+  (text_markup
+    (bold)))
+
+==================
+Bold with POST characters (period)
+==================
+
+Text *bold*. more text
+
+---
+
+(inline
+  (text_markup
+    (bold)))
+
+==================
+Bold with POST characters (comma)
+==================
+
+Text *bold*, more text
+
+---
+
+(inline
+  (text_markup
+    (bold)))
+
+==================
+Multiple bold in same line
+==================
+
+*First* and *second* bold
+
+---
+
+(inline
+  (text_markup
+    (bold))
+  (text_markup
+    (bold)))
+
+==================
+Simple italic
+==================
+
+This is /italic/ text.
+
+---
+
+(inline
+  (text_markup
+    (italic)))
+
+==================
+Simple code
+==================
+
+This is ~code~ text.
+
+---
+
+(inline
+  (text_markup
+    (code)))
+
+==================
+Simple verbatim
+==================
+
+This is =verbatim= text.
+
+---
+
+(inline
+  (text_markup
+    (verbatim)))
+
+==================
+Mixed markup types
+==================
+
+*bold* and /italic/ and ~code~
+
+---
+
+(inline
+  (text_markup
+    (bold))
+  (text_markup
+    (italic))
+  (text_markup
+    (code)))
