@@ -90,7 +90,7 @@ These should be parsed by the inline grammar within paragraphs, titles, table ce
 | **Radio Targets** | ❌ | `<<<RADIO>>>` |
 | **Statistics Cookies** | ❌ | `[50%]`, `[1/2]` |
 | **Table Cells (objects)** | 🟡 | Tables exist, but cell contents not parsed for objects |
-| **Text Markup** | 🟡 | Bold `*`, Italic `/`, Code `~`, Verbatim `=` implemented. Missing: Underline `_`, Strike `+` |
+| **Text Markup** | ✅ | Bold `*`, Italic `/`, Underline `_`, Code `~`, Verbatim `=`, Strike `+` all implemented |
 | **Plain Text** | ✅ | Default object type in inline grammar |
 
 ### Inline Grammar Status
@@ -98,12 +98,11 @@ These should be parsed by the inline grammar within paragraphs, titles, table ce
 **Implemented:**
 - ✅ Title/tags separation (8/8 tests)
 - ✅ External scanner for tag detection
-- ✅ Text markup: bold, italic, code, verbatim (8/8 tests)
+- ✅ Text markup: bold, italic, underline, code, verbatim, strike-through (11/11 tests)
 - ✅ Plain text with proper whitespace handling
 - ✅ Colons in titles (distinct from tags)
 
 **TODO for Inline Grammar:**
-- Underline (`_text_`) and strike-through (`+text+`) markup
 - Links within paragraphs (not just block-level)
 - Plain links, angle links
 - Targets and radio targets
@@ -120,11 +119,10 @@ These should be parsed by the inline grammar within paragraphs, titles, table ce
 ### High Priority (Common in Org Files)
 
 1. **Text Markup** (`*bold*`, `/italic/`, `_underline_`, `~code~`, `=verbatim=`, `+strike+`)
-   - **Status**: 🟡 **PARTIAL** - bold, italic, code, verbatim implemented
-   - **Missing**: Underline (`_`), strike-through (`+`)
+   - **Status**: ✅ **COMPLETE** - all 6 markup types implemented (11/11 tests)
    - **Impact**: Very common in org files
    - **Location**: Inline grammar
-   - **Complexity**: Same pattern as existing markup
+   - **Bounding**: Excellent - self-contained, localized failures, graceful degradation
 
 2. **COMMENT Keyword in Headlines** ⚠️  **BLOCKED**
    - **Impact**: Common for disabling sections
@@ -135,12 +133,13 @@ These should be parsed by the inline grammar within paragraphs, titles, table ce
    - **Bounding Impact**: This demonstrates poor bounding - title's greediness prevents proper keyword recognition
 
 3. **Fixed Width Areas** (`: content`)
-   - **Status**: ✅ **IMPLEMENTED** (5/5 tests passing)
+   - **Status**: ✅ **COMPLETE** (5/5 tests passing)
    - **Impact**: Common for code/output examples
    - **Location**: Block grammar
    - **Bounding**: Excellent - distinctive start pattern, graceful degradation
 
 4. **Inline Links** (currently block-only)
+   - **Status**: 📋 **NEXT PRIORITY**
    - **Impact**: Links should work within paragraphs
    - **Location**: Move from block to inline grammar
    - **Complexity**: Medium - need to handle in object context
@@ -219,10 +218,10 @@ These should be parsed by the inline grammar within paragraphs, titles, table ce
 
 ### Inline Grammar (tree-sitter-org-inline)
 - **Total Objects**: ~25 types
-- **Implemented**: ~5 types (title/tags, 4 markup types, plain text)
+- **Implemented**: ~7 types (title/tags, 6 markup types, plain text)
 - **In Block (Should Move)**: ~7 types (entities, latex, footnotes, links, macros, sub/super, timestamps)
-- **Missing**: ~13 types
-- **Test Coverage**: 16/16 tests passing
+- **Missing**: ~11 types
+- **Test Coverage**: 19/19 tests passing
 
 ### Overall Syntax Coverage
 - **Fully Functional**: ~35%
@@ -239,10 +238,9 @@ These should be parsed by the inline grammar within paragraphs, titles, table ce
 ✅ Directives/keywords
 ✅ Fixed width areas
 ✅ Title/tags separation (inline grammar)
-✅ Text markup (bold, italic, code, verbatim)
+✅ **Complete text markup** (all 6 types: bold, italic, underline, code, verbatim, strike-through)
 
 ### What's Missing That Users Will Notice
-❌ Underline and strike-through markup - **Common**
 ❌ Inline links in paragraphs - **Very Common**
 ❌ COMMENT keyword in headlines - **BLOCKED**
 ❌ Clock elements
