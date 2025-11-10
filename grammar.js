@@ -20,6 +20,7 @@ module.exports = grammar({
       prec(2, $.footnote_reference),
       $.timestamp,
       $.macro,
+      $.latex_fragment,
       prec(1, $.list),
       $.block,
       $.directive,
@@ -136,6 +137,17 @@ module.exports = grammar({
         )
       ),
       ']',
+      '\n'
+    )),
+
+    // LaTeX fragment: $$...$$ or $...$
+    latex_fragment: $ => token(seq(
+      choice(
+        // Display math: $$...$$
+        seq('$$', /[^$]+/, '$$'),
+        // Inline math: $...$
+        seq('$', /[^$\n]+/, '$')
+      ),
       '\n'
     )),
 

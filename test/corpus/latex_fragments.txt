@@ -1,0 +1,75 @@
+==================
+Display math with double dollar
+==================
+
+$$E = mc^2$$
+
+---
+
+(document
+  (latex_fragment))
+
+==================
+Simple inline math
+==================
+
+$x$
+
+---
+
+(document
+  (latex_fragment))
+
+==================
+Inline math with expression
+==================
+
+$a + b = c$
+
+---
+
+(document
+  (latex_fragment))
+
+==================
+LaTeX under headline
+==================
+
+* Mathematics
+
+$$\int_0^1 x^2 dx$$
+
+Some text.
+
+---
+
+(document
+  (headline
+    (stars)
+    (title))
+  (latex_fragment)
+  (paragraph))
+
+==================
+Multiple LaTeX fragments
+==================
+
+$x$
+$y$
+
+---
+
+(document
+  (latex_fragment)
+  (latex_fragment))
+
+==================
+Display math with Greek letters
+==================
+
+$$\alpha + \beta = \gamma$$
+
+---
+
+(document
+  (latex_fragment))

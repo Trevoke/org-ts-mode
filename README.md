@@ -183,6 +183,20 @@ This is an early-stage implementation following TDD principles. The grammar is b
 
 **Key Technical Insight**: When multiple features use `token()` with overlapping patterns (both starting with `[`), precedence alone doesn't help - you must make patterns mutually exclusive through specificity (e.g., `[` + digit vs `[fn:`).
 
+#### ✅ LaTeX Fragments (100% test coverage)
+- [x] Display math with double dollar (`$$E = mc^2$$`)
+- [x] Simple inline math (`$x$`)
+- [x] Inline math with expressions (`$a + b = c$`)
+- [x] LaTeX under headlines
+- [x] Multiple LaTeX fragments
+- [x] Display math with Greek letters (`$$\alpha + \beta$$`)
+
+**Tests**: 6/6 passing
+
+**Bounding Success**: LaTeX fragments use `$` and `$$` delimiters that are completely unique - not used by any other Org-mode feature. No paragraph pattern modification needed. Atomic token implementation with `token(seq(...))`. Pattern choice orders `$$...$$` before `$...$` to match longer pattern first. Content patterns: `/[^$]+/` for display math (allows newlines), `/[^$\n]+/` for inline math (single line). Zero cascading failures.
+
+**Implementation Notes**: Block-level elements (full lines). Supports basic LaTeX math notation. Advanced patterns like `\(...\)` and `\[...\]` can be added later without grammar changes. Current implementation handles most common use cases.
+
 ### TODO (Priority Order)
 
 #### Next Sprint
