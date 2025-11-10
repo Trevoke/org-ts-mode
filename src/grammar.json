@@ -49,6 +49,10 @@
           "name": "latex_fragment"
         },
         {
+          "type": "SYMBOL",
+          "name": "entity"
+        },
+        {
           "type": "PREC",
           "value": 1,
           "content": {
@@ -559,6 +563,38 @@
                     "value": "$"
                   }
                 ]
+              }
+            ]
+          },
+          {
+            "type": "STRING",
+            "value": "\n"
+          }
+        ]
+      }
+    },
+    "entity": {
+      "type": "TOKEN",
+      "content": {
+        "type": "SEQ",
+        "members": [
+          {
+            "type": "STRING",
+            "value": "\\"
+          },
+          {
+            "type": "PATTERN",
+            "value": "[a-zA-Z]+"
+          },
+          {
+            "type": "CHOICE",
+            "members": [
+              {
+                "type": "STRING",
+                "value": "{}"
+              },
+              {
+                "type": "BLANK"
               }
             ]
           },

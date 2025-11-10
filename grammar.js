@@ -21,6 +21,7 @@ module.exports = grammar({
       $.timestamp,
       $.macro,
       $.latex_fragment,
+      $.entity,
       prec(1, $.list),
       $.block,
       $.directive,
@@ -148,6 +149,14 @@ module.exports = grammar({
         // Inline math: $...$
         seq('$', /[^$\n]+/, '$')
       ),
+      '\n'
+    )),
+
+    // Entity: \name or \name{}
+    entity: $ => token(seq(
+      '\\',
+      /[a-zA-Z]+/,
+      optional('{}'),
       '\n'
     )),
 

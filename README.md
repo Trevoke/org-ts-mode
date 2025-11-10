@@ -197,6 +197,19 @@ This is an early-stage implementation following TDD principles. The grammar is b
 
 **Implementation Notes**: Block-level elements (full lines). Supports basic LaTeX math notation. Advanced patterns like `\(...\)` and `\[...\]` can be added later without grammar changes. Current implementation handles most common use cases.
 
+#### ✅ Entities (100% test coverage)
+- [x] Greek letters (`\alpha`, `\beta`)
+- [x] Non-breaking space (`\nbsp`)
+- [x] Entity with explicit braces (`\alpha{}`)
+- [x] Entities under headlines
+- [x] Multiple entities
+
+**Tests**: 6/6 passing
+
+**Bounding Success**: Entities use backslash `\` prefix followed by alphabetic name (`/[a-zA-Z]+/`). Backslash delimiter is unique in this context - not used by other block-level features. Optional `{}` suffix supported for disambiguation. Atomic token implementation with `token(seq(...))`. No paragraph pattern modification needed. Zero cascading failures.
+
+**Implementation Notes**: Block-level elements (full lines). Supports standard Org entity names (alpha, beta, gamma, nbsp, etc.). Pattern recognizes alphabetic entity names only. Entity validation (checking against org-entities list) is left to higher-level tools.
+
 ### TODO (Priority Order)
 
 #### Next Sprint
