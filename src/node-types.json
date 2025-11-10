@@ -116,6 +116,10 @@
           "named": true
         },
         {
+          "type": "fixed_width",
+          "named": true
+        },
+        {
           "type": "footnote_reference",
           "named": true
         },
@@ -195,6 +199,11 @@
   },
   {
     "type": "drawer_name",
+    "named": true,
+    "fields": {}
+  },
+  {
+    "type": "fixed_width",
     "named": true,
     "fields": {}
   },

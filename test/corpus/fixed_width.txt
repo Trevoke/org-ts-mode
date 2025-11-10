@@ -1,0 +1,71 @@
+==================
+Simple fixed-width line
+==================
+
+: This is fixed-width content
+
+---
+
+(document
+  (fixed_width))
+
+==================
+Multiple fixed-width lines
+==================
+
+: Line 1
+: Line 2
+: Line 3
+
+---
+
+(document
+  (fixed_width))
+
+==================
+Fixed-width with no content
+==================
+
+* Example Output
+: output line 1
+: output line 2
+
+---
+
+(document
+  (headline
+    (stars)
+    (title))
+  (fixed_width))
+
+==================
+Fixed-width with special characters
+==================
+
+: Code: int x = 5;
+: Output: [1, 2, 3]
+: Path: /usr/local/bin
+
+---
+
+(document
+  (fixed_width))
+
+==================
+Multiple fixed-width blocks
+==================
+
+: First block
+: continues
+
+Some text
+
+: Second block
+: also continues
+
+---
+
+(document
+  (fixed_width)
+  (paragraph)
+  (fixed_width))

@@ -30,6 +30,7 @@ module.exports = grammar({
       $.directive,
       $.comment,
       $.property_drawer,
+      prec(2, $.fixed_width),
       $.drawer,
       prec(1, $.table),
       $.paragraph
@@ -290,6 +291,15 @@ module.exports = grammar({
       /[^\n]*/,
       '\n'
     ),
+
+    // Fixed-width area: lines starting with : followed by space or EOL
+    // Used for examples, code output, etc.
+    // Right-associative to group consecutive lines into single block
+    fixed_width: $ => prec.right(repeat1(seq(
+      token(seq(':', optional(' '))),
+      /[^\n]*/,
+      '\n'
+    ))),
 
     // Property drawer: :PROPERTIES: ... :END:
     property_drawer: $ => seq(

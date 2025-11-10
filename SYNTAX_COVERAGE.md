@@ -121,10 +121,13 @@ These should be parsed by the inline grammar within paragraphs, titles, table ce
    - **Location**: Inline grammar
    - **Complexity**: Requires PRE/POST character validation
 
-2. **COMMENT Keyword in Headlines**
+2. **COMMENT Keyword in Headlines** ⚠️  **BLOCKED**
    - **Impact**: Common for disabling sections
    - **Location**: Block grammar headline
-   - **Complexity**: Low - just add to headline pattern
+   - **Complexity**: HIGH - token conflict with greedy title regex
+   - **Issue**: Title pattern `/[^\n]+/` creates implicit token that consumes "COMMENT..." before COMMENT token can match
+   - **Solution needed**: External scanner for title that checks for/excludes COMMENT, or restructure title to not be a simple regex
+   - **Bounding Impact**: This demonstrates poor bounding - title's greediness prevents proper keyword recognition
 
 3. **Fixed Width Areas** (`: content`)
    - **Impact**: Common for code/output examples
