@@ -15,6 +15,7 @@ module.exports = grammar({
 
     _element: $ => choice(
       $.headline,
+      $.block,
       $.paragraph
     ),
 
@@ -63,9 +64,44 @@ module.exports = grammar({
 
     tag: $ => /:[a-zA-Z0-9_@#%]+/,
 
-    // Paragraph: any line that doesn't start with a special character
+    // Block: #+begin_NAME ... #+end_NAME
+    block: $ => seq(
+      $.block_begin,
+      optional($.block_content),
+      $.block_end
+    ),
+
+    // Block begin: #+begin_NAME [PARAMETERS]
+    block_begin: $ => seq(
+      token(seq('#', '+', /begin_/i)),
+      field('type', $.block_type),
+      optional(seq(
+        ' ',
+        field('language', $.language),
+        optional(/[^\n]*/)  // Additional parameters
+      )),
+      '\n'
+    ),
+
+    block_type: $ => /[a-zA-Z_]+/,
+
+    language: $ => /[a-zA-Z0-9_+-]+/,
+
+    // Block content: everything until #+end_
+    // Match any content (parser will stop at block_end)
+    block_content: $ => /([^#]|#[^+]|#\+[^eE]|#\+[eE][^nN]|#\+[eE][nN][^dD]|#\+[eE][nN][dD][^_])+/,
+
+    // Block end: #+end_NAME
+    block_end: $ => seq(
+      token(seq('#', '+', /end_/i)),
+      optional($.block_type),
+      /[^\n]*/,
+      '\n'
+    ),
+
+    // Paragraph: any line that doesn't start with special characters
     paragraph: $ => seq(
-      /[^*\n][^\n]*/,
+      /[^*#\n][^\n]*/,
       /\n/
     ),
   }

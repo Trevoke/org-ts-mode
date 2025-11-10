@@ -24,6 +24,17 @@ This is an early-stage implementation following TDD principles. The grammar is b
 
 **Tests**: 4/4 passing
 
+#### ✅ Blocks (100% test coverage)
+- [x] Source blocks with language (`#+begin_src LANG`)
+- [x] Example blocks (`#+begin_example`)
+- [x] Quote blocks (`#+begin_quote`)
+- [x] Blocks under headlines
+- [x] Multiple blocks
+
+**Tests**: 5/5 passing
+
+**Bounding Success**: Blocks have distinctive delimiters (`#+begin_` / `#+end_`) that prevent confusion with other elements. Implementation didn't break any existing tests.
+
 ### TODO (Priority Order)
 
 #### Next Sprint
@@ -37,7 +48,6 @@ This is an early-stage implementation following TDD principles. The grammar is b
    - Challenge: Requires lookahead or external scanner
 
 #### Future
-- [ ] Blocks (src, example, quote, etc.)
 - [ ] Lists (ordered, unordered, description)
 - [ ] Tables
 - [ ] Links

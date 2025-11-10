@@ -18,6 +18,10 @@
         },
         {
           "type": "SYMBOL",
+          "name": "block"
+        },
+        {
+          "type": "SYMBOL",
           "name": "paragraph"
         }
       ]
@@ -196,12 +200,170 @@
       "type": "PATTERN",
       "value": ":[a-zA-Z0-9_@#%]+"
     },
+    "block": {
+      "type": "SEQ",
+      "members": [
+        {
+          "type": "SYMBOL",
+          "name": "block_begin"
+        },
+        {
+          "type": "CHOICE",
+          "members": [
+            {
+              "type": "SYMBOL",
+              "name": "block_content"
+            },
+            {
+              "type": "BLANK"
+            }
+          ]
+        },
+        {
+          "type": "SYMBOL",
+          "name": "block_end"
+        }
+      ]
+    },
+    "block_begin": {
+      "type": "SEQ",
+      "members": [
+        {
+          "type": "TOKEN",
+          "content": {
+            "type": "SEQ",
+            "members": [
+              {
+                "type": "STRING",
+                "value": "#"
+              },
+              {
+                "type": "STRING",
+                "value": "+"
+              },
+              {
+                "type": "PATTERN",
+                "value": "begin_",
+                "flags": "i"
+              }
+            ]
+          }
+        },
+        {
+          "type": "FIELD",
+          "name": "type",
+          "content": {
+            "type": "SYMBOL",
+            "name": "block_type"
+          }
+        },
+        {
+          "type": "CHOICE",
+          "members": [
+            {
+              "type": "SEQ",
+              "members": [
+                {
+                  "type": "STRING",
+                  "value": " "
+                },
+                {
+                  "type": "FIELD",
+                  "name": "language",
+                  "content": {
+                    "type": "SYMBOL",
+                    "name": "language"
+                  }
+                },
+                {
+                  "type": "CHOICE",
+                  "members": [
+                    {
+                      "type": "PATTERN",
+                      "value": "[^\\n]*"
+                    },
+                    {
+                      "type": "BLANK"
+                    }
+                  ]
+                }
+              ]
+            },
+            {
+              "type": "BLANK"
+            }
+          ]
+        },
+        {
+          "type": "STRING",
+          "value": "\n"
+        }
+      ]
+    },
+    "block_type": {
+      "type": "PATTERN",
+      "value": "[a-zA-Z_]+"
+    },
+    "language": {
+      "type": "PATTERN",
+      "value": "[a-zA-Z0-9_+-]+"
+    },
+    "block_content": {
+      "type": "PATTERN",
+      "value": "([^#]|#[^+]|#\\+[^eE]|#\\+[eE][^nN]|#\\+[eE][nN][^dD]|#\\+[eE][nN][dD][^_])+"
+    },
+    "block_end": {
+      "type": "SEQ",
+      "members": [
+        {
+          "type": "TOKEN",
+          "content": {
+            "type": "SEQ",
+            "members": [
+              {
+                "type": "STRING",
+                "value": "#"
+              },
+              {
+                "type": "STRING",
+                "value": "+"
+              },
+              {
+                "type": "PATTERN",
+                "value": "end_",
+                "flags": "i"
+              }
+            ]
+          }
+        },
+        {
+          "type": "CHOICE",
+          "members": [
+            {
+              "type": "SYMBOL",
+              "name": "block_type"
+            },
+            {
+              "type": "BLANK"
+            }
+          ]
+        },
+        {
+          "type": "PATTERN",
+          "value": "[^\\n]*"
+        },
+        {
+          "type": "STRING",
+          "value": "\n"
+        }
+      ]
+    },
     "paragraph": {
       "type": "SEQ",
       "members": [
         {
           "type": "PATTERN",
-          "value": "[^*\\n][^\\n]*"
+          "value": "[^*#\\n][^\\n]*"
         },
         {
           "type": "PATTERN",
