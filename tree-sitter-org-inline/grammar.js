@@ -47,10 +47,11 @@ module.exports = grammar({
     // Title: sequence of inline objects, including colons
     // Use repeat1 to ensure at least one object
     // Colons are explicit tokens so external scanner can intercept for tags
-    // Higher precedence for markup, then colon, then plain text
+    // Higher precedence for markup/cookies, then colon, then plain text
     // Right-associative to greedily consume all content
     title: $ => prec.right(repeat1(choice(
       prec(3, $.text_markup),
+      prec(3, $.statistics_cookie),
       prec(2, ':'),  // Allow colons in title (lower precedence than TAGS)
       prec(1, $.plain_text)
     ))),
@@ -109,9 +110,19 @@ module.exports = grammar({
       '+'
     ),
 
-    // Plain text - any characters except markup delimiters, colon, newline
-    // Lower precedence so markup and explicit colons are preferred
+    // Statistics cookie: [N%] or [N/M] where N and M are optional digits
+    // Used for progress tracking in headlines and lists
+    statistics_cookie: $ => choice(
+      // Percentage format: [N%] where N is zero or more digits
+      seq('[', /\d*/, '%', ']'),
+      // Fraction format: [N/M] where N and M are zero or more digits
+      seq('[', /\d*/, '/', /\d*/, ']')
+    ),
+
+    // Plain text - any characters except markup delimiters, brackets, colon, newline
+    // Lower precedence so markup, cookies, and explicit colons are preferred
     // Colons are handled separately to allow external scanner to recognize tags
-    plain_text: $ => prec(1, /[^*\/~=_+:\n]+/),
+    // Brackets are excluded so statistics cookies can be recognized
+    plain_text: $ => prec(1, /[^*\/~=_+:\[\]\n]+/),
   }
 });

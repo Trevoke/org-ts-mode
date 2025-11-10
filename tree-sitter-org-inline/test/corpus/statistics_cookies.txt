@@ -1,0 +1,159 @@
+==================
+Percentage cookie with value
+==================
+
+Task progress [50%]
+
+---
+
+(inline
+  (title_only
+    (title
+      (plain_text)
+      (statistics_cookie))))
+
+==================
+Percentage cookie without value
+==================
+
+Task progress [%]
+
+---
+
+(inline
+  (title_only
+    (title
+      (plain_text)
+      (statistics_cookie))))
+
+==================
+Fraction cookie with both values
+==================
+
+Completed tasks [2/5]
+
+---
+
+(inline
+  (title_only
+    (title
+      (plain_text)
+      (statistics_cookie))))
+
+==================
+Fraction cookie with numerator only
+==================
+
+In progress [3/]
+
+---
+
+(inline
+  (title_only
+    (title
+      (plain_text)
+      (statistics_cookie))))
+
+==================
+Fraction cookie with denominator only
+==================
+
+Pending [/10]
+
+---
+
+(inline
+  (title_only
+    (title
+      (plain_text)
+      (statistics_cookie))))
+
+==================
+Fraction cookie without values
+==================
+
+Empty progress [/]
+
+---
+
+(inline
+  (title_only
+    (title
+      (plain_text)
+      (statistics_cookie))))
+
+==================
+Cookie at start of title
+==================
+
+[100%] Task completed
+
+---
+
+(inline
+  (title_only
+    (title
+      (statistics_cookie)
+      (plain_text))))
+
+==================
+Cookie at end of title
+==================
+
+Task completed [100%]
+
+---
+
+(inline
+  (title_only
+    (title
+      (plain_text)
+      (statistics_cookie))))
+
+==================
+Multiple cookies in title
+==================
+
+Progress [2/5] or [40%]
+
+---
+
+(inline
+  (title_only
+    (title
+      (plain_text)
+      (statistics_cookie)
+      (plain_text)
+      (statistics_cookie))))
+
+==================
+Cookie with text markup
+==================
+
+*Task* [50%] completed
+
+---
+
+(inline
+  (title_only
+    (title
+      (text_markup
+        (bold))
+      (plain_text)
+      (statistics_cookie)
+      (plain_text))))
+
+==================
+Cookie with tags
+==================
+
+Project progress [3/10] :work:
+
+---
+
+(inline
+  (title_with_tags
+    (title
+      (plain_text)
+      (statistics_cookie))
+    (tags)))
