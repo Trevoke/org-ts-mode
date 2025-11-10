@@ -113,11 +113,19 @@
         },
         {
           "type": "SYMBOL",
+          "name": "underline"
+        },
+        {
+          "type": "SYMBOL",
           "name": "code"
         },
         {
           "type": "SYMBOL",
           "name": "verbatim"
+        },
+        {
+          "type": "SYMBOL",
+          "name": "strike_through"
         }
       ]
     },
@@ -155,6 +163,23 @@
         }
       ]
     },
+    "underline": {
+      "type": "SEQ",
+      "members": [
+        {
+          "type": "STRING",
+          "value": "_"
+        },
+        {
+          "type": "PATTERN",
+          "value": "[^\\s_][^_\\n]*[^\\s_]|[^\\s_\\n]"
+        },
+        {
+          "type": "STRING",
+          "value": "_"
+        }
+      ]
+    },
     "code": {
       "type": "SEQ",
       "members": [
@@ -189,12 +214,29 @@
         }
       ]
     },
+    "strike_through": {
+      "type": "SEQ",
+      "members": [
+        {
+          "type": "STRING",
+          "value": "+"
+        },
+        {
+          "type": "PATTERN",
+          "value": "[^\\s+][^+\\n]*[^\\s+]|[^\\s+\\n]"
+        },
+        {
+          "type": "STRING",
+          "value": "+"
+        }
+      ]
+    },
     "plain_text": {
       "type": "PREC",
       "value": 1,
       "content": {
         "type": "PATTERN",
-        "value": "[^*\\/~=:\\n]+"
+        "value": "[^*\\/~=_+:\\n]+"
       }
     }
   },

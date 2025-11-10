@@ -55,12 +55,14 @@ module.exports = grammar({
       prec(1, $.plain_text)
     ))),
 
-    // Text markup: bold, italic, code, verbatim
+    // Text markup: bold, italic, underline, code, verbatim, strike-through
     text_markup: $ => choice(
       $.bold,
       $.italic,
+      $.underline,
       $.code,
-      $.verbatim
+      $.verbatim,
+      $.strike_through
     ),
 
     // Bold: *text*
@@ -79,6 +81,13 @@ module.exports = grammar({
       '/'
     ),
 
+    // Underline: _text_
+    underline: $ => seq(
+      '_',
+      /[^\s_][^_\n]*[^\s_]|[^\s_\n]/,
+      '_'
+    ),
+
     // Code: ~text~
     code: $ => seq(
       '~',
@@ -93,9 +102,16 @@ module.exports = grammar({
       '='
     ),
 
+    // Strike-through: +text+
+    strike_through: $ => seq(
+      '+',
+      /[^\s+][^+\n]*[^\s+]|[^\s+\n]/,
+      '+'
+    ),
+
     // Plain text - any characters except markup delimiters, colon, newline
     // Lower precedence so markup and explicit colons are preferred
     // Colons are handled separately to allow external scanner to recognize tags
-    plain_text: $ => prec(1, /[^*\/~=:\n]+/),
+    plain_text: $ => prec(1, /[^*\/~=_+:\n]+/),
   }
 });
