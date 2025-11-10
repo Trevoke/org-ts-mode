@@ -16,6 +16,7 @@ module.exports = grammar({
     _element: $ => choice(
       $.headline,
       $.block,
+      prec(1, $.table),
       $.paragraph
     ),
 
@@ -99,9 +100,40 @@ module.exports = grammar({
       '\n'
     ),
 
+    // Table: consecutive rows starting with |
+    table: $ => prec.right(repeat1(choice(
+      prec(1, $.table_separator),  // Prefer separator over row
+      $.table_row
+    ))),
+
+    // Table row: | cell | cell |
+    table_row: $ => seq(
+      '|',
+      repeat(seq(
+        optional($.table_cell),
+        '|'
+      )),
+      '\n'
+    ),
+
+    // Table cell: content between | separators
+    table_cell: $ => /[^|\n]+/,
+
+    // Table separator: |---+---|  (only dashes, pluses, and pipes)
+    table_separator: $ => token(seq(
+      '|',
+      repeat1(/-+/),
+      repeat(seq(
+        choice('|', '+'),
+        repeat1(/-+/)
+      )),
+      optional('|'),
+      '\n'
+    )),
+
     // Paragraph: any line that doesn't start with special characters
     paragraph: $ => seq(
-      /[^*#\n][^\n]*/,
+      /[^*#|\n][^\n]*/,
       /\n/
     ),
   }

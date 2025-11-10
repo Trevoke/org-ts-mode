@@ -83,6 +83,10 @@
         {
           "type": "paragraph",
           "named": true
+        },
+        {
+          "type": "table",
+          "named": true
         }
       ]
     }
@@ -149,6 +153,40 @@
     "fields": {}
   },
   {
+    "type": "table",
+    "named": true,
+    "fields": {},
+    "children": {
+      "multiple": true,
+      "required": true,
+      "types": [
+        {
+          "type": "table_row",
+          "named": true
+        },
+        {
+          "type": "table_separator",
+          "named": true
+        }
+      ]
+    }
+  },
+  {
+    "type": "table_row",
+    "named": true,
+    "fields": {},
+    "children": {
+      "multiple": true,
+      "required": false,
+      "types": [
+        {
+          "type": "table_cell",
+          "named": true
+        }
+      ]
+    }
+  },
+  {
     "type": "tags",
     "named": true,
     "fields": {},
@@ -205,7 +243,19 @@
     "named": true
   },
   {
+    "type": "table_cell",
+    "named": true
+  },
+  {
+    "type": "table_separator",
+    "named": true
+  },
+  {
     "type": "tag",
     "named": true
+  },
+  {
+    "type": "|",
+    "named": false
   }
 ]

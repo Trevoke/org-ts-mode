@@ -35,6 +35,18 @@ This is an early-stage implementation following TDD principles. The grammar is b
 
 **Bounding Success**: Blocks have distinctive delimiters (`#+begin_` / `#+end_`) that prevent confusion with other elements. Implementation didn't break any existing tests.
 
+#### ✅ Tables (100% test coverage)
+- [x] Table rows with cells (`| cell | cell |`)
+- [x] Table separators (`|---+---|`)
+- [x] Tables under headlines
+- [x] Multiple tables (when separated by other elements)
+
+**Tests**: 4/4 passing
+
+**Bounding Success**: Tables start with `|` which is distinctive from all other elements. Used `token()` + `prec(1, ...)` to disambiguate table separators from regular rows. No cascading test failures.
+
+**Known Limitation**: Tables separated only by blank lines are currently treated as one table. Requires explicit element separator (headline, paragraph, etc.) between tables.
+
 ### TODO (Priority Order)
 
 #### Next Sprint
@@ -49,7 +61,6 @@ This is an early-stage implementation following TDD principles. The grammar is b
 
 #### Future
 - [ ] Lists (ordered, unordered, description)
-- [ ] Tables
 - [ ] Links
 - [ ] Timestamps
 - [ ] Footnotes

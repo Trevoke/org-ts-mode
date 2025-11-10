@@ -1,0 +1,84 @@
+==================
+Simple table
+==================
+
+| Name | Age |
+| Alice | 30 |
+| Bob | 25 |
+
+---
+
+(document
+  (table
+    (table_row
+      (table_cell)
+      (table_cell))
+    (table_row
+      (table_cell)
+      (table_cell))
+    (table_row
+      (table_cell)
+      (table_cell))))
+
+==================
+Table with separator
+==================
+
+| Name | Age |
+|------+-----|
+| Alice | 30 |
+
+---
+
+(document
+  (table
+    (table_row
+      (table_cell)
+      (table_cell))
+    (table_separator)
+    (table_row
+      (table_cell)
+      (table_cell))))
+
+==================
+Table under headline
+==================
+
+* Data
+| Col1 | Col2 |
+| A | B |
+
+---
+
+(document
+  (headline
+    (stars)
+    (title))
+  (table
+    (table_row
+      (table_cell)
+      (table_cell))
+    (table_row
+      (table_cell)
+      (table_cell))))
+
+==================
+Multiple tables (adjacent)
+==================
+
+| Table 1 |
+* Separator
+| Table 2 |
+
+---
+
+(document
+  (table
+    (table_row
+      (table_cell)))
+  (headline
+    (stars)
+    (title))
+  (table
+    (table_row
+      (table_cell))))
