@@ -7,8 +7,12 @@ This is *bold* text.
 ---
 
 (inline
-  (text_markup
-    (bold)))
+  (content_only
+    (title
+      (plain_text)
+      (text_markup
+        (bold))
+      (plain_text))))
 
 ==================
 Bold at start of line
@@ -19,8 +23,11 @@ Bold at start of line
 ---
 
 (inline
-  (text_markup
-    (bold)))
+  (content_only
+    (title
+      (text_markup
+        (bold))
+      (plain_text))))
 
 ==================
 Bold at end of line
@@ -31,56 +38,11 @@ Text with *bold*
 ---
 
 (inline
-  (text_markup
-    (bold)))
-
-==================
-Bold with PRE characters (hyphen)
-==================
-
-Text-*bold* here
-
----
-
-(inline
-  (text_markup
-    (bold)))
-
-==================
-Bold with PRE characters (parenthesis)
-==================
-
-Text(*bold*) here
-
----
-
-(inline
-  (text_markup
-    (bold)))
-
-==================
-Bold with POST characters (period)
-==================
-
-Text *bold*. more text
-
----
-
-(inline
-  (text_markup
-    (bold)))
-
-==================
-Bold with POST characters (comma)
-==================
-
-Text *bold*, more text
-
----
-
-(inline
-  (text_markup
-    (bold)))
+  (content_only
+    (title
+      (plain_text)
+      (text_markup
+        (bold)))))
 
 ==================
 Multiple bold in same line
@@ -91,10 +53,14 @@ Multiple bold in same line
 ---
 
 (inline
-  (text_markup
-    (bold))
-  (text_markup
-    (bold)))
+  (content_only
+    (title
+      (text_markup
+        (bold))
+      (plain_text)
+      (text_markup
+        (bold))
+      (plain_text))))
 
 ==================
 Simple italic
@@ -105,8 +71,12 @@ This is /italic/ text.
 ---
 
 (inline
-  (text_markup
-    (italic)))
+  (content_only
+    (title
+      (plain_text)
+      (text_markup
+        (italic))
+      (plain_text))))
 
 ==================
 Simple code
@@ -117,8 +87,12 @@ This is ~code~ text.
 ---
 
 (inline
-  (text_markup
-    (code)))
+  (content_only
+    (title
+      (plain_text)
+      (text_markup
+        (code))
+      (plain_text))))
 
 ==================
 Simple verbatim
@@ -129,8 +103,12 @@ This is =verbatim= text.
 ---
 
 (inline
-  (text_markup
-    (verbatim)))
+  (content_only
+    (title
+      (plain_text)
+      (text_markup
+        (verbatim))
+      (plain_text))))
 
 ==================
 Mixed markup types
@@ -141,9 +119,13 @@ Mixed markup types
 ---
 
 (inline
-  (text_markup
-    (bold))
-  (text_markup
-    (italic))
-  (text_markup
-    (code)))
+  (content_only
+    (title
+      (text_markup
+        (bold))
+      (plain_text)
+      (text_markup
+        (italic))
+      (plain_text)
+      (text_markup
+        (code)))))

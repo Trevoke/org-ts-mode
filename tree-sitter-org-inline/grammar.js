@@ -22,14 +22,6 @@ module.exports = grammar({
 
   externals: $ => [
     $.TAGS,  // Tags portion (:tag1:tag2:) - detected by scanner
-    $.BOLD_START,     // * with valid PRE char
-    $.BOLD_END,       // * with valid POST char
-    $.ITALIC_START,   // / with valid PRE char
-    $.ITALIC_END,     // / with valid POST char
-    $.CODE_START,     // ~ with valid PRE char
-    $.CODE_END,       // ~ with valid POST char
-    $.VERBATIM_START, // = with valid PRE char
-    $.VERBATIM_END,   // = with valid POST char
   ],
 
   rules: {
@@ -50,24 +42,54 @@ module.exports = grammar({
     content_only: $ => field('title', $.title),
 
     // Title: sequence of inline objects
-    title: $ => repeat1(choice(
+    // Use repeat1 to ensure at least one object
+    // Higher precedence for markup so *bold* is preferred over plain text with asterisks
+    // Right-associative to greedily consume all content
+    title: $ => prec.right(repeat1(choice(
+      prec(2, $.text_markup),
+      prec(1, $.plain_text)
+    ))),
+
+    // Text markup: bold, italic, code, verbatim
+    text_markup: $ => choice(
       $.bold,
       $.italic,
       $.code,
-      $.verbatim,
-      $.plain_text
-    )),
+      $.verbatim
+    ),
 
-    // Text markup types
-    bold: $ => seq($.BOLD_START, $.markup_content, $.BOLD_END),
-    italic: $ => seq($.ITALIC_START, $.markup_content, $.ITALIC_END),
-    code: $ => seq($.CODE_START, $.markup_content, $.CODE_END),
-    verbatim: $ => seq($.VERBATIM_START, $.markup_content, $.VERBATIM_END),
+    // Bold: *text*
+    // Content must not start/end with whitespace, and can't contain newlines or *
+    // Simple pattern for now - PRE/POST validation can be added later via scanner
+    bold: $ => seq(
+      '*',
+      /[^\s*][^*\n]*[^\s*]|[^\s*\n]/,  // content: non-ws + optional(any-except-*-newline) + non-ws, OR single non-ws
+      '*'
+    ),
 
-    // Content within markup - no leading/trailing whitespace
-    markup_content: $ => /[^\s*\/~=][^\*\/~=]*[^\s*\/~=]|[^\s*\/~=]/,
+    // Italic: /text/
+    italic: $ => seq(
+      '/',
+      /[^\s\/][^\/\n]*[^\s\/]|[^\s\/\n]/,
+      '/'
+    ),
 
-    // Plain text - any characters except markup delimiters
-    plain_text: $ => /[^*\/~=:\n]+/,
+    // Code: ~text~
+    code: $ => seq(
+      '~',
+      /[^\s~][^~\n]*[^\s~]|[^\s~\n]/,
+      '~'
+    ),
+
+    // Verbatim: =text=
+    verbatim: $ => seq(
+      '=',
+      /[^\s=][^=\n]*[^\s=]|[^\s=\n]/,
+      '='
+    ),
+
+    // Plain text - any characters except markup delimiters and tags
+    // Lower precedence so markup is preferred
+    plain_text: $ => prec(1, /[^*\/~=:\n]+/),
   }
 });
