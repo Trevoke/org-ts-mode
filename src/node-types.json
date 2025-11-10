@@ -113,6 +113,10 @@
           "named": true
         },
         {
+          "type": "footnote_reference",
+          "named": true
+        },
+        {
           "type": "headline",
           "named": true
         },
@@ -460,6 +464,10 @@
   },
   {
     "type": "drawer_content",
+    "named": true
+  },
+  {
+    "type": "footnote_reference",
     "named": true
   },
   {

@@ -167,6 +167,22 @@ This is an early-stage implementation following TDD principles. The grammar is b
 
 **Implementation Notes**: Block-level elements (full lines). Macro arguments can contain commas for multiple values; escaped commas (`\,`) not yet implemented but can be added without grammar changes.
 
+#### ✅ Footnotes (100% test coverage)
+- [x] Simple footnote references (`[fn:1]`)
+- [x] Named footnote references (`[fn:note1]`)
+- [x] Inline footnotes with definitions (`[fn:label:definition]`)
+- [x] Anonymous footnotes (`[fn::definition]`)
+- [x] Footnotes under headlines
+- [x] Multiple footnotes
+
+**Tests**: 6/6 passing
+
+**Bounding Success**: Footnotes use `[fn:` pattern (3-character sequence) that's highly distinctive. Initial conflict: footnotes were parsed as timestamps because both use `[`. Solution: made timestamp inactive pattern more specific - `[\d...]` must start with digit, which prevents matching `[fn:...]`. Both footnote_reference and timestamp are atomic tokens (using `token()`), so pattern specificity resolved the conflict. Modified footnote_reference precedence to `prec(2)` to prefer over timestamp. Zero cascading failures.
+
+**Implementation Notes**: Block-level elements (full lines). Atomic token implementation means no separate child nodes for label/definition, but this maintains clean bounding. Supports all three footnote types: named references, inline with definitions, and anonymous.
+
+**Key Technical Insight**: When multiple features use `token()` with overlapping patterns (both starting with `[`), precedence alone doesn't help - you must make patterns mutually exclusive through specificity (e.g., `[` + digit vs `[fn:`).
+
 ### TODO (Priority Order)
 
 #### Next Sprint

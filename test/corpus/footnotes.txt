@@ -1,0 +1,75 @@
+==================
+Simple footnote reference
+==================
+
+[fn:1]
+
+---
+
+(document
+  (footnote_reference))
+
+==================
+Named footnote reference
+==================
+
+[fn:note1]
+
+---
+
+(document
+  (footnote_reference))
+
+==================
+Inline footnote with definition
+==================
+
+[fn:inline:This is the definition]
+
+---
+
+(document
+  (footnote_reference))
+
+==================
+Anonymous footnote
+==================
+
+[fn::Anonymous definition text]
+
+---
+
+(document
+  (footnote_reference))
+
+==================
+Footnote under headline
+==================
+
+* Section
+
+[fn:ref1]
+
+Some text here.
+
+---
+
+(document
+  (headline
+    (stars)
+    (title))
+  (footnote_reference)
+  (paragraph))
+
+==================
+Multiple footnotes
+==================
+
+[fn:1]
+[fn:2]
+
+---
+
+(document
+  (footnote_reference)
+  (footnote_reference))

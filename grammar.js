@@ -17,6 +17,7 @@ module.exports = grammar({
       $.headline,
       prec(2, $.planning_line),
       $.link,
+      prec(2, $.footnote_reference),
       $.timestamp,
       $.macro,
       prec(1, $.list),
@@ -97,7 +98,8 @@ module.exports = grammar({
         // Active timestamp: <2024-01-01 Mon 14:30>
         seq('<', /[^>\n]+/, '>'),
         // Inactive timestamp: [2024-01-01 Mon 14:30]
-        seq('[', /[^\]\n]+/, ']')
+        // Must start with digit to avoid matching [fn:...]
+        seq('[', /\d[^\]\n]*/, ']')
       ),
       '\n'
     )),
@@ -114,6 +116,28 @@ module.exports = grammar({
       '}}}',
       '\n'
     ),
+
+    // Footnote reference: [fn:label], [fn:label:def], or [fn::def]
+    footnote_reference: $ => token(seq(
+      '[fn:',
+      choice(
+        // Named with definition: [fn:label:definition]
+        seq(
+          /[a-zA-Z0-9_-]+/,
+          ':',
+          /[^\]]+/
+        ),
+        // Named without definition: [fn:label]
+        /[a-zA-Z0-9_-]+/,
+        // Anonymous: [fn::definition]
+        seq(
+          ':',
+          /[^\]]+/
+        )
+      ),
+      ']',
+      '\n'
+    )),
 
     // Link: [[target]] or [[target][description]]
     link: $ => seq(
