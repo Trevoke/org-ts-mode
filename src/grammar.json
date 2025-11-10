@@ -33,6 +33,10 @@
           "name": "timestamp"
         },
         {
+          "type": "SYMBOL",
+          "name": "macro"
+        },
+        {
           "type": "PREC",
           "value": 1,
           "content": {
@@ -386,6 +390,62 @@
           }
         ]
       }
+    },
+    "macro": {
+      "type": "SEQ",
+      "members": [
+        {
+          "type": "STRING",
+          "value": "{{{"
+        },
+        {
+          "type": "ALIAS",
+          "content": {
+            "type": "PATTERN",
+            "value": "[a-zA-Z][a-zA-Z0-9_-]*"
+          },
+          "named": true,
+          "value": "macro_name"
+        },
+        {
+          "type": "CHOICE",
+          "members": [
+            {
+              "type": "SEQ",
+              "members": [
+                {
+                  "type": "STRING",
+                  "value": "("
+                },
+                {
+                  "type": "ALIAS",
+                  "content": {
+                    "type": "PATTERN",
+                    "value": "[^})]+"
+                  },
+                  "named": true,
+                  "value": "macro_args"
+                },
+                {
+                  "type": "STRING",
+                  "value": ")"
+                }
+              ]
+            },
+            {
+              "type": "BLANK"
+            }
+          ]
+        },
+        {
+          "type": "STRING",
+          "value": "}}}"
+        },
+        {
+          "type": "STRING",
+          "value": "\n"
+        }
+      ]
     },
     "link": {
       "type": "SEQ",
@@ -1059,7 +1119,7 @@
       "members": [
         {
           "type": "PATTERN",
-          "value": "[^*#|\\[\\-+:0-9a-z\\n][^\\n]*"
+          "value": "[^*#|\\[\\-+:{0-9a-z\\n][^\\n]*"
         },
         {
           "type": "PATTERN",

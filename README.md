@@ -153,6 +153,20 @@ This is an early-stage implementation following TDD principles. The grammar is b
 
 **Implementation Notes**: Reuses same atomic pattern as planning line timestamps but as standalone block-level elements. Basic date/time support implemented; repeaters and delays can be added later without grammar changes.
 
+#### ✅ Macros (100% test coverage)
+- [x] Simple macros without arguments (`{{{title}}}`)
+- [x] Macros with single argument (`{{{author(John)}}`)
+- [x] Macros with multiple arguments (`{{{date(2024, 01, 15)}}}`)
+- [x] Macros under headlines
+- [x] Multiple macros
+- [x] Macro names with underscores and hyphens
+
+**Tests**: 6/6 passing
+
+**Bounding Success**: Macros use highly distinctive `{{{` and `}}}` delimiters that don't conflict with any existing features. Modified paragraph pattern to exclude `{` from line starts (changed to `/[^*#|\[\-+:{0-9a-z\n]/`). Macro name pattern: `/[a-zA-Z][a-zA-Z0-9_-]*/`. Args pattern: `/[^})]+/` (excludes `}` and `)` to prevent greedy matching). Zero cascading failures.
+
+**Implementation Notes**: Block-level elements (full lines). Macro arguments can contain commas for multiple values; escaped commas (`\,`) not yet implemented but can be added without grammar changes.
+
 ### TODO (Priority Order)
 
 #### Next Sprint

@@ -1,0 +1,85 @@
+==================
+Simple macro without arguments
+==================
+
+{{{title}}}
+
+---
+
+(document
+  (macro
+    (macro_name)))
+
+==================
+Macro with single argument
+==================
+
+{{{author(John Doe)}}}
+
+---
+
+(document
+  (macro
+    (macro_name)
+    (macro_args)))
+
+==================
+Macro with multiple arguments
+==================
+
+{{{date(2024, 01, 15)}}}
+
+---
+
+(document
+  (macro
+    (macro_name)
+    (macro_args)))
+
+==================
+Macro under headline
+==================
+
+* Document
+
+{{{version}}}
+
+Some text here.
+
+---
+
+(document
+  (headline
+    (stars)
+    (title))
+  (macro
+    (macro_name))
+  (paragraph))
+
+==================
+Multiple macros
+==================
+
+{{{title}}}
+{{{author(John)}}}
+
+---
+
+(document
+  (macro
+    (macro_name))
+  (macro
+    (macro_name)
+    (macro_args)))
+
+==================
+Macro with underscores and hyphens
+==================
+
+{{{my_macro-name}}}
+
+---
+
+(document
+  (macro
+    (macro_name)))

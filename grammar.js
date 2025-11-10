@@ -18,6 +18,7 @@ module.exports = grammar({
       prec(2, $.planning_line),
       $.link,
       $.timestamp,
+      $.macro,
       prec(1, $.list),
       $.block,
       $.directive,
@@ -100,6 +101,19 @@ module.exports = grammar({
       ),
       '\n'
     )),
+
+    // Macro: {{{name}}} or {{{name(args)}}}
+    macro: $ => seq(
+      '{{{',
+      alias(/[a-zA-Z][a-zA-Z0-9_-]*/, $.macro_name),
+      optional(seq(
+        '(',
+        alias(/[^})]+/, $.macro_args),
+        ')'
+      )),
+      '}}}',
+      '\n'
+    ),
 
     // Link: [[target]] or [[target][description]]
     link: $ => seq(
@@ -266,9 +280,9 @@ module.exports = grammar({
     drawer_content: $ => /([^:]|:[^eE]|:[eE][^nN]|:[eE][nN][^dD]|:[eE][nN][dD][^:])+/,
 
     // Paragraph: any line that doesn't start with special characters
-    // Excludes: *, #, |, [, -, +, :, digits, lowercase letters
+    // Excludes: *, #, |, [, -, +, :, {, digits, lowercase letters
     paragraph: $ => seq(
-      /[^*#|\[\-+:0-9a-z\n][^\n]*/,
+      /[^*#|\[\-+:{0-9a-z\n][^\n]*/,
       /\n/
     ),
   }
