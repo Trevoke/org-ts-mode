@@ -1,0 +1,93 @@
+==================
+Simple directive
+==================
+
+#+TITLE: My Document
+
+---
+
+(document
+  (directive
+    (name)
+    (value)))
+
+==================
+Multiple directives
+==================
+
+#+TITLE: My Document
+#+AUTHOR: John Doe
+#+DATE: 2024-01-01
+
+---
+
+(document
+  (directive
+    (name)
+    (value))
+  (directive
+    (name)
+    (value))
+  (directive
+    (name)
+    (value)))
+
+==================
+Directives with content after
+==================
+
+#+TITLE: Test Document
+
+* First Headline
+
+---
+
+(document
+  (directive
+    (name)
+    (value))
+  (headline
+    (stars)
+    (title)))
+
+==================
+Common org directives
+==================
+
+#+OPTIONS: toc:nil num:nil
+#+STARTUP: showall
+#+EXPORT_FILE_NAME: output.html
+
+---
+
+(document
+  (directive
+    (name)
+    (value))
+  (directive
+    (name)
+    (value))
+  (directive
+    (name)
+    (value)))
+
+==================
+Directives between content
+==================
+
+* Headline
+
+#+ATTR_HTML: :width 300px
+
+Some paragraph.
+
+---
+
+(document
+  (headline
+    (stars)
+    (title))
+  (directive
+    (name)
+    (value))
+  (paragraph))

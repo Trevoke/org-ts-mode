@@ -68,6 +68,17 @@ This is an early-stage implementation following TDD principles. The grammar is b
 
 **Bounding Success**: Property drawers use distinctive `:PROPERTIES:` and `:END:` delimiters (all caps with colons). Cannot be confused with any other element. Position-specific (after headlines) adds additional isolation. Zero cascading failures.
 
+#### ✅ Directives (100% test coverage)
+- [x] Simple directives (`#+TITLE:`, `#+AUTHOR:`, etc.)
+- [x] Multiple directives
+- [x] Directives with content after
+- [x] Common org directives (`#+OPTIONS:`, `#+STARTUP:`, etc.)
+- [x] Directives between content
+
+**Tests**: 5/5 passing
+
+**Bounding Success**: Directives use `#+KEYWORD:` pattern (uppercase keyword + colon). Distinct from blocks (`#+begin_`), comments (`# `). Originally named "keyword" but renamed to "directive" to avoid conflict with headline TODO keywords. Perfect isolation - zero cascading failures.
+
 ### TODO (Priority Order)
 
 #### Next Sprint

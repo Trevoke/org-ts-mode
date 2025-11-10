@@ -16,6 +16,7 @@ module.exports = grammar({
     _element: $ => choice(
       $.headline,
       $.block,
+      $.directive,
       $.comment,
       $.property_drawer,
       prec(1, $.table),
@@ -132,6 +133,18 @@ module.exports = grammar({
       optional('|'),
       '\n'
     )),
+
+    // Directive: #+KEYWORD: value (in-buffer settings)
+    directive: $ => seq(
+      token(seq('#', '+')),
+      $.name,
+      ':',
+      optional(/[ \t]+/),
+      alias(/[^\n]+/, $.value),
+      '\n'
+    ),
+
+    name: $ => /[A-Z_]+/,
 
     // Comment: # followed by text (but not #+)
     comment: $ => seq(

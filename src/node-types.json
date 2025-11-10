@@ -69,6 +69,25 @@
     "fields": {}
   },
   {
+    "type": "directive",
+    "named": true,
+    "fields": {},
+    "children": {
+      "multiple": true,
+      "required": true,
+      "types": [
+        {
+          "type": "name",
+          "named": true
+        },
+        {
+          "type": "value",
+          "named": true
+        }
+      ]
+    }
+  },
+  {
     "type": "document",
     "named": true,
     "root": true,
@@ -83,6 +102,10 @@
         },
         {
           "type": "comment",
+          "named": true
+        },
+        {
+          "type": "directive",
           "named": true
         },
         {
@@ -296,6 +319,10 @@
   },
   {
     "type": "language",
+    "named": true
+  },
+  {
+    "type": "name",
     "named": true
   },
   {
