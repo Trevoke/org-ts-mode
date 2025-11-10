@@ -68,7 +68,10 @@ module.exports = grammar({
     priority: $ => token(prec(1, /\[#[A-Z]\]/)),
 
     // Title: matches headline text
-    // TODO: Improve to stop before tags (tags currently absorbed into title)
+    // TODO: Currently absorbs tags into title. Proper tag parsing requires:
+    //   - External scanner (can scan ahead to detect tag pattern), OR
+    //   - Lookahead regex (not supported: "look-around...is not supported"), OR
+    //   - Restructured parsing (tags as separate pass)
     title: $ => prec(-1, /[^\n]+/),
 
     // Tags: match tag sequence
