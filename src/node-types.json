@@ -109,6 +109,10 @@
           "named": true
         },
         {
+          "type": "drawer",
+          "named": true
+        },
+        {
           "type": "headline",
           "named": true
         },
@@ -138,6 +142,30 @@
         }
       ]
     }
+  },
+  {
+    "type": "drawer",
+    "named": true,
+    "fields": {},
+    "children": {
+      "multiple": true,
+      "required": true,
+      "types": [
+        {
+          "type": "drawer_content",
+          "named": true
+        },
+        {
+          "type": "drawer_name",
+          "named": true
+        }
+      ]
+    }
+  },
+  {
+    "type": "drawer_name",
+    "named": true,
+    "fields": {}
   },
   {
     "type": "headline",
@@ -194,6 +222,11 @@
         }
       ]
     }
+  },
+  {
+    "type": "key",
+    "named": true,
+    "fields": {}
   },
   {
     "type": "link",
@@ -363,6 +396,10 @@
     "named": false
   },
   {
+    "type": ":end:",
+    "named": false
+  },
+  {
     "type": "[[",
     "named": false
   },
@@ -387,7 +424,7 @@
     "named": true
   },
   {
-    "type": "key",
+    "type": "drawer_content",
     "named": true
   },
   {

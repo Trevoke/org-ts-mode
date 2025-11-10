@@ -70,6 +70,19 @@ This is an early-stage implementation following TDD principles. The grammar is b
 
 **Bounding Success**: Property drawers use distinctive `:PROPERTIES:` and `:END:` delimiters (all caps with colons). Cannot be confused with any other element. Position-specific (after headlines) adds additional isolation. Zero cascading failures.
 
+#### ✅ Generic Drawers (100% test coverage)
+- [x] LOGBOOK drawers (`:LOGBOOK:` ... `:end:`)
+- [x] Custom named drawers (`:NOTES:`, `:DETAILS:`, etc.)
+- [x] Drawers with multiple lines of content
+- [x] Multiple drawers in sequence
+- [x] Drawers with content after
+
+**Tests**: 5/5 passing
+
+**Bounding Success**: Generic drawers use `:NAME:` ... `:end:` pattern (lowercase `end`). Distinguished from property drawers by lowercase vs uppercase END delimiter. Modified paragraph pattern to exclude `:` at start (changed to `/[^*#|\[\-+:0-9a-z\n]/`). Drawer content uses negative lookahead regex to stop before `:end:` marker. Zero cascading failures.
+
+**Implementation Notes**: Drawer names use same pattern as property keys (`/[A-Z_-]+/`). Content pattern: `/([^:]|:[^eE]|:[eE][^nN]|:[eE][nN][^dD]|:[eE][nN][dD][^:])+/` - matches any text but stops before `:end:`.
+
 #### ✅ Directives (100% test coverage)
 - [x] Simple directives (`#+TITLE:`, `#+AUTHOR:`, etc.)
 - [x] Multiple directives

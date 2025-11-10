@@ -22,6 +22,7 @@ module.exports = grammar({
       $.directive,
       $.comment,
       $.property_drawer,
+      $.drawer,
       prec(1, $.table),
       $.paragraph
     ),
@@ -231,10 +232,30 @@ module.exports = grammar({
 
     value: $ => /[^\n]+/,
 
+    // Generic drawer: :NAME: ... :end:
+    drawer: $ => seq(
+      ':',
+      $.drawer_name,
+      ':',
+      /[ \t]*/,
+      '\n',
+      optional($.drawer_content),
+      ':end:',
+      /[ \t]*/,
+      '\n'
+    ),
+
+    // Drawer name: uppercase letters, hyphens, underscores
+    drawer_name: $ => /[A-Z_-]+/,
+
+    // Drawer content: any text until :end:
+    // Use negative lookahead pattern to stop before :end:
+    drawer_content: $ => /([^:]|:[^eE]|:[eE][^nN]|:[eE][nN][^dD]|:[eE][nN][dD][^:])+/,
+
     // Paragraph: any line that doesn't start with special characters
-    // Excludes: *, #, |, [, -, +, digits, lowercase letters (for list bullets)
+    // Excludes: *, #, |, [, -, +, :, digits, lowercase letters
     paragraph: $ => seq(
-      /[^*#|\[\-+0-9a-z\n][^\n]*/,
+      /[^*#|\[\-+:0-9a-z\n][^\n]*/,
       /\n/
     ),
   }

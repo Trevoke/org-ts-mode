@@ -53,6 +53,10 @@
           "name": "property_drawer"
         },
         {
+          "type": "SYMBOL",
+          "name": "drawer"
+        },
+        {
           "type": "PREC",
           "value": 1,
           "content": {
@@ -938,12 +942,69 @@
       "type": "PATTERN",
       "value": "[^\\n]+"
     },
+    "drawer": {
+      "type": "SEQ",
+      "members": [
+        {
+          "type": "STRING",
+          "value": ":"
+        },
+        {
+          "type": "SYMBOL",
+          "name": "drawer_name"
+        },
+        {
+          "type": "STRING",
+          "value": ":"
+        },
+        {
+          "type": "PATTERN",
+          "value": "[ \\t]*"
+        },
+        {
+          "type": "STRING",
+          "value": "\n"
+        },
+        {
+          "type": "CHOICE",
+          "members": [
+            {
+              "type": "SYMBOL",
+              "name": "drawer_content"
+            },
+            {
+              "type": "BLANK"
+            }
+          ]
+        },
+        {
+          "type": "STRING",
+          "value": ":end:"
+        },
+        {
+          "type": "PATTERN",
+          "value": "[ \\t]*"
+        },
+        {
+          "type": "STRING",
+          "value": "\n"
+        }
+      ]
+    },
+    "drawer_name": {
+      "type": "PATTERN",
+      "value": "[A-Z_-]+"
+    },
+    "drawer_content": {
+      "type": "PATTERN",
+      "value": "([^:]|:[^eE]|:[eE][^nN]|:[eE][nN][^dD]|:[eE][nN][dD][^:])+"
+    },
     "paragraph": {
       "type": "SEQ",
       "members": [
         {
           "type": "PATTERN",
-          "value": "[^*#|\\[\\-+0-9a-z\\n][^\\n]*"
+          "value": "[^*#|\\[\\-+:0-9a-z\\n][^\\n]*"
         },
         {
           "type": "PATTERN",

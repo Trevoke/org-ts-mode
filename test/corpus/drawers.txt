@@ -1,0 +1,98 @@
+==================
+Simple LOGBOOK drawer
+==================
+
+* Headline
+:LOGBOOK:
+- State "DONE" from "TODO"
+:end:
+
+---
+
+(document
+  (headline
+    (stars)
+    (title))
+  (drawer
+    (drawer_name)
+    (drawer_content)))
+
+==================
+Custom drawer
+==================
+
+* Project Notes
+:NOTES:
+Some notes here
+:end:
+
+---
+
+(document
+  (headline
+    (stars)
+    (title))
+  (drawer
+    (drawer_name)
+    (drawer_content)))
+
+==================
+Drawer with multiple lines
+==================
+
+:DETAILS:
+Line 1
+Line 2
+Line 3
+:end:
+
+---
+
+(document
+  (drawer
+    (drawer_name)
+    (drawer_content)))
+
+==================
+Multiple drawers
+==================
+
+:LOGBOOK:
+Activity log
+:end:
+
+:NOTES:
+Additional notes
+:end:
+
+---
+
+(document
+  (drawer
+    (drawer_name)
+    (drawer_content))
+  (drawer
+    (drawer_name)
+    (drawer_content)))
+
+==================
+Drawer under headline with content after
+==================
+
+* Task
+:LOGBOOK:
+Clock history
+:end:
+
+Some paragraph text.
+
+---
+
+(document
+  (headline
+    (stars)
+    (title))
+  (drawer
+    (drawer_name)
+    (drawer_content))
+  (paragraph))
