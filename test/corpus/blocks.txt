@@ -99,3 +99,65 @@ Second block
       (block_type))
     (block_content)
     (block_end)))
+
+==================
+Verse block
+==================
+
+#+begin_verse
+Great clouds overhead
+Tiny black birds rise and fall
+Snow covers Emacs
+#+end_verse
+
+---
+
+(document
+  (block
+    (block_begin
+      (block_type))
+    (block_content)
+    (block_end)))
+
+==================
+Center block
+==================
+
+#+begin_center
+This text is centered
+#+end_center
+
+---
+
+(document
+  (block
+    (block_begin
+      (block_type))
+    (block_content)
+    (block_end)))
+
+==================
+Multiple special blocks
+==================
+
+#+begin_verse
+Poetry here
+#+end_verse
+
+#+begin_center
+Centered text
+#+end_center
+
+---
+
+(document
+  (block
+    (block_begin
+      (block_type))
+    (block_content)
+    (block_end))
+  (block
+    (block_begin
+      (block_type))
+    (block_content)
+    (block_end)))

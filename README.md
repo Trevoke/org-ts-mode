@@ -28,12 +28,14 @@ This is an early-stage implementation following TDD principles. The grammar is b
 - [x] Source blocks with language (`#+begin_src LANG`)
 - [x] Example blocks (`#+begin_example`)
 - [x] Quote blocks (`#+begin_quote`)
+- [x] Verse blocks (`#+begin_verse`)
+- [x] Center blocks (`#+begin_center`)
 - [x] Blocks under headlines
 - [x] Multiple blocks
 
-**Tests**: 5/5 passing
+**Tests**: 8/8 passing
 
-**Bounding Success**: Blocks have distinctive delimiters (`#+begin_` / `#+end_`) that prevent confusion with other elements. Implementation didn't break any existing tests.
+**Bounding Success**: Blocks have distinctive delimiters (`#+begin_` / `#+end_`) that prevent confusion with other elements. Generic `block_type` pattern accepts any block name, allowing verse and center blocks to work with zero code changes. Perfect example of extensible design - adding new block types requires only test cases, not grammar modifications.
 
 #### ✅ Tables (100% test coverage)
 - [x] Table rows with cells (`| cell | cell |`)
