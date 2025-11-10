@@ -139,6 +139,10 @@
         {
           "type": "table",
           "named": true
+        },
+        {
+          "type": "timestamp",
+          "named": true
         }
       ]
     }
@@ -469,6 +473,10 @@
   },
   {
     "type": "tag",
+    "named": true
+  },
+  {
+    "type": "timestamp",
     "named": true
   },
   {

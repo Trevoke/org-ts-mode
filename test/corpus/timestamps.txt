@@ -1,0 +1,76 @@
+==================
+Simple active timestamp
+==================
+
+<2024-01-15 Mon>
+
+---
+
+(document
+  (timestamp))
+
+==================
+Simple inactive timestamp
+==================
+
+[2024-01-15 Mon]
+
+---
+
+(document
+  (timestamp))
+
+==================
+Active timestamp with time
+==================
+
+<2024-01-15 Mon 14:30>
+
+---
+
+(document
+  (timestamp))
+
+==================
+Inactive timestamp with time
+==================
+
+[2024-01-15 Mon 14:30]
+
+---
+
+(document
+  (timestamp))
+
+==================
+Timestamp under headline
+==================
+
+* Meeting Notes
+
+<2024-01-15 Mon 14:30>
+
+Discussion points here.
+
+---
+
+(document
+  (headline
+    (stars)
+    (title))
+  (timestamp)
+  (paragraph))
+
+==================
+Multiple timestamps
+==================
+
+<2024-01-15 Mon>
+
+<2024-01-20 Sat>
+
+---
+
+(document
+  (timestamp)
+  (timestamp))

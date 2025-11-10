@@ -17,6 +17,7 @@ module.exports = grammar({
       $.headline,
       prec(2, $.planning_line),
       $.link,
+      $.timestamp,
       prec(1, $.list),
       $.block,
       $.directive,
@@ -79,6 +80,18 @@ module.exports = grammar({
       choice('DEADLINE', 'SCHEDULED', 'CLOSED'),
       ':',
       /[ \t]+/,
+      choice(
+        // Active timestamp: <2024-01-01 Mon 14:30>
+        seq('<', /[^>\n]+/, '>'),
+        // Inactive timestamp: [2024-01-01 Mon 14:30]
+        seq('[', /[^\]\n]+/, ']')
+      ),
+      '\n'
+    )),
+
+    // Standalone timestamp: <2024-01-01> or [2024-01-01]
+    // Active (<>) for agenda items, inactive ([]) for reference dates
+    timestamp: $ => token(seq(
       choice(
         // Active timestamp: <2024-01-01 Mon 14:30>
         seq('<', /[^>\n]+/, '>'),

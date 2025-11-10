@@ -140,6 +140,19 @@ This is an early-stage implementation following TDD principles. The grammar is b
 - Description lists (tags with `::`) not yet implemented
 - Multi-line list items not supported
 
+#### ✅ Standalone Timestamps (100% test coverage)
+- [x] Active timestamps (`<2024-01-15 Mon>`)
+- [x] Inactive timestamps (`[2024-01-15 Mon]`)
+- [x] Timestamps with time (`<2024-01-15 Mon 14:30>`)
+- [x] Timestamps under headlines
+- [x] Multiple timestamps
+
+**Tests**: 6/6 passing
+
+**Bounding Success**: Timestamps use distinctive delimiters (`<` for active, `[` for inactive). Implemented as atomic tokens using `token(seq(...))` to prevent component leakage. Single `[` for timestamps doesn't conflict with `[[` for links. Content patterns use simple regex: `<[^>\n]+>` and `[^\]\n]+]`. Zero cascading failures.
+
+**Implementation Notes**: Reuses same atomic pattern as planning line timestamps but as standalone block-level elements. Basic date/time support implemented; repeaters and delays can be added later without grammar changes.
+
 ### TODO (Priority Order)
 
 #### Next Sprint
