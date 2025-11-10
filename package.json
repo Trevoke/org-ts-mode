@@ -6,7 +6,9 @@
   "types": "bindings/node",
   "scripts": {
     "build": "tree-sitter generate && node-gyp build",
-    "test": "tree-sitter test"
+    "test": "tree-sitter test",
+    "install": "node-gyp-build",
+    "prebuildify": "prebuildify --napi --strip"
   },
   "keywords": [
     "tree-sitter",
@@ -14,19 +16,39 @@
     "org-mode",
     "emacs"
   ],
+  "files": [
+    "grammar.js",
+    "binding.gyp",
+    "prebuilds/**",
+    "bindings/node/*",
+    "queries/*",
+    "src/**"
+  ],
   "author": "",
   "license": "MIT",
   "dependencies": {
     "node-addon-api": "^7.1.0",
-    "node-gyp": "^10.0.1"
+    "node-gyp": "^10.0.1",
+    "node-gyp-build": "^4.8.0"
+  },
+  "peerDependencies": {
+    "tree-sitter": "^0.21.0"
+  },
+  "peerDependenciesMeta": {
+    "tree_sitter": {
+      "optional": true
+    }
   },
   "devDependencies": {
-    "tree-sitter-cli": "^0.22.6"
+    "tree-sitter-cli": "^0.22.6",
+    "prebuildify": "^6.0.0"
   },
   "tree-sitter": [
     {
       "scope": "source.org",
-      "file-types": ["org"],
+      "file-types": [
+        "org"
+      ],
       "injection-regex": "org"
     }
   ]

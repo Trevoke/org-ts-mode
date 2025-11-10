@@ -10,6 +10,11 @@
 module.exports = grammar({
   name: 'org',
 
+  externals: $ => [
+    $.HEADLINE_TITLE,  // Title portion of headline (handled by external scanner)
+    $.HEADLINE_TAGS,   // Tags portion of headline (handled by external scanner)
+  ],
+
   rules: {
     document: $ => repeat($._element),
 
@@ -35,7 +40,8 @@ module.exports = grammar({
       $.paragraph
     ),
 
-    // Headline: STARS KEYWORD PRIORITY COMMENT TITLE TAGS
+    // Headline: STARS KEYWORD PRIORITY TITLE TAGS
+    // External scanner handles separation of title and tags
     headline: $ => seq(
       $.stars,
       ' ',
@@ -47,8 +53,8 @@ module.exports = grammar({
         field('priority', $.priority),
         ' '
       )),
-      optional(field('title', $.title)),
-      optional(field('tags', $.tags)),
+      optional(field('title', alias($.HEADLINE_TITLE, $.title))),
+      optional(field('tags', alias($.HEADLINE_TAGS, $.tags))),
       '\n'
     ),
 
@@ -67,21 +73,9 @@ module.exports = grammar({
     // Priority: [#A], [#B], [#C]
     priority: $ => token(prec(1, /\[#[A-Z]\]/)),
 
-    // Title: matches headline text
-    // TODO: Currently absorbs tags into title. Proper tag parsing requires:
-    //   - External scanner (can scan ahead to detect tag pattern), OR
-    //   - Lookahead regex (not supported: "look-around...is not supported"), OR
-    //   - Restructured parsing (tags as separate pass)
-    title: $ => prec(-1, /[^\n]+/),
-
-    // Tags: match tag sequence
-    // TODO: Implement proper tag parsing with external scanner or improved lexing
-    tags: $ => seq(
-      repeat1($.tag),
-      ':'
-    ),
-
-    tag: $ => /:[a-zA-Z0-9_@#%]+/,
+    // Title and tags are now handled directly in headline rule via external scanner
+    // No separate rules needed - external tokens HEADLINE_TITLE and HEADLINE_TAGS
+    // are aliased directly in the headline seq()
 
     // Planning line: KEYWORD: TIMESTAMP
     // Match entire line as atomic token to avoid conflicts
