@@ -78,7 +78,7 @@ These should be parsed by the inline grammar within paragraphs, titles, table ce
 |--------|--------|-------|
 | **Citations** | ❌ | `[cite STYLE: @KEY]` - Org 9.5+ |
 | **Citation References** | ❌ | `@KEY` within citations |
-| **Export Snippets** | ❌ | `@@BACKEND:VALUE@@` |
+| **Export Snippets** | ✅ | `@@BACKEND:VALUE@@` - backend-specific export formatting |
 | **Inline Babel Calls** | ❌ | `call_NAME(ARGS)` |
 | **Inline Source Blocks** | ❌ | `src_LANG{BODY}` or `src_LANG[HEADERS]{BODY}` |
 | **Line Breaks** | ❌ | `\\` at end of line |
@@ -100,6 +100,7 @@ These should be parsed by the inline grammar within paragraphs, titles, table ce
 - ✅ External scanner for tag detection
 - ✅ Text markup: bold, italic, underline, code, verbatim, strike-through (11/11 tests)
 - ✅ Statistics cookies: percentage and fraction formats (11/11 tests)
+- ✅ Export snippets: backend-specific formatting (11/11 tests)
 - ✅ Plain text with proper whitespace handling
 - ✅ Colons in titles (distinct from tags)
 
@@ -108,7 +109,6 @@ These should be parsed by the inline grammar within paragraphs, titles, table ce
 - Plain links, angle links
 - Targets and radio targets
 - Line breaks (`\\`)
-- Export snippets
 - Inline babel/source blocks
 - Citations (Org 9.5+)
 
@@ -167,8 +167,10 @@ These should be parsed by the inline grammar within paragraphs, titles, table ce
    - **Bounding**: Excellent - bracket-delimited, self-contained, graceful degradation
 
 9. **Export Snippets** (`@@backend:content@@`)
+   - **Status**: ✅ **COMPLETE** (11/11 tests passing)
    - **Impact**: Used for multi-format export
-   - **Complexity**: Low
+   - **Location**: Inline grammar
+   - **Bounding**: Excellent - double-@ delimiters, self-contained, graceful degradation
 
 ### Low Priority (Advanced/Rare)
 
@@ -217,10 +219,10 @@ These should be parsed by the inline grammar within paragraphs, titles, table ce
 
 ### Inline Grammar (tree-sitter-org-inline)
 - **Total Objects**: ~25 types
-- **Implemented**: ~8 types (title/tags, 6 markup types, statistics cookies, plain text)
+- **Implemented**: ~9 types (title/tags, 6 markup types, statistics cookies, export snippets, plain text)
 - **In Block (Should Move)**: ~7 types (entities, latex, footnotes, links, macros, sub/super, timestamps)
-- **Missing**: ~10 types
-- **Test Coverage**: 30/30 tests passing
+- **Missing**: ~9 types
+- **Test Coverage**: 41/41 tests passing
 
 ### Overall Syntax Coverage
 - **Fully Functional**: ~35%
@@ -240,6 +242,7 @@ These should be parsed by the inline grammar within paragraphs, titles, table ce
 ✅ Title/tags separation (inline grammar)
 ✅ **Complete text markup** (all 6 types: bold, italic, underline, code, verbatim, strike-through)
 ✅ **Statistics cookies** (progress tracking: [50%], [2/5])
+✅ **Export snippets** (backend-specific export: @@html:...@@)
 
 ### What's Missing That Users Will Notice
 ❌ Inline links in paragraphs - **Very Common**
