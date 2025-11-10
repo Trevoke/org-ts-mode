@@ -10,6 +10,11 @@
     "fields": {}
   },
   {
+    "type": "export_snippet",
+    "named": true,
+    "fields": {}
+  },
+  {
     "type": "inline",
     "named": true,
     "fields": {},
@@ -91,6 +96,10 @@
       "multiple": true,
       "required": false,
       "types": [
+        {
+          "type": "export_snippet",
+          "named": true
+        },
         {
           "type": "plain_text",
           "named": true
@@ -180,6 +189,10 @@
   },
   {
     "type": "=",
+    "named": false
+  },
+  {
+    "type": "@@",
     "named": false
   },
   {

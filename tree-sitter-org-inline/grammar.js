@@ -47,11 +47,12 @@ module.exports = grammar({
     // Title: sequence of inline objects, including colons
     // Use repeat1 to ensure at least one object
     // Colons are explicit tokens so external scanner can intercept for tags
-    // Higher precedence for markup/cookies, then colon, then plain text
+    // Higher precedence for inline objects (markup/cookies/snippets), then colon, then plain text
     // Right-associative to greedily consume all content
     title: $ => prec.right(repeat1(choice(
       prec(3, $.text_markup),
       prec(3, $.statistics_cookie),
+      prec(3, $.export_snippet),
       prec(2, ':'),  // Allow colons in title (lower precedence than TAGS)
       prec(1, $.plain_text)
     ))),
@@ -119,10 +120,23 @@ module.exports = grammar({
       seq('[', /\d*/, '/', /\d*/, ']')
     ),
 
-    // Plain text - any characters except markup delimiters, brackets, colon, newline
-    // Lower precedence so markup, cookies, and explicit colons are preferred
+    // Export snippet: @@backend:content@@
+    // Used for backend-specific export formatting
+    // Backend: alphanumeric and hyphens
+    // Content: anything except @ or newline (simplified from spec)
+    export_snippet: $ => seq(
+      '@@',
+      /[a-zA-Z0-9-]+/,  // Backend name
+      ':',
+      /[^@\n]*/,        // Content (excludes @ to avoid closing delimiter issues)
+      '@@'
+    ),
+
+    // Plain text - any characters except markup delimiters, brackets, @, colon, newline
+    // Lower precedence so markup, cookies, snippets, and explicit colons are preferred
     // Colons are handled separately to allow external scanner to recognize tags
     // Brackets are excluded so statistics cookies can be recognized
-    plain_text: $ => prec(1, /[^*\/~=_+:\[\]\n]+/),
+    // @ is excluded so export snippets can be recognized
+    plain_text: $ => prec(1, /[^*\/~=_+:@\[\]\n]+/),
   }
 });
