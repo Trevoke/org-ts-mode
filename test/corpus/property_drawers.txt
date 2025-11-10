@@ -1,0 +1,102 @@
+==================
+Simple property drawer
+==================
+
+* Headline
+:PROPERTIES:
+:ID: abc123
+:END:
+
+---
+
+(document
+  (headline
+    (stars)
+    (title))
+  (property_drawer
+    (property
+      (key)
+      (value))))
+
+==================
+Property drawer with multiple properties
+==================
+
+* Task
+:PROPERTIES:
+:CREATED: 2024-01-01
+:STATUS: in-progress
+:PRIORITY: high
+:END:
+
+---
+
+(document
+  (headline
+    (stars)
+    (title))
+  (property_drawer
+    (property
+      (key)
+      (value))
+    (property
+      (key)
+      (value))
+    (property
+      (key)
+      (value))))
+
+==================
+Property drawer with content after
+==================
+
+* Headline
+:PROPERTIES:
+:ID: test
+:END:
+
+Some paragraph text.
+
+---
+
+(document
+  (headline
+    (stars)
+    (title))
+  (property_drawer
+    (property
+      (key)
+      (value)))
+  (paragraph))
+
+==================
+Multiple headlines with property drawers
+==================
+
+* First
+:PROPERTIES:
+:ID: first
+:END:
+
+* Second
+:PROPERTIES:
+:ID: second
+:END:
+
+---
+
+(document
+  (headline
+    (stars)
+    (title))
+  (property_drawer
+    (property
+      (key)
+      (value)))
+  (headline
+    (stars)
+    (title))
+  (property_drawer
+    (property
+      (key)
+      (value))))

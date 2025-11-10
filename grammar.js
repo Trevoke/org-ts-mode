@@ -17,6 +17,7 @@ module.exports = grammar({
       $.headline,
       $.block,
       $.comment,
+      $.property_drawer,
       prec(1, $.table),
       $.paragraph
     ),
@@ -138,6 +139,31 @@ module.exports = grammar({
       /[^\n]*/,
       '\n'
     ),
+
+    // Property drawer: :PROPERTIES: ... :END:
+    property_drawer: $ => seq(
+      ':PROPERTIES:',
+      /[ \t]*/,
+      '\n',
+      repeat1($.property),
+      ':END:',
+      /[ \t]*/,
+      '\n'
+    ),
+
+    // Property: :KEY: value
+    property: $ => seq(
+      ':',
+      $.key,
+      ':',
+      /[ \t]*/,
+      $.value,
+      '\n'
+    ),
+
+    key: $ => /[A-Z_-]+/,
+
+    value: $ => /[^\n]+/,
 
     // Paragraph: any line that doesn't start with special characters
     paragraph: $ => seq(

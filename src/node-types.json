@@ -94,6 +94,10 @@
           "named": true
         },
         {
+          "type": "property_drawer",
+          "named": true
+        },
+        {
           "type": "table",
           "named": true
         }
@@ -162,6 +166,40 @@
     "fields": {}
   },
   {
+    "type": "property",
+    "named": true,
+    "fields": {},
+    "children": {
+      "multiple": true,
+      "required": true,
+      "types": [
+        {
+          "type": "key",
+          "named": true
+        },
+        {
+          "type": "value",
+          "named": true
+        }
+      ]
+    }
+  },
+  {
+    "type": "property_drawer",
+    "named": true,
+    "fields": {},
+    "children": {
+      "multiple": true,
+      "required": true,
+      "types": [
+        {
+          "type": "property",
+          "named": true
+        }
+      ]
+    }
+  },
+  {
     "type": "table",
     "named": true,
     "fields": {},
@@ -216,6 +254,11 @@
     "fields": {}
   },
   {
+    "type": "value",
+    "named": true,
+    "fields": {}
+  },
+  {
     "type": "\n",
     "named": false
   },
@@ -228,11 +271,23 @@
     "named": false
   },
   {
+    "type": ":END:",
+    "named": false
+  },
+  {
+    "type": ":PROPERTIES:",
+    "named": false
+  },
+  {
     "type": "block_content",
     "named": true
   },
   {
     "type": "block_type",
+    "named": true
+  },
+  {
+    "type": "key",
     "named": true
   },
   {

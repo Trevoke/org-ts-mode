@@ -58,6 +58,16 @@ This is an early-stage implementation following TDD principles. The grammar is b
 
 **Bounding Success**: Comments use `# ` (hash + space) which is distinct from blocks (`#+`). Using `token(seq('#', ' '))` ensures atomic matching. Perfect isolation - zero cascading failures.
 
+#### ✅ Property Drawers (100% test coverage)
+- [x] Simple property drawers (`:PROPERTIES:` ... `:END:`)
+- [x] Multiple properties per drawer
+- [x] Property drawers with content after
+- [x] Multiple headlines with property drawers
+
+**Tests**: 4/4 passing
+
+**Bounding Success**: Property drawers use distinctive `:PROPERTIES:` and `:END:` delimiters (all caps with colons). Cannot be confused with any other element. Position-specific (after headlines) adds additional isolation. Zero cascading failures.
+
 ### TODO (Priority Order)
 
 #### Next Sprint

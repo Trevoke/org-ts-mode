@@ -25,6 +25,10 @@
           "name": "comment"
         },
         {
+          "type": "SYMBOL",
+          "name": "property_drawer"
+        },
+        {
           "type": "PREC",
           "value": 1,
           "content": {
@@ -526,6 +530,79 @@
           "value": "\n"
         }
       ]
+    },
+    "property_drawer": {
+      "type": "SEQ",
+      "members": [
+        {
+          "type": "STRING",
+          "value": ":PROPERTIES:"
+        },
+        {
+          "type": "PATTERN",
+          "value": "[ \\t]*"
+        },
+        {
+          "type": "STRING",
+          "value": "\n"
+        },
+        {
+          "type": "REPEAT1",
+          "content": {
+            "type": "SYMBOL",
+            "name": "property"
+          }
+        },
+        {
+          "type": "STRING",
+          "value": ":END:"
+        },
+        {
+          "type": "PATTERN",
+          "value": "[ \\t]*"
+        },
+        {
+          "type": "STRING",
+          "value": "\n"
+        }
+      ]
+    },
+    "property": {
+      "type": "SEQ",
+      "members": [
+        {
+          "type": "STRING",
+          "value": ":"
+        },
+        {
+          "type": "SYMBOL",
+          "name": "key"
+        },
+        {
+          "type": "STRING",
+          "value": ":"
+        },
+        {
+          "type": "PATTERN",
+          "value": "[ \\t]*"
+        },
+        {
+          "type": "SYMBOL",
+          "name": "value"
+        },
+        {
+          "type": "STRING",
+          "value": "\n"
+        }
+      ]
+    },
+    "key": {
+      "type": "PATTERN",
+      "value": "[A-Z_-]+"
+    },
+    "value": {
+      "type": "PATTERN",
+      "value": "[^\\n]+"
     },
     "paragraph": {
       "type": "SEQ",
