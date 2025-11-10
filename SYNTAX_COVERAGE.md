@@ -34,7 +34,7 @@ Based on the official spec at https://orgmode.org/worg/org-syntax.html
 | **Diary Sexp** | ❌ | No | `%%SEXP` pattern |
 | **Planning** | ✅ | Yes | DEADLINE, SCHEDULED, CLOSED |
 | **Comments** | ✅ | Yes | Lines starting with `#` |
-| **Fixed Width Areas** | ❌ | No | Lines starting with `:` and space |
+| **Fixed Width Areas** | ✅ | Yes | Lines starting with `:` and space |
 | **Horizontal Rules** | ✅ | Yes | Five or more hyphens |
 | **Keywords/Directives** | ✅ | Yes | `#+KEY: VALUE` |
 | **LaTeX Environments** | ❌ | No | `\begin{NAME}` ... `\end{NAME}` |
@@ -90,17 +90,20 @@ These should be parsed by the inline grammar within paragraphs, titles, table ce
 | **Radio Targets** | ❌ | `<<<RADIO>>>` |
 | **Statistics Cookies** | ❌ | `[50%]`, `[1/2]` |
 | **Table Cells (objects)** | 🟡 | Tables exist, but cell contents not parsed for objects |
-| **Text Markup** | ❌ | Bold `*`, Italic `/`, Underline `_`, Code `~`, Verbatim `=`, Strike `+` |
-| **Plain Text** | 📋 | Default object type |
+| **Text Markup** | 🟡 | Bold `*`, Italic `/`, Code `~`, Verbatim `=` implemented. Missing: Underline `_`, Strike `+` |
+| **Plain Text** | ✅ | Default object type in inline grammar |
 
 ### Inline Grammar Status
 
 **Implemented:**
 - ✅ Title/tags separation (8/8 tests)
 - ✅ External scanner for tag detection
+- ✅ Text markup: bold, italic, code, verbatim (8/8 tests)
+- ✅ Plain text with proper whitespace handling
+- ✅ Colons in titles (distinct from tags)
 
 **TODO for Inline Grammar:**
-- Text markup (bold, italic, underline, verbatim, code, strike-through)
+- Underline (`_text_`) and strike-through (`+text+`) markup
 - Links within paragraphs (not just block-level)
 - Plain links, angle links
 - Targets and radio targets
@@ -117,9 +120,11 @@ These should be parsed by the inline grammar within paragraphs, titles, table ce
 ### High Priority (Common in Org Files)
 
 1. **Text Markup** (`*bold*`, `/italic/`, `_underline_`, `~code~`, `=verbatim=`, `+strike+`)
+   - **Status**: 🟡 **PARTIAL** - bold, italic, code, verbatim implemented
+   - **Missing**: Underline (`_`), strike-through (`+`)
    - **Impact**: Very common in org files
    - **Location**: Inline grammar
-   - **Complexity**: Requires PRE/POST character validation
+   - **Complexity**: Same pattern as existing markup
 
 2. **COMMENT Keyword in Headlines** ⚠️  **BLOCKED**
    - **Impact**: Common for disabling sections
@@ -130,9 +135,10 @@ These should be parsed by the inline grammar within paragraphs, titles, table ce
    - **Bounding Impact**: This demonstrates poor bounding - title's greediness prevents proper keyword recognition
 
 3. **Fixed Width Areas** (`: content`)
+   - **Status**: ✅ **IMPLEMENTED** (5/5 tests passing)
    - **Impact**: Common for code/output examples
    - **Location**: Block grammar
-   - **Complexity**: Low - similar to comments
+   - **Bounding**: Excellent - distinctive start pattern, graceful degradation
 
 4. **Inline Links** (currently block-only)
    - **Impact**: Links should work within paragraphs
@@ -206,17 +212,17 @@ These should be parsed by the inline grammar within paragraphs, titles, table ce
 
 ### Block Grammar (tree-sitter-org)
 - **Total Elements**: ~25 types
-- **Implemented**: ~18 types (✅ 72%)
+- **Implemented**: ~19 types (✅ 76%)
 - **Partial**: ~4 types (🟡 16%)
-- **Missing**: ~7 types (❌ 28%)
-- **Test Coverage**: 112/112 tests passing
+- **Missing**: ~6 types (❌ 24%)
+- **Test Coverage**: 117/117 tests passing
 
 ### Inline Grammar (tree-sitter-org-inline)
 - **Total Objects**: ~25 types
-- **Implemented**: ~1 type (title/tags)
+- **Implemented**: ~5 types (title/tags, 4 markup types, plain text)
 - **In Block (Should Move)**: ~7 types (entities, latex, footnotes, links, macros, sub/super, timestamps)
-- **Missing**: ~17 types
-- **Test Coverage**: 8/8 tests passing (title/tags only)
+- **Missing**: ~13 types
+- **Test Coverage**: 16/16 tests passing
 
 ### Overall Syntax Coverage
 - **Fully Functional**: ~35%
@@ -231,13 +237,14 @@ These should be parsed by the inline grammar within paragraphs, titles, table ce
 ✅ Properties
 ✅ Comments and horizontal rules
 ✅ Directives/keywords
+✅ Fixed width areas
 ✅ Title/tags separation (inline grammar)
+✅ Text markup (bold, italic, code, verbatim)
 
 ### What's Missing That Users Will Notice
-❌ Text markup (bold, italic, etc.) - **Very Common**
-❌ Inline links in paragraphs
-❌ Fixed width areas
-❌ COMMENT keyword in headlines
+❌ Underline and strike-through markup - **Common**
+❌ Inline links in paragraphs - **Very Common**
+❌ COMMENT keyword in headlines - **BLOCKED**
 ❌ Clock elements
 ❌ Line breaks
 ❌ Objects in table cells
