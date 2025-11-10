@@ -1,0 +1,83 @@
+==================
+Simple link without description
+==================
+
+[[https://orgmode.org]]
+
+---
+
+(document
+  (link
+    (link_target)))
+
+==================
+Link with description
+==================
+
+[[https://orgmode.org][Org Mode]]
+
+---
+
+(document
+  (link
+    (link_target)
+    (link_description)))
+
+==================
+File link
+==================
+
+[[file:~/documents/notes.org]]
+
+---
+
+(document
+  (link
+    (link_target)))
+
+==================
+ID link
+==================
+
+[[id:12345-abcde]]
+
+---
+
+(document
+  (link
+    (link_target)))
+
+==================
+Multiple links
+==================
+
+[[https://example.com][Example]]
+[[https://github.com][GitHub]]
+
+---
+
+(document
+  (link
+    (link_target)
+    (link_description))
+  (link
+    (link_target)
+    (link_description)))
+
+==================
+Link under headline
+==================
+
+* Resources
+
+[[https://orgmode.org][Org Mode Homepage]]
+
+---
+
+(document
+  (headline
+    (stars)
+    (title))
+  (link
+    (link_target)
+    (link_description)))

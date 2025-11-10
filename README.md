@@ -92,6 +92,20 @@ This is an early-stage implementation following TDD principles. The grammar is b
 
 **Implementation Notes**: Initial attempt with separate timestamp components (date, day_name, time) caused massive cascading failures as patterns matched everywhere. Solution: make entire planning line atomic, including timestamp content. Timestamp matching uses simple regex patterns (`<[^>\n]+>` and `[^\]\n]+]`) rather than complex structured rules.
 
+#### ✅ Links (100% test coverage)
+- [x] Simple links without description (`[[url]]`)
+- [x] Links with description (`[[url][description]]`)
+- [x] File links (`[[file:path]]`)
+- [x] ID links (`[[id:...]]`)
+- [x] Multiple links
+- [x] Links under headlines
+
+**Tests**: 6/6 passing
+
+**Bounding Success**: Links use distinctive `[[` and `]]` delimiters. Modified paragraph rule to exclude lines starting with `[` (changed `/[^*#|\n]/` to `/[^*#|\[\n]/`). Link target matched with `/[^\]\n]+/` pattern. Zero cascading failures.
+
+**Implementation Notes**: Links are currently block-level elements (full lines). In Org-mode, links are inline objects that can appear within paragraphs. Future enhancement will require restructuring paragraphs to support inline elements.
+
 ### TODO (Priority Order)
 
 #### Next Sprint

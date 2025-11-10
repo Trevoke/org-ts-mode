@@ -16,6 +16,7 @@ module.exports = grammar({
     _element: $ => choice(
       $.headline,
       prec(2, $.planning_line),
+      $.link,
       $.block,
       $.directive,
       $.comment,
@@ -84,6 +85,18 @@ module.exports = grammar({
       ),
       '\n'
     )),
+
+    // Link: [[target]] or [[target][description]]
+    link: $ => seq(
+      '[[',
+      alias(/[^\]\n]+/, $.link_target),
+      optional(seq(
+        '][',
+        alias(/[^\]\n]+/, $.link_description)
+      )),
+      ']]',
+      '\n'
+    ),
 
     // Block: #+begin_NAME ... #+end_NAME
     block: $ => seq(
@@ -197,7 +210,7 @@ module.exports = grammar({
 
     // Paragraph: any line that doesn't start with special characters
     paragraph: $ => seq(
-      /[^*#|\n][^\n]*/,
+      /[^*#|\[\n][^\n]*/,
       /\n/
     ),
   }
