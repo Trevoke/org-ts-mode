@@ -248,21 +248,48 @@ This is an early-stage implementation following TDD principles. The grammar is b
 
 ### TODO (Priority Order)
 
-#### Next Sprint
-1. [ ] **Inline Markup** - Requires careful design to avoid breaking headline/paragraph parsing
-   - Bold (`*bold*`), Italic (`/italic/`), Code (`~code~`), etc.
-   - Challenge: Must distinguish `*` as bold vs headline starter
-   - Approach: May require two-phase parsing (block structure first, then inline)
+#### Current: Multi-Grammar Architecture 🚧
+**Status**: Block grammar complete (100% tests passing). Inline grammar in development.
 
-2. [ ] **Tags** - Currently absorbed into headline title
-   - Pattern: `:tag1:tag2:` at end of headlines
-   - Challenge: Requires lookahead or external scanner
+**Approach**: Following tree-sitter-markdown's dual-grammar pattern:
+- **tree-sitter-org** (block grammar) - Headlines, blocks, lists, tables, drawers ✅
+- **tree-sitter-org-inline** (inline grammar) - Tags, markup, links, objects 🚧
 
-#### Future
-- [ ] Lists (ordered, unordered, description)
-- [ ] Links
-- [ ] Timestamps (standalone, not just in planning lines)
-- [ ] Footnotes
+#### Phase 1: Inline Grammar Infrastructure
+1. [ ] Create tree-sitter-org-inline/ directory structure
+2. [ ] Implement basic inline grammar (headline_content node)
+3. [ ] Add injection queries to connect block → inline grammars
+4. [ ] Test injection mechanism
+
+#### Phase 2: Headline Tags (via Inline Grammar)
+1. [ ] Implement title/tags separation in inline grammar
+2. [ ] Add external scanner for tag detection (scan backwards from EOL)
+3. [ ] Test: Headlines with tags properly separated from title
+4. [ ] Validate tag format (alphanumeric, `_`, `@`, `#`, `%`)
+
+**Current Limitation**: Tags absorbed into title in block grammar. Will be properly parsed once inline grammar is integrated.
+
+#### Phase 3: Text Markup (via Inline Grammar)
+1. [ ] Bold (`*text*`), Italic (`/text/`), Underline (`_text_`)
+2. [ ] Code (`=text=`), Verbatim (`~text~`), Strikethrough (`+text+`)
+3. [ ] External scanner for PRE/POST character validation
+4. [ ] Nested markup support
+
+#### Phase 4: Other Inline Objects
+- [ ] Links (various types: `[[url]]`, `[[url][desc]]`)
+- [ ] Macros (`{{{name}}}`, `{{{name(args)}}}`)
+- [ ] Footnote references (`[fn:label]`, `[fn::def]`)
+- [ ] Timestamps, entities, subscript/superscript
+- [ ] Export snippets, inline code
+
+#### Future Block-Level Features
+- [ ] List checkboxes (`[ ]`, `[X]`, `[-]`)
+- [ ] Description lists (items with `::`)
+- [ ] Multi-line list items
+- [ ] Fixed-width areas (lines starting with `: `)
+- [ ] Clock entries, diary sexps
+- [ ] LaTeX environments
+- [ ] Citations, inline babel calls
 
 ## Development Approach
 
@@ -283,17 +310,105 @@ tree-sitter test
 tree-sitter generate
 ```
 
-## Architecture Notes
+## Architecture: Multi-Grammar Design
 
-The Org-mode syntax has a clear hierarchy between "Elements" (block-level structures) and "Objects" (inline structures), similar to how the markdown tree-sitter grammar separates block and inline parsing. Currently, this grammar uses a single parser, but may be split into dual parsers if needed for more complex features.
+This implementation uses a **dual-grammar architecture**, following the pattern established by tree-sitter-markdown.
 
-### Challenges
+### Rationale
 
-1. **Tags**: Org tags appear at the end of headlines (`:tag1:tag2:`), but tree-sitter's lexer makes it challenging to stop the title before tags without lookahead. This may require an external scanner.
+The Org-mode syntax specification explicitly separates "Elements" (block-level) from "Objects" (inline-level). Our architecture mirrors this conceptual model:
 
-2. **Inline Markup Boundaries**: Org markup requires specific PRE/POST delimiters (whitespace, punctuation, etc.), which adds complexity to the regex patterns.
+```
+┌─────────────────────────────────────────┐
+│   tree-sitter-org (Block Grammar)      │
+│   • Headlines, sections                 │
+│   • Blocks (src, quote, example)        │
+│   • Lists, tables, drawers              │
+│   • Paragraphs (as opaque containers)   │
+└─────────────────────────────────────────┘
+                    │
+                    │ Grammar Injection
+                    │ (via queries/injections.scm)
+                    ↓
+┌─────────────────────────────────────────┐
+│  tree-sitter-org-inline (Inline)       │
+│  • Title/tags separation                │
+│  • Text markup (bold, italic, code)     │
+│  • Links, macros, footnotes             │
+│  • Timestamps, entities, sub/superscript│
+└─────────────────────────────────────────┘
+```
 
-3. **Context-sensitive Parsing**: Some Org structures are context-dependent (e.g., asterisks at line start are headlines, elsewhere they're bold markup).
+### Benefits
+
+**1. Better Bounding** 🎯
+- Block parsing errors don't cascade to inline parsing
+- Inline parsing errors are contained within their block
+- Tests can focus on one level at a time
+- Easier to reason about parse failures
+
+**2. Simpler External Scanners**
+- Block grammar: Minimal or no external scanner needed
+- Inline grammar: External scanner only handles inline concerns
+- No conflicts between block and inline token recognition
+
+**3. Cleaner Separation of Concerns**
+- Each grammar has clear responsibilities
+- Precedence rules are simpler within each grammar
+- Independent development and testing
+
+**4. Matches Org-Mode's Conceptual Model**
+- Follows the official org-syntax specification structure
+- Elements (block) vs Objects (inline) distinction preserved
+- Easier for contributors to understand codebase
+
+### How Grammar Injection Works
+
+The block grammar marks certain nodes for inline parsing:
+
+```javascript
+// In tree-sitter-org (block):
+title: $ => /[^\n]+/,  // Opaque content, to be injected
+
+// In queries/injections.scm:
+((title) @injection.content
+ (#set! injection.language "org_inline"))
+
+// In tree-sitter-org-inline:
+_inline: $ => choice(
+  $.title_text,
+  $.tags,
+  $.bold,
+  $.italic,
+  // ... other inline objects
+)
+```
+
+Tree-sitter's injection mechanism:
+1. Block grammar parses document structure
+2. Marks `title` nodes for injection
+3. Inline grammar parses content of those nodes
+4. Final tree combines both parse results
+
+### Current Implementation Status
+
+- ✅ **Block Grammar**: Complete, 100% test coverage (112/112 tests passing)
+- 🚧 **Inline Grammar**: In development
+- 📋 **Injection Queries**: Planned
+
+### Challenges & Solutions
+
+**Challenge 1: Tags at End of Headlines**
+- **Problem**: Can't separate `:tag:` from title with regex alone (no lookahead)
+- **Solution**: Inline grammar uses external scanner to scan backwards from EOL
+
+**Challenge 2: Inline Markup Context-Sensitivity**
+- **Problem**: `*` means headline at line start, bold within text
+- **Solution**: Block grammar handles `*` at line start; inline handles `*...*` within content
+
+**Challenge 3: PRE/POST Character Requirements**
+- **Problem**: Bold requires specific characters before/after `*text*`
+- **Solution**: External scanner in inline grammar validates character context
 
 ## References
 
