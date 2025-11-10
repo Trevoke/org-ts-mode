@@ -16,6 +16,7 @@ module.exports = grammar({
     _element: $ => choice(
       $.headline,
       $.block,
+      $.comment,
       prec(1, $.table),
       $.paragraph
     ),
@@ -130,6 +131,13 @@ module.exports = grammar({
       optional('|'),
       '\n'
     )),
+
+    // Comment: # followed by text (but not #+)
+    comment: $ => seq(
+      token(seq('#', ' ')),
+      /[^\n]*/,
+      '\n'
+    ),
 
     // Paragraph: any line that doesn't start with special characters
     paragraph: $ => seq(

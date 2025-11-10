@@ -1,0 +1,68 @@
+==================
+Simple comment
+==================
+
+# This is a comment
+
+---
+
+(document
+  (comment))
+
+==================
+Multiple comments
+==================
+
+# First comment
+# Second comment
+
+---
+
+(document
+  (comment)
+  (comment))
+
+==================
+Comment under headline
+==================
+
+* Headline
+# This is a comment under the headline
+
+---
+
+(document
+  (headline
+    (stars)
+    (title))
+  (comment))
+
+==================
+Comments between elements
+==================
+
+* First headline
+# Comment
+* Second headline
+
+---
+
+(document
+  (headline
+    (stars)
+    (title))
+  (comment)
+  (headline
+    (stars)
+    (title)))
+
+==================
+Comment with special characters
+==================
+
+# Comment with symbols: * | #+
+
+---
+
+(document
+  (comment))

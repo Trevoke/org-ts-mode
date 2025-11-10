@@ -47,6 +47,17 @@ This is an early-stage implementation following TDD principles. The grammar is b
 
 **Known Limitation**: Tables separated only by blank lines are currently treated as one table. Requires explicit element separator (headline, paragraph, etc.) between tables.
 
+#### ✅ Comments (100% test coverage)
+- [x] Simple comments (`# comment text`)
+- [x] Multiple comments
+- [x] Comments under headlines
+- [x] Comments between elements
+- [x] Comments with special characters
+
+**Tests**: 5/5 passing
+
+**Bounding Success**: Comments use `# ` (hash + space) which is distinct from blocks (`#+`). Using `token(seq('#', ' '))` ensures atomic matching. Perfect isolation - zero cascading failures.
+
 ### TODO (Priority Order)
 
 #### Next Sprint

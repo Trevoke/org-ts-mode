@@ -64,6 +64,11 @@
     }
   },
   {
+    "type": "comment",
+    "named": true,
+    "fields": {}
+  },
+  {
     "type": "document",
     "named": true,
     "root": true,
@@ -74,6 +79,10 @@
       "types": [
         {
           "type": "block",
+          "named": true
+        },
+        {
+          "type": "comment",
           "named": true
         },
         {
