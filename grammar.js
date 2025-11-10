@@ -10,11 +10,6 @@
 module.exports = grammar({
   name: 'org',
 
-  externals: $ => [
-    $.HEADLINE_TITLE,  // Title portion of headline (handled by external scanner)
-    $.HEADLINE_TAGS,   // Tags portion of headline (handled by external scanner)
-  ],
-
   rules: {
     document: $ => repeat($._element),
 
@@ -40,8 +35,9 @@ module.exports = grammar({
       $.paragraph
     ),
 
-    // Headline: STARS KEYWORD PRIORITY TITLE TAGS
-    // External scanner handles separation of title and tags
+    // Headline: STARS KEYWORD PRIORITY TITLE
+    // Note: Tags are currently absorbed into title. This is a known limitation
+    // that will be addressed via inline grammar injection (see tree-sitter-org-inline)
     headline: $ => seq(
       $.stars,
       ' ',
@@ -53,8 +49,7 @@ module.exports = grammar({
         field('priority', $.priority),
         ' '
       )),
-      optional(field('title', alias($.HEADLINE_TITLE, $.title))),
-      optional(field('tags', alias($.HEADLINE_TAGS, $.tags))),
+      optional(field('title', $.title)),
       '\n'
     ),
 
@@ -73,9 +68,10 @@ module.exports = grammar({
     // Priority: [#A], [#B], [#C]
     priority: $ => token(prec(1, /\[#[A-Z]\]/)),
 
-    // Title and tags are now handled directly in headline rule via external scanner
-    // No separate rules needed - external tokens HEADLINE_TITLE and HEADLINE_TAGS
-    // are aliased directly in the headline seq()
+    // Title: headline text (currently absorbs tags)
+    // This will be replaced by inline grammar injection in tree-sitter-org-inline
+    // which will properly separate title from tags using external scanner
+    title: $ => /[^\n]+/,
 
     // Planning line: KEYWORD: TIMESTAMP
     // Match entire line as atomic token to avoid conflicts

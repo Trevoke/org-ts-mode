@@ -185,34 +185,8 @@
               "type": "FIELD",
               "name": "title",
               "content": {
-                "type": "ALIAS",
-                "content": {
-                  "type": "SYMBOL",
-                  "name": "HEADLINE_TITLE"
-                },
-                "named": true,
-                "value": "title"
-              }
-            },
-            {
-              "type": "BLANK"
-            }
-          ]
-        },
-        {
-          "type": "CHOICE",
-          "members": [
-            {
-              "type": "FIELD",
-              "name": "tags",
-              "content": {
-                "type": "ALIAS",
-                "content": {
-                  "type": "SYMBOL",
-                  "name": "HEADLINE_TAGS"
-                },
-                "named": true,
-                "value": "tags"
+                "type": "SYMBOL",
+                "name": "title"
               }
             },
             {
@@ -272,6 +246,10 @@
           "value": "\\[#[A-Z]\\]"
         }
       }
+    },
+    "title": {
+      "type": "PATTERN",
+      "value": "[^\\n]+"
     },
     "planning_line": {
       "type": "TOKEN",
@@ -1363,16 +1341,7 @@
   ],
   "conflicts": [],
   "precedences": [],
-  "externals": [
-    {
-      "type": "SYMBOL",
-      "name": "HEADLINE_TITLE"
-    },
-    {
-      "type": "SYMBOL",
-      "name": "HEADLINE_TAGS"
-    }
-  ],
+  "externals": [],
   "inline": [],
   "supertypes": []
 }

@@ -120,8 +120,7 @@ Headline with single tag
 (document
   (headline
     (stars)
-    (title)
-    (tags)))
+    (title)))
 
 ==================
 Headline with multiple tags
@@ -134,8 +133,7 @@ Headline with multiple tags
 (document
   (headline
     (stars)
-    (title)
-    (tags)))
+    (title)))
 
 ==================
 Headline with TODO keyword and tags
@@ -149,8 +147,7 @@ Headline with TODO keyword and tags
   (headline
     (stars)
     (keyword)
-    (title)
-    (tags)))
+    (title)))
 
 ==================
 Headline with priority and tags
@@ -164,8 +161,7 @@ Headline with priority and tags
   (headline
     (stars)
     (priority)
-    (title)
-    (tags)))
+    (title)))
 
 ==================
 Complete headline with keyword priority and tags
@@ -180,8 +176,7 @@ Complete headline with keyword priority and tags
     (stars)
     (keyword)
     (priority)
-    (title)
-    (tags)))
+    (title)))
 
 ==================
 Headline with colon in title but no tags
@@ -207,8 +202,7 @@ Headline with colon in title and tags
 (document
   (headline
     (stars)
-    (title)
-    (tags)))
+    (title)))
 
 ==================
 Headline with numbers in tags
@@ -221,8 +215,7 @@ Headline with numbers in tags
 (document
   (headline
     (stars)
-    (title)
-    (tags)))
+    (title)))
 
 ==================
 Headline with special chars in tags
@@ -235,5 +228,4 @@ Headline with special chars in tags
 (document
   (headline
     (stars)
-    (title)
-    (tags)))
+    (title)))

@@ -222,16 +222,6 @@
           }
         ]
       },
-      "tags": {
-        "multiple": false,
-        "required": false,
-        "types": [
-          {
-            "type": "tags",
-            "named": true
-          }
-        ]
-      },
       "title": {
         "multiple": false,
         "required": false,
@@ -401,6 +391,11 @@
     }
   },
   {
+    "type": "title",
+    "named": true,
+    "fields": {}
+  },
+  {
     "type": "value",
     "named": true,
     "fields": {}
@@ -538,15 +533,7 @@
     "named": true
   },
   {
-    "type": "tags",
-    "named": true
-  },
-  {
     "type": "timestamp",
-    "named": true
-  },
-  {
-    "type": "title",
     "named": true
   },
   {
