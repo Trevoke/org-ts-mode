@@ -22,6 +22,8 @@ module.exports = grammar({
       $.macro,
       $.latex_fragment,
       $.entity,
+      prec(-1, $.subscript),
+      prec(-1, $.superscript),
       prec(1, $.list),
       $.block,
       $.directive,
@@ -157,6 +159,22 @@ module.exports = grammar({
       '\\',
       /[a-zA-Z]+/,
       optional('{}'),
+      '\n'
+    )),
+
+    // Subscript: text_script (e.g., H_2O, A_i,j)
+    subscript: $ => token(seq(
+      /[a-zA-Z0-9]+/,  // Base text (alphanumeric word)
+      '_',
+      /[^\n]+/,        // Script content (anything until newline)
+      '\n'
+    )),
+
+    // Superscript: text^script (e.g., x^2, x^{y^{z}})
+    superscript: $ => token(seq(
+      /[a-zA-Z0-9]+/,  // Base text (alphanumeric word)
+      '^',
+      /[^\n]+/,        // Script content (anything until newline)
       '\n'
     )),
 

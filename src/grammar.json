@@ -54,6 +54,22 @@
         },
         {
           "type": "PREC",
+          "value": -1,
+          "content": {
+            "type": "SYMBOL",
+            "name": "subscript"
+          }
+        },
+        {
+          "type": "PREC",
+          "value": -1,
+          "content": {
+            "type": "SYMBOL",
+            "name": "superscript"
+          }
+        },
+        {
+          "type": "PREC",
           "value": 1,
           "content": {
             "type": "SYMBOL",
@@ -597,6 +613,54 @@
                 "type": "BLANK"
               }
             ]
+          },
+          {
+            "type": "STRING",
+            "value": "\n"
+          }
+        ]
+      }
+    },
+    "subscript": {
+      "type": "TOKEN",
+      "content": {
+        "type": "SEQ",
+        "members": [
+          {
+            "type": "PATTERN",
+            "value": "[a-zA-Z0-9]+"
+          },
+          {
+            "type": "STRING",
+            "value": "_"
+          },
+          {
+            "type": "PATTERN",
+            "value": "[^\\n]+"
+          },
+          {
+            "type": "STRING",
+            "value": "\n"
+          }
+        ]
+      }
+    },
+    "superscript": {
+      "type": "TOKEN",
+      "content": {
+        "type": "SEQ",
+        "members": [
+          {
+            "type": "PATTERN",
+            "value": "[a-zA-Z0-9]+"
+          },
+          {
+            "type": "STRING",
+            "value": "^"
+          },
+          {
+            "type": "PATTERN",
+            "value": "[^\\n]+"
           },
           {
             "type": "STRING",

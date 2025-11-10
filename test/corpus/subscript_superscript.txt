@@ -1,0 +1,98 @@
+==================
+Simple superscript
+==================
+
+x^2
+
+---
+
+(document
+  (superscript))
+
+==================
+Simple subscript
+==================
+
+A_i
+
+---
+
+(document
+  (subscript))
+
+==================
+Superscript with sign
+==================
+
+x^-2
+
+---
+
+(document
+  (superscript))
+
+==================
+Subscript with comma
+==================
+
+A_i,j
+
+---
+
+(document
+  (subscript))
+
+==================
+Superscript with braces
+==================
+
+x^{y^{z}}
+
+---
+
+(document
+  (superscript))
+
+==================
+Subscript under headline
+==================
+
+* Chemistry
+
+H_2O
+
+Some text here.
+
+---
+
+(document
+  (headline
+    (stars)
+    (title))
+  (subscript)
+  (paragraph))
+
+==================
+Multiple subscripts and superscripts
+==================
+
+x^2
+
+A_i
+
+---
+
+(document
+  (superscript)
+  (subscript))
+
+==================
+Superscript with asterisk
+==================
+
+pecularity^*
+
+---
+
+(document
+  (superscript))

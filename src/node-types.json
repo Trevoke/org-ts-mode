@@ -153,6 +153,14 @@
           "named": true
         },
         {
+          "type": "subscript",
+          "named": true
+        },
+        {
+          "type": "superscript",
+          "named": true
+        },
+        {
           "type": "table",
           "named": true
         },
@@ -524,6 +532,14 @@
   },
   {
     "type": "stars",
+    "named": true
+  },
+  {
+    "type": "subscript",
+    "named": true
+  },
+  {
+    "type": "superscript",
     "named": true
   },
   {

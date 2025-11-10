@@ -210,6 +210,24 @@ This is an early-stage implementation following TDD principles. The grammar is b
 
 **Implementation Notes**: Block-level elements (full lines). Supports standard Org entity names (alpha, beta, gamma, nbsp, etc.). Pattern recognizes alphabetic entity names only. Entity validation (checking against org-entities list) is left to higher-level tools.
 
+#### ✅ Subscript/Superscript (100% test coverage)
+- [x] Simple superscript (`x^2`)
+- [x] Simple subscript (`A_i`)
+- [x] Superscript with sign (`x^-2`)
+- [x] Subscript with comma (`A_i,j`)
+- [x] Superscript with braces (`x^{y^{z}}`)
+- [x] Under headlines
+- [x] Multiple subscripts and superscripts
+- [x] Superscript with asterisk (`pecularity^*`)
+
+**Tests**: 8/8 passing
+
+**Bounding Success**: Subscript (`_`) and superscript (`^`) use distinctive single-character delimiters. Initial implementation with permissive base text pattern (`/[^\s\n]+/`) caused cascading failures - matched complex tokens like `#+EXPORT_FILE_NAME` as subscripts. **Critical fix**: Restricted base text to alphanumeric only (`/[a-zA-Z0-9]+/`), preventing matches in directives, blocks, and macros. Low precedence (`prec(-1)`) ensures they're only matched when no other construct fits. Zero cascading failures after pattern restriction.
+
+**Implementation Notes**: Block-level elements (full lines). In Org-mode, subscript/superscript are actually inline objects within text. Current implementation treats them as block-level for architectural simplicity - future refactoring will convert to inline. Base text restricted to alphanumeric sequences prevents conflicts with special characters in other constructs. Script content uses permissive pattern `/[^\n]+/` to support various formats (single chars, braced expressions, alphanumeric with punctuation).
+
+**Key Technical Insight**: When atomic tokens have potential to match substrings of other constructs, pattern specificity is more important than precedence. Initial greedy pattern caused widespread failures. Solution: restrict pattern to narrow, well-defined scope (alphanumeric words only).
+
 ### TODO (Priority Order)
 
 #### Next Sprint
