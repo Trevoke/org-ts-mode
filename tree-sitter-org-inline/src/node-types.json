@@ -10,48 +10,6 @@
     "fields": {}
   },
   {
-    "type": "content_only",
-    "named": true,
-    "fields": {
-      "title": {
-        "multiple": false,
-        "required": true,
-        "types": [
-          {
-            "type": "title",
-            "named": true
-          }
-        ]
-      }
-    }
-  },
-  {
-    "type": "content_with_tags",
-    "named": true,
-    "fields": {
-      "tags": {
-        "multiple": false,
-        "required": true,
-        "types": [
-          {
-            "type": "tags",
-            "named": true
-          }
-        ]
-      },
-      "title": {
-        "multiple": false,
-        "required": true,
-        "types": [
-          {
-            "type": "title",
-            "named": true
-          }
-        ]
-      }
-    }
-  },
-  {
     "type": "inline",
     "named": true,
     "fields": {},
@@ -60,11 +18,11 @@
       "required": true,
       "types": [
         {
-          "type": "content_only",
+          "type": "title_only",
           "named": true
         },
         {
-          "type": "content_with_tags",
+          "type": "title_with_tags",
           "named": true
         }
       ]
@@ -113,7 +71,7 @@
     "fields": {},
     "children": {
       "multiple": true,
-      "required": true,
+      "required": false,
       "types": [
         {
           "type": "plain_text",
@@ -127,13 +85,51 @@
     }
   },
   {
+    "type": "title_only",
+    "named": true,
+    "fields": {
+      "title": {
+        "multiple": false,
+        "required": true,
+        "types": [
+          {
+            "type": "title",
+            "named": true
+          }
+        ]
+      }
+    }
+  },
+  {
+    "type": "title_with_tags",
+    "named": true,
+    "fields": {
+      "tags": {
+        "multiple": false,
+        "required": true,
+        "types": [
+          {
+            "type": "tags",
+            "named": true
+          }
+        ]
+      },
+      "title": {
+        "multiple": false,
+        "required": false,
+        "types": [
+          {
+            "type": "title",
+            "named": true
+          }
+        ]
+      }
+    }
+  },
+  {
     "type": "verbatim",
     "named": true,
     "fields": {}
-  },
-  {
-    "type": " ",
-    "named": false
   },
   {
     "type": "*",
@@ -141,6 +137,10 @@
   },
   {
     "type": "/",
+    "named": false
+  },
+  {
+    "type": ":",
     "named": false
   },
   {

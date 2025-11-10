@@ -5,37 +5,41 @@
       "type": "CHOICE",
       "members": [
         {
-          "type": "PREC",
+          "type": "PREC_DYNAMIC",
           "value": 2,
           "content": {
             "type": "SYMBOL",
-            "name": "content_with_tags"
+            "name": "title_with_tags"
           }
         },
         {
-          "type": "PREC",
-          "value": 2,
+          "type": "PREC_DYNAMIC",
+          "value": 1,
           "content": {
             "type": "SYMBOL",
-            "name": "content_only"
+            "name": "title_only"
           }
         }
       ]
     },
-    "content_with_tags": {
+    "title_with_tags": {
       "type": "SEQ",
       "members": [
         {
           "type": "FIELD",
           "name": "title",
           "content": {
-            "type": "SYMBOL",
-            "name": "title"
+            "type": "CHOICE",
+            "members": [
+              {
+                "type": "SYMBOL",
+                "name": "title"
+              },
+              {
+                "type": "BLANK"
+              }
+            ]
           }
-        },
-        {
-          "type": "STRING",
-          "value": " "
         },
         {
           "type": "FIELD",
@@ -52,7 +56,7 @@
         }
       ]
     },
-    "content_only": {
+    "title_only": {
       "type": "FIELD",
       "name": "title",
       "content": {
@@ -70,10 +74,18 @@
           "members": [
             {
               "type": "PREC",
-              "value": 2,
+              "value": 3,
               "content": {
                 "type": "SYMBOL",
                 "name": "text_markup"
+              }
+            },
+            {
+              "type": "PREC",
+              "value": 2,
+              "content": {
+                "type": "STRING",
+                "value": ":"
               }
             },
             {
@@ -188,8 +200,8 @@
   },
   "extras": [
     {
-      "type": "PATTERN",
-      "value": "\\s"
+      "type": "STRING",
+      "value": "\n"
     }
   ],
   "conflicts": [],

@@ -83,12 +83,22 @@ bool tree_sitter_org_inline_external_scanner_scan(void *payload, TSLexer *lexer,
 /**
  * Scan tags - validates and consumes tags from current position
  *
- * Expected to be called when lexer is at ':' character.
- * Format: :tag1:tag2:...:tagN: where tags contain only alphanumeric, _, @, #, %
+ * Can be called when lexer is at a space before tags, or at ':' for tags at start.
+ * Format: SPACE:tag1:tag2:...:tagN: where tags contain only alphanumeric, _, @, #, %
+ * Space is required unless tags are at the start of content.
  * Must end at EOL or EOF.
  */
 static bool scan_tags(Scanner *scanner, TSLexer *lexer) {
-    // Should be at ':' character
+    // Check if we're at a space (preceding tags) or ':' (tags at start)
+    bool has_preceding_space = false;
+
+    if (lexer->lookahead == ' ') {
+        // Consume the space before tags
+        has_preceding_space = true;
+        lexer->advance(lexer, false);
+    }
+
+    // Should now be at ':' character
     if (lexer->lookahead != ':') {
         return false;
     }

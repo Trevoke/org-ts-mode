@@ -24,29 +24,34 @@ module.exports = grammar({
     $.TAGS,  // Tags portion (:tag1:tag2:) - detected by scanner
   ],
 
+  // Only skip newlines (they delimit inline content) - not spaces (they're part of plain_text)
+  extras: $ => ['\n'],
+
   rules: {
     // Root: Inline content is objects with optional tags at end
+    // Use dynamic precedence to prefer title_with_tags when tags are present
     inline: $ => choice(
-      prec(2, $.content_with_tags),
-      prec(2, $.content_only)
+      prec.dynamic(2, $.title_with_tags),
+      prec.dynamic(1, $.title_only)
     ),
 
-    // Content with tags: objects followed by tags
-    content_with_tags: $ => seq(
-      field('title', $.title),
-      ' ',
+    // Title with tags: title followed by tags (scanner validates space before tags)
+    title_with_tags: $ => seq(
+      field('title', optional($.title)),
       field('tags', alias($.TAGS, $.tags))
     ),
 
-    // Content without tags: just objects
-    content_only: $ => field('title', $.title),
+    // Title without tags: just title
+    title_only: $ => field('title', $.title),
 
-    // Title: sequence of inline objects
+    // Title: sequence of inline objects, including colons
     // Use repeat1 to ensure at least one object
-    // Higher precedence for markup so *bold* is preferred over plain text with asterisks
+    // Colons are explicit tokens so external scanner can intercept for tags
+    // Higher precedence for markup, then colon, then plain text
     // Right-associative to greedily consume all content
     title: $ => prec.right(repeat1(choice(
-      prec(2, $.text_markup),
+      prec(3, $.text_markup),
+      prec(2, ':'),  // Allow colons in title (lower precedence than TAGS)
       prec(1, $.plain_text)
     ))),
 
@@ -88,8 +93,9 @@ module.exports = grammar({
       '='
     ),
 
-    // Plain text - any characters except markup delimiters and tags
-    // Lower precedence so markup is preferred
+    // Plain text - any characters except markup delimiters, colon, newline
+    // Lower precedence so markup and explicit colons are preferred
+    // Colons are handled separately to allow external scanner to recognize tags
     plain_text: $ => prec(1, /[^*\/~=:\n]+/),
   }
 });

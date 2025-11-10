@@ -8,7 +8,8 @@ Task to complete :work:
 
 (inline
   (title_with_tags
-    (title)
+    (title
+      (plain_text))
     (tags)))
 
 ==================
@@ -21,7 +22,8 @@ Project documentation :work:urgent:
 
 (inline
   (title_with_tags
-    (title)
+    (title
+      (plain_text))
     (tags)))
 
 ==================
@@ -34,7 +36,9 @@ Review PR: Add new feature :review:code:
 
 (inline
   (title_with_tags
-    (title)
+    (title
+      (plain_text)
+      (plain_text))
     (tags)))
 
 ==================
@@ -47,7 +51,8 @@ Simple task to do
 
 (inline
   (title_only
-    (title)))
+    (title
+      (plain_text))))
 
 ==================
 Title with colon but no tags
@@ -59,7 +64,9 @@ Read the book: "The Great Gatsby"
 
 (inline
   (title_only
-    (title)))
+    (title
+      (plain_text)
+      (plain_text))))
 
 ==================
 Title with numbers in tags
@@ -71,7 +78,8 @@ Sprint planning :sprint2024:q1:
 
 (inline
   (title_with_tags
-    (title)
+    (title
+      (plain_text))
     (tags)))
 
 ==================
@@ -84,7 +92,8 @@ Development task :dev_work:@home:#project:
 
 (inline
   (title_with_tags
-    (title)
+    (title
+      (plain_text))
     (tags)))
 
 ==================
@@ -97,5 +106,6 @@ Only tags (no title)
 
 (inline
   (title_with_tags
-    (title)
+    (title
+      (plain_text))
     (tags)))
