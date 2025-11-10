@@ -30,7 +30,7 @@ Based on the official spec at https://orgmode.org/worg/org-syntax.html
 | Element | Status | Tests | Notes |
 |---------|--------|-------|-------|
 | **Blocks** (comment, example, export, src, verse) | ✅ | Yes | Generic block implementation |
-| **Clock Elements** | ❌ | No | `clock: TIMESTAMP` or `clock: [date]--[date] => HH:MM` |
+| **Clock Elements** | ✅ | Yes | `CLOCK: TIMESTAMP` with 3 formats supported |
 | **Diary Sexp** | ❌ | No | `%%SEXP` pattern |
 | **Planning** | ✅ | Yes | DEADLINE, SCHEDULED, CLOSED |
 | **Comments** | ✅ | Yes | Lines starting with `#` |
@@ -152,8 +152,9 @@ These should be parsed by the inline grammar within paragraphs, titles, table ce
 ### Medium Priority
 
 6. **Line Breaks** (`\\`)
+   - **Status**: 📋 **Deferred** (requires paragraph inline parsing)
    - **Impact**: Used for manual line wrapping
-   - **Complexity**: Low - simple pattern
+   - **Complexity**: Medium - requires paragraph restructuring
 
 7. **Plain Links** (URLs without brackets)
    - **Impact**: Convenient for quick links
@@ -166,10 +167,6 @@ These should be parsed by the inline grammar within paragraphs, titles, table ce
 9. **Export Snippets** (`@@backend:content@@`)
    - **Impact**: Used for multi-format export
    - **Complexity**: Low
-
-10. **Clock Elements**
-    - **Impact**: Time tracking feature
-    - **Complexity**: Low - similar to planning lines
 
 ### Low Priority (Advanced/Rare)
 
@@ -211,10 +208,10 @@ These should be parsed by the inline grammar within paragraphs, titles, table ce
 
 ### Block Grammar (tree-sitter-org)
 - **Total Elements**: ~25 types
-- **Implemented**: ~19 types (✅ 76%)
+- **Implemented**: ~20 types (✅ 80%)
 - **Partial**: ~4 types (🟡 16%)
-- **Missing**: ~6 types (❌ 24%)
-- **Test Coverage**: 117/117 tests passing
+- **Missing**: ~5 types (❌ 20%)
+- **Test Coverage**: 124/124 tests passing
 
 ### Inline Grammar (tree-sitter-org-inline)
 - **Total Objects**: ~25 types
@@ -231,6 +228,7 @@ These should be parsed by the inline grammar within paragraphs, titles, table ce
 ### What's Working Well
 ✅ Core structure (headlines, sections, paragraphs)
 ✅ Planning and timestamps
+✅ **Clock elements** (time tracking)
 ✅ Lists and tables (structure)
 ✅ Blocks and drawers
 ✅ Properties
@@ -243,6 +241,5 @@ These should be parsed by the inline grammar within paragraphs, titles, table ce
 ### What's Missing That Users Will Notice
 ❌ Inline links in paragraphs - **Very Common**
 ❌ COMMENT keyword in headlines - **BLOCKED**
-❌ Clock elements
-❌ Line breaks
+❌ Line breaks - **Requires paragraph restructuring**
 ❌ Objects in table cells
