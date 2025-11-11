@@ -82,27 +82,27 @@
               }
             },
             {
-              "type": "PREC",
-              "value": 3,
+              "type": "PREC_DYNAMIC",
+              "value": 10,
+              "content": {
+                "type": "SYMBOL",
+                "name": "text_markup"
+              }
+            },
+            {
+              "type": "PREC_DYNAMIC",
+              "value": 5,
               "content": {
                 "type": "SYMBOL",
                 "name": "subscript"
               }
             },
             {
-              "type": "PREC",
-              "value": 3,
+              "type": "PREC_DYNAMIC",
+              "value": 5,
               "content": {
                 "type": "SYMBOL",
                 "name": "superscript"
-              }
-            },
-            {
-              "type": "PREC",
-              "value": 3,
-              "content": {
-                "type": "SYMBOL",
-                "name": "text_markup"
               }
             },
             {

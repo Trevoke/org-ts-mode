@@ -49,11 +49,14 @@ module.exports = grammar({
     // Colons are explicit tokens so external scanner can intercept for tags
     // Higher precedence for inline objects (markup/cookies/snippets/targets/links), then colon, then plain text
     // Right-associative to greedily consume all content
+    // Dynamic precedence hierarchy: text_markup > subscript/superscript > plain_text
+    // - text_markup (underline) beats subscript when both valid (org-mode spec: "underline takes priority")
+    // - subscript/superscript beat plain_text to prevent plain_text from consuming the base character
     title: $ => prec.right(repeat1(choice(
-      prec(4, $.plain_link),         // FIRST: contains ':' - must override standalone ':'
-      prec(3, $.subscript),          // BEFORE text_markup (both use _, but subscript is BASE_SCRIPT pattern)
-      prec(3, $.superscript),        // BEFORE text_markup (^ could conflict)
-      prec(3, $.text_markup),
+      prec(4, $.plain_link),              // FIRST: contains ':' - must override standalone ':'
+      prec.dynamic(10, $.text_markup),    // HIGHEST: underline takes priority over subscript (org-mode spec)
+      prec.dynamic(5, $.subscript),       // MEDIUM: beats plain_text but yields to underline (e.g., "a_b_c" → underline)
+      prec.dynamic(5, $.superscript),     // MEDIUM: beats plain_text but yields to other markup
       prec(3, $.regular_link),       // BEFORE footnote_reference (longer match: [[ vs [fn:)
       prec(3, $.angle_link),         // BEFORE timestamp (both use <>, but angle_link has protocol)
       prec(3, $.footnote_reference), // BEFORE statistics_cookie (both start with [, but [fn: is more specific)
