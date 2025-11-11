@@ -58,6 +58,7 @@ module.exports = grammar({
       prec(3, $.radio_target),       // Triple angle brackets <<<>>>
       prec(3, $.target),             // Double angle brackets <<>>
       prec(3, $.angle_link),         // Single angle brackets <>
+      prec(3, $.entity),             // LaTeX entities: \alpha, \nbsp, etc.
       prec(2, ':'),  // Allow colons in title (lower precedence than TAGS and plain_link)
       prec(1, $.plain_text)
     ))),
@@ -200,12 +201,25 @@ module.exports = grammar({
       '>'
     ),
 
-    // Plain text - any characters except markup delimiters, brackets, @, angle brackets, colon, newline
-    // Lower precedence so markup, cookies, snippets, targets, links are preferred
+    // Entity: \NAME or \NAME{} (LaTeX-style entities)
+    // Examples: \alpha, \beta, \nbsp, \tilde, etc.
+    // Used for special characters, Greek letters, math symbols
+    // Name must be letters only (per org-mode spec)
+    // Optional {} can follow for explicit termination
+    // Unlike block version, no newline required (for inline usage)
+    entity: $ => seq(
+      '\\',
+      /[a-zA-Z]+/,     // Entity name: letters only
+      optional('{}')    // Optional explicit braces
+    ),
+
+    // Plain text - any characters except markup delimiters, brackets, @, angle brackets, colon, backslash, newline
+    // Lower precedence so markup, cookies, snippets, targets, links, entities are preferred
     // Colons are excluded to allow external scanner to detect TAGS (:tag1:tag2:)
     // Square brackets are excluded so statistics cookies and regular_link can be recognized
     // @ is excluded so export snippets can be recognized
     // Angle brackets are excluded so targets can be recognized
-    plain_text: $ => prec(1, /[^*\/~=_+:@\[\]<>\n]+/),
+    // Backslash is excluded so entities can be recognized
+    plain_text: $ => prec(1, /[^*\/~=_+:@\[\]<>\\\n]+/),
   }
 });

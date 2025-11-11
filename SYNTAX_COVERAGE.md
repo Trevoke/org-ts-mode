@@ -64,13 +64,13 @@ These should be parsed by the inline grammar within paragraphs, titles, table ce
 
 | Object | Status | Notes |
 |--------|--------|-------|
-| **Entities** | ✅ | `\NAME`, `\NAME{}`, `\ SPACES` |
-| **LaTeX Fragments** | ✅ | `\NAME`, `$$...$$`, `$...$` |
-| **Footnote References** | ✅ | `[fn:LABEL]`, `[fn::DEF]` |
-| **Links** | ✅ | `[[URL]]`, `[[URL][DESC]]` - but block-level only |
-| **Macros** | ✅ | `{{{NAME}}}`, `{{{NAME(ARGS)}}}` |
-| **Subscript/Superscript** | ✅ | `CHAR_SCRIPT`, `CHAR^SCRIPT` |
-| **Timestamps** | ✅ | Active `<>`, Inactive `[]` |
+| **Entities** | ✅ | `\NAME`, `\NAME{}` - **NOW IN INLINE GRAMMAR** (6/6 tests) |
+| **LaTeX Fragments** | ✅ | `\NAME`, `$$...$$`, `$...$` - still in block grammar |
+| **Footnote References** | ✅ | `[fn:LABEL]`, `[fn::DEF]` - still in block grammar |
+| **Links** | ✅ | `[[URL]]`, `[[URL][DESC]]` - **MOVED TO INLINE** |
+| **Macros** | ✅ | `{{{NAME}}}`, `{{{NAME(ARGS)}}}` - still in block grammar |
+| **Subscript/Superscript** | ✅ | `CHAR_SCRIPT`, `CHAR^SCRIPT` - still in block grammar |
+| **Timestamps** | ✅ | Active `<>`, Inactive `[]` - still in block grammar |
 
 ### Not Implemented (Need in Inline Grammar)
 
@@ -107,6 +107,7 @@ These should be parsed by the inline grammar within paragraphs, titles, table ce
   - Regular links: `[[URL]]` and `[[URL][DESC]]` (17/17 tests)
   - Angle links: `<PROTOCOL:PATH>` (14/14 tests)
   - Plain links: bare URLs `http://example.com` (9/9 tests)
+- ✅ Entities: LaTeX-style entities `\alpha`, `\beta`, `\nbsp`, etc. (6/6 tests)
 - ✅ Plain text with proper whitespace handling
 - ✅ Colons in titles (distinct from tags)
 
@@ -234,10 +235,10 @@ These should be parsed by the inline grammar within paragraphs, titles, table ce
 
 ### Inline Grammar (tree-sitter-org-inline)
 - **Total Objects**: ~25 types
-- **Implemented**: ~14 types (title/tags, 6 markup types, statistics cookies, export snippets, targets, radio targets, 3 link types: angle/regular/plain, plain text)
-- **In Block (Should Move)**: ~6 types (entities, latex, footnotes, macros, sub/super, timestamps)
+- **Implemented**: ~15 types (title/tags, 6 markup types, statistics cookies, export snippets, targets, radio targets, 3 link types: angle/regular/plain, entities, plain text)
+- **In Block (Should Move)**: ~5 types (latex, footnotes, macros, sub/super, timestamps)
 - **Missing**: ~5 types
-- **Test Coverage**: 104/104 tests passing
+- **Test Coverage**: 110/110 tests passing (104 existing + 6 entity tests)
 
 ### Overall Syntax Coverage
 - **Fully Functional**: ~35%
@@ -265,6 +266,7 @@ These should be parsed by the inline grammar within paragraphs, titles, table ce
 ✅ **Export snippets** (backend-specific export: @@html:...@@)
 ✅ **Links trilogy** (regular `[[]]`, angle `<>`, plain http://... - all inline)
 ✅ **Targets and radio targets** (anchors: `<<>>`, automatic link anchors: `<<<>>>`)
+✅ **Entities** (LaTeX-style: `\alpha`, `\beta`, `\nbsp` - inline grammar)
 ✅ **COMMENT keyword** (headlines: marks heading and subtree as commented)
 
 ### What's Missing That Users Will Notice

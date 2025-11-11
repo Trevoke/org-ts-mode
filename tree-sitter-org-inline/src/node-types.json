@@ -15,6 +15,11 @@
     "fields": {}
   },
   {
+    "type": "entity",
+    "named": true,
+    "fields": {}
+  },
+  {
     "type": "export_snippet",
     "named": true,
     "fields": {}
@@ -22,6 +27,7 @@
   {
     "type": "inline",
     "named": true,
+    "root": true,
     "fields": {},
     "children": {
       "multiple": false,
@@ -118,6 +124,10 @@
       "types": [
         {
           "type": "angle_link",
+          "named": true
+        },
+        {
+          "type": "entity",
           "named": true
         },
         {
@@ -268,6 +278,10 @@
     "named": false
   },
   {
+    "type": "\\",
+    "named": false
+  },
+  {
     "type": "]",
     "named": false
   },
@@ -290,6 +304,10 @@
   {
     "type": "tags",
     "named": true
+  },
+  {
+    "type": "{}",
+    "named": false
   },
   {
     "type": "~",

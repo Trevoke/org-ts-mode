@@ -1,0 +1,90 @@
+==================
+Entity in title - alpha
+==================
+
+\alpha test
+
+---
+
+(inline
+  (title_only
+    title: (title
+      (entity)
+      (plain_text))))
+
+==================
+Entity in title - beta
+==================
+
+\beta testing
+
+---
+
+(inline
+  (title_only
+    title: (title
+      (entity)
+      (plain_text))))
+
+==================
+Entity with braces in title
+==================
+
+\alpha{} and more
+
+---
+
+(inline
+  (title_only
+    title: (title
+      (entity)
+      (plain_text))))
+
+==================
+Multiple entities in title
+==================
+
+\alpha and \beta
+
+---
+
+(inline
+  (title_only
+    title: (title
+      (entity)
+      (plain_text)
+      (entity))))
+
+==================
+Entity mixed with markup
+==================
+
+*bold* \alpha /italic/
+
+---
+
+(inline
+  (title_only
+    title: (title
+      (text_markup
+        (bold))
+      (plain_text)
+      (entity)
+      (plain_text)
+      (text_markup
+        (italic)))))
+
+==================
+Non-breaking space entity
+==================
+
+word\nbsp word
+
+---
+
+(inline
+  (title_only
+    title: (title
+      (plain_text)
+      (entity)
+      (plain_text))))
