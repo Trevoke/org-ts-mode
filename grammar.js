@@ -29,6 +29,7 @@ module.exports = grammar({
       prec(2, $.horizontal_rule),
       prec(1, $.list),
       $.block,
+      $.dynamic_block,
       $.directive,
       $.comment,
       $.property_drawer,
@@ -284,6 +285,37 @@ module.exports = grammar({
     block_end: $ => seq(
       token(seq('#', '+', /end_/i)),
       optional($.block_type),
+      /[^\n]*/,
+      '\n'
+    ),
+
+    // Dynamic Block: #+begin: NAME ... #+end:
+    // Used for dynamically generated content (clocktable, columnview, etc.)
+    dynamic_block: $ => seq(
+      $.dynamic_block_begin,
+      optional($.dynamic_block_content),
+      $.dynamic_block_end
+    ),
+
+    // Dynamic block begin: #+begin: NAME [PARAMETERS]
+    // Note: colon after "begin" distinguishes from regular blocks
+    dynamic_block_begin: $ => seq(
+      token(seq('#', '+', /begin/i, ':')),
+      /[ \t]+/,
+      field('name', /[a-zA-Z0-9_-]+/),
+      optional(/[^\n]*/),  // Optional parameters
+      '\n'
+    ),
+
+    // Dynamic block content: everything until #+end:
+    // Match any content (parser will stop at dynamic_block_end)
+    // Pattern stops before #+end: (matches #+end followed by non-colon/non-newline)
+    dynamic_block_content: $ => /([^#]|#[^+]|#\+[^eE]|#\+[eE][^nN]|#\+[eE][nN][^dD]|#\+[eE][nN][dD][^:\n])+/,
+
+    // Dynamic block end: #+end:
+    // Note: colon after "end" (no block name unlike regular blocks)
+    dynamic_block_end: $ => seq(
+      token(seq('#', '+', /end/i, ':')),
       /[^\n]*/,
       '\n'
     ),

@@ -120,6 +120,10 @@
           "named": true
         },
         {
+          "type": "dynamic_block",
+          "named": true
+        },
+        {
           "type": "entity",
           "named": true
         },
@@ -207,6 +211,39 @@
   },
   {
     "type": "drawer_name",
+    "named": true,
+    "fields": {}
+  },
+  {
+    "type": "dynamic_block",
+    "named": true,
+    "fields": {},
+    "children": {
+      "multiple": true,
+      "required": true,
+      "types": [
+        {
+          "type": "dynamic_block_begin",
+          "named": true
+        },
+        {
+          "type": "dynamic_block_content",
+          "named": true
+        },
+        {
+          "type": "dynamic_block_end",
+          "named": true
+        }
+      ]
+    }
+  },
+  {
+    "type": "dynamic_block_begin",
+    "named": true,
+    "fields": {}
+  },
+  {
+    "type": "dynamic_block_end",
     "named": true,
     "fields": {}
   },
@@ -483,6 +520,10 @@
   },
   {
     "type": "drawer_content",
+    "named": true
+  },
+  {
+    "type": "dynamic_block_content",
     "named": true
   },
   {

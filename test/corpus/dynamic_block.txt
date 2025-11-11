@@ -1,0 +1,130 @@
+==================
+Simple dynamic block
+==================
+
+#+begin: clocktable
+#+end:
+
+---
+
+(document
+  (dynamic_block
+    (dynamic_block_begin)
+    (dynamic_block_end)))
+
+==================
+Dynamic block with parameters
+==================
+
+#+begin: clocktable :maxlevel 2 :scope subtree
+#+end:
+
+---
+
+(document
+  (dynamic_block
+    (dynamic_block_begin)
+    (dynamic_block_end)))
+
+==================
+Dynamic block with content
+==================
+
+#+begin: columnview :hlines 1
+| Item | Time |
+#+end:
+
+---
+
+(document
+  (dynamic_block
+    (dynamic_block_begin)
+    (dynamic_block_content)
+    (dynamic_block_end)))
+
+==================
+Multiple dynamic blocks
+==================
+
+#+begin: clocktable
+#+end:
+
+#+begin: columnview
+#+end:
+
+---
+
+(document
+  (dynamic_block
+    (dynamic_block_begin)
+    (dynamic_block_end))
+  (dynamic_block
+    (dynamic_block_begin)
+    (dynamic_block_end)))
+
+==================
+Dynamic block under headline
+==================
+
+* Report
+#+begin: clocktable :maxlevel 2
+#+end:
+
+---
+
+(document
+  (headline
+    (stars)
+    (title))
+  (dynamic_block
+    (dynamic_block_begin)
+    (dynamic_block_end)))
+
+==================
+Dynamic block with multiline parameters
+==================
+
+#+begin: columnview :hlines 1 :id global
+Some content here
+More content
+#+end:
+
+---
+
+(document
+  (dynamic_block
+    (dynamic_block_begin)
+    (dynamic_block_content)
+    (dynamic_block_end)))
+
+==================
+Case insensitive dynamic block
+==================
+
+#+BEGIN: clocktable
+#+END:
+
+---
+
+(document
+  (dynamic_block
+    (dynamic_block_begin)
+    (dynamic_block_end)))
+
+==================
+Dynamic block with empty lines
+==================
+
+#+begin: clocktable
+
+Content with blank line
+
+#+end:
+
+---
+
+(document
+  (dynamic_block
+    (dynamic_block_begin)
+    (dynamic_block_content)
+    (dynamic_block_end)))
