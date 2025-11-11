@@ -74,6 +74,14 @@
           "members": [
             {
               "type": "PREC",
+              "value": 4,
+              "content": {
+                "type": "SYMBOL",
+                "name": "plain_link"
+              }
+            },
+            {
+              "type": "PREC",
               "value": 3,
               "content": {
                 "type": "SYMBOL",
@@ -401,6 +409,10 @@
           "value": "]]"
         }
       ]
+    },
+    "plain_link": {
+      "type": "PATTERN",
+      "value": "[a-zA-Z][a-zA-Z0-9+.-]*:(\\/\\/[^\\s]*[a-zA-Z0-9\\/\\-_)]|[^\\s:]*@[^\\s]*[a-zA-Z0-9])"
     },
     "angle_link": {
       "type": "SEQ",

@@ -50,13 +50,14 @@ module.exports = grammar({
     // Higher precedence for inline objects (markup/cookies/snippets/targets/links), then colon, then plain text
     // Right-associative to greedily consume all content
     title: $ => prec.right(repeat1(choice(
+      prec(4, $.plain_link),         // FIRST: contains ':' - must override standalone ':'
       prec(3, $.text_markup),
-      prec(3, $.regular_link),      // BEFORE statistics_cookie (longer match: [[ vs [)
+      prec(3, $.regular_link),       // BEFORE statistics_cookie (longer match: [[ vs [)
       prec(3, $.statistics_cookie),
       prec(3, $.export_snippet),
       prec(3, $.target),
       prec(3, $.angle_link),
-      prec(2, ':'),  // Allow colons in title (lower precedence than TAGS)
+      prec(2, ':'),  // Allow colons in title (lower precedence than TAGS and plain_link)
       prec(1, $.plain_text)
     ))),
 
@@ -164,6 +165,15 @@ module.exports = grammar({
       ']]'
     ),
 
+    // Plain link: PROTOCOL://PATH or mailto:EMAIL (bare URL without brackets)
+    // Recognized for well-defined protocols (http, https, ftp, mailto, etc.)
+    // Cannot contain whitespace (unlike angle links)
+    // Smart termination: excludes trailing sentence punctuation
+    // Per org-mode spec: must end with non-punct char, /, or balanced parens
+    // Simplified implementation: requires last char to be alphanumeric, /, -, _, ), or @
+    // Must have :// OR must contain @ (to distinguish from :tags:)
+    plain_link: $ => /[a-zA-Z][a-zA-Z0-9+.-]*:(\/\/[^\s]*[a-zA-Z0-9\/\-_)]|[^\s:]*@[^\s]*[a-zA-Z0-9])/,
+
     // Angle link: <PROTOCOL:PATH>
     // More permissive than plain links (allows whitespace, parentheses)
     // Protocol required to distinguish from plain angle brackets in text
@@ -179,9 +189,9 @@ module.exports = grammar({
     ),
 
     // Plain text - any characters except markup delimiters, brackets, @, angle brackets, colon, newline
-    // Lower precedence so markup, cookies, snippets, targets, and explicit colons are preferred
-    // Colons are handled separately to allow external scanner to recognize tags
-    // Square brackets are excluded so statistics cookies can be recognized
+    // Lower precedence so markup, cookies, snippets, targets, links are preferred
+    // Colons are excluded to allow external scanner to detect TAGS (:tag1:tag2:)
+    // Square brackets are excluded so statistics cookies and regular_link can be recognized
     // @ is excluded so export snippets can be recognized
     // Angle brackets are excluded so targets can be recognized
     plain_text: $ => prec(1, /[^*\/~=_+:@\[\]<>\n]+/),

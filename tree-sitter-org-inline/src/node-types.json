@@ -120,6 +120,10 @@
           "named": true
         },
         {
+          "type": "plain_link",
+          "named": true
+        },
+        {
           "type": "plain_text",
           "named": true
         },
@@ -261,6 +265,10 @@
   {
     "type": "_",
     "named": false
+  },
+  {
+    "type": "plain_link",
+    "named": true
   },
   {
     "type": "tags",
