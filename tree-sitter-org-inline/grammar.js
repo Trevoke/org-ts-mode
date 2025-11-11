@@ -36,6 +36,7 @@ module.exports = grammar({
     // Phase 1: Just plain text
     // Phase 2a: Add targets and radio targets
     // Phase 2b: Add macros
+    // Phase 2c: Add entities
     title: $ => repeat1(choice(
       // Phase 2a: Targets (unique delimiters, no conflicts)
       prec(3, $.radio_target),  // <<<>>> - must match before target (longer delimiter)
@@ -43,6 +44,9 @@ module.exports = grammar({
 
       // Phase 2b: Macros (unique delimiters, no conflicts)
       prec(3, $.macro),          // {{{name}}}
+
+      // Phase 2c: Entities (unique delimiter, no conflicts)
+      prec(3, $.entity),         // \alpha, \nbsp, etc.
 
       // Plain text (fallback)
       prec(1, $.plain_text)
@@ -83,8 +87,19 @@ module.exports = grammar({
       '}}}'
     ),
 
+    // Entity: \NAME or \NAME{} (LaTeX-style entities)
+    // Examples: \alpha, \beta, \nbsp, \tilde, etc.
+    // Name must be letters only
+    // Optional {} can follow for explicit termination
+    // Atomic token for bounding - simple pattern, no internal structure needed
+    entity: $ => token(seq(
+      '\\',
+      /[a-zA-Z]+/,
+      optional('{}')
+    )),
+
     // Plain text: Any characters except newline or special delimiters
-    // Exclude <, {, and > so targets and macros can be recognized
-    plain_text: $ => /[^<{\n]+/,
+    // Exclude <, {, \, and > so targets, macros, and entities can be recognized
+    plain_text: $ => /[^<{\\\n]+/,
   }
 });

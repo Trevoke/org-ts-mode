@@ -43,6 +43,10 @@
       "required": true,
       "types": [
         {
+          "type": "entity",
+          "named": true
+        },
+        {
           "type": "macro",
           "named": true
         },
@@ -84,6 +88,10 @@
   {
     "type": ")",
     "named": false
+  },
+  {
+    "type": "entity",
+    "named": true
   },
   {
     "type": "macro_args",

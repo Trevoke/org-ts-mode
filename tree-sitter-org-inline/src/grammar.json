@@ -53,6 +53,14 @@
           },
           {
             "type": "PREC",
+            "value": 3,
+            "content": {
+              "type": "SYMBOL",
+              "name": "entity"
+            }
+          },
+          {
+            "type": "PREC",
             "value": 1,
             "content": {
               "type": "SYMBOL",
@@ -154,9 +162,37 @@
         }
       ]
     },
+    "entity": {
+      "type": "TOKEN",
+      "content": {
+        "type": "SEQ",
+        "members": [
+          {
+            "type": "STRING",
+            "value": "\\"
+          },
+          {
+            "type": "PATTERN",
+            "value": "[a-zA-Z]+"
+          },
+          {
+            "type": "CHOICE",
+            "members": [
+              {
+                "type": "STRING",
+                "value": "{}"
+              },
+              {
+                "type": "BLANK"
+              }
+            ]
+          }
+        ]
+      }
+    },
     "plain_text": {
       "type": "PATTERN",
-      "value": "[^<{\\n]+"
+      "value": "[^<{\\\\\\n]+"
     }
   },
   "extras": [
