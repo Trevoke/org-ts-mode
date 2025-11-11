@@ -73,13 +73,11 @@ module.exports = grammar({
 
     // Helper: Common headline prefix (stars, optional keyword, optional priority)
     // Underscore prefix means this is an internal/hidden rule
+    // Note: keyword includes trailing space, so no explicit space after it
     _headline_prefix: $ => seq(
       $.stars,
       ' ',
-      optional(seq(
-        field('keyword', $.keyword),
-        ' '
-      )),
+      optional(field('keyword', $.keyword)),
       optional(seq(
         field('priority', $.priority),
         ' '
@@ -90,12 +88,13 @@ module.exports = grammar({
     stars: $ => /\*+/,
 
     // Keywords: TODO, DONE, etc.
+    // Include trailing space to ensure exact word match (prevents "TODOX" matching "TODO")
     keyword: $ => token(prec(1, choice(
-      'TODO',
-      'DONE',
-      'NEXT',
-      'WAITING',
-      'CANCELED'
+      'TODO ',
+      'DONE ',
+      'NEXT ',
+      'WAITING ',
+      'CANCELED '
     ))),
 
     // Priority: [#A], [#B], [#C]

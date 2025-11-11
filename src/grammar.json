@@ -271,21 +271,12 @@
           "type": "CHOICE",
           "members": [
             {
-              "type": "SEQ",
-              "members": [
-                {
-                  "type": "FIELD",
-                  "name": "keyword",
-                  "content": {
-                    "type": "SYMBOL",
-                    "name": "keyword"
-                  }
-                },
-                {
-                  "type": "STRING",
-                  "value": " "
-                }
-              ]
+              "type": "FIELD",
+              "name": "keyword",
+              "content": {
+                "type": "SYMBOL",
+                "name": "keyword"
+              }
             },
             {
               "type": "BLANK"
@@ -333,23 +324,23 @@
           "members": [
             {
               "type": "STRING",
-              "value": "TODO"
+              "value": "TODO "
             },
             {
               "type": "STRING",
-              "value": "DONE"
+              "value": "DONE "
             },
             {
               "type": "STRING",
-              "value": "NEXT"
+              "value": "NEXT "
             },
             {
               "type": "STRING",
-              "value": "WAITING"
+              "value": "WAITING "
             },
             {
               "type": "STRING",
-              "value": "CANCELED"
+              "value": "CANCELED "
             }
           ]
         }
