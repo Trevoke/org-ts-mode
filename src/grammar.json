@@ -1,4 +1,5 @@
 {
+  "$schema": "https://tree-sitter.github.io/tree-sitter/assets/schemas/grammar.schema.json",
   "name": "org",
   "rules": {
     "document": {
@@ -158,6 +159,44 @@
       "members": [
         {
           "type": "PREC_DYNAMIC",
+          "value": 3,
+          "content": {
+            "type": "SEQ",
+            "members": [
+              {
+                "type": "SYMBOL",
+                "name": "_headline_prefix"
+              },
+              {
+                "type": "FIELD",
+                "name": "comment",
+                "content": {
+                  "type": "ALIAS",
+                  "content": {
+                    "type": "SYMBOL",
+                    "name": "_comment_keyword_space"
+                  },
+                  "named": true,
+                  "value": "comment_keyword"
+                }
+              },
+              {
+                "type": "FIELD",
+                "name": "title",
+                "content": {
+                  "type": "SYMBOL",
+                  "name": "title"
+                }
+              },
+              {
+                "type": "STRING",
+                "value": "\n"
+              }
+            ]
+          }
+        },
+        {
+          "type": "PREC_DYNAMIC",
           "value": 2,
           "content": {
             "type": "SEQ",
@@ -170,34 +209,14 @@
                 "type": "FIELD",
                 "name": "comment",
                 "content": {
-                  "type": "SYMBOL",
-                  "name": "comment_keyword"
-                }
-              },
-              {
-                "type": "CHOICE",
-                "members": [
-                  {
-                    "type": "SEQ",
-                    "members": [
-                      {
-                        "type": "STRING",
-                        "value": " "
-                      },
-                      {
-                        "type": "FIELD",
-                        "name": "title",
-                        "content": {
-                          "type": "SYMBOL",
-                          "name": "title"
-                        }
-                      }
-                    ]
+                  "type": "ALIAS",
+                  "content": {
+                    "type": "SYMBOL",
+                    "name": "_comment_keyword_eol"
                   },
-                  {
-                    "type": "BLANK"
-                  }
-                ]
+                  "named": true,
+                  "value": "comment_keyword"
+                }
               },
               {
                 "type": "STRING",
@@ -351,16 +370,49 @@
         }
       }
     },
-    "comment_keyword": {
+    "_comment_keyword_space": {
       "type": "TOKEN",
       "content": {
         "type": "PREC",
         "value": 10,
         "content": {
+          "type": "SEQ",
+          "members": [
+            {
+              "type": "STRING",
+              "value": "COMMENT"
+            },
+            {
+              "type": "STRING",
+              "value": " "
+            }
+          ]
+        }
+      }
+    },
+    "_comment_keyword_eol": {
+      "type": "TOKEN",
+      "content": {
+        "type": "PREC",
+        "value": 9,
+        "content": {
           "type": "STRING",
           "value": "COMMENT"
         }
       }
+    },
+    "comment_keyword": {
+      "type": "CHOICE",
+      "members": [
+        {
+          "type": "SYMBOL",
+          "name": "_comment_keyword_space"
+        },
+        {
+          "type": "SYMBOL",
+          "name": "_comment_keyword_eol"
+        }
+      ]
     },
     "title": {
       "type": "PATTERN",
@@ -1876,5 +1928,6 @@
   "precedences": [],
   "externals": [],
   "inline": [],
-  "supertypes": []
+  "supertypes": [],
+  "reserved": {}
 }

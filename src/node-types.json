@@ -69,6 +69,11 @@
     "fields": {}
   },
   {
+    "type": "comment_keyword",
+    "named": true,
+    "fields": {}
+  },
+  {
     "type": "directive",
     "named": true,
     "fields": {},
@@ -90,6 +95,7 @@
   {
     "type": "document",
     "named": true,
+    "root": true,
     "fields": {},
     "children": {
       "multiple": true,
@@ -534,6 +540,10 @@
     "named": false
   },
   {
+    "type": "COMMENT",
+    "named": false
+  },
+  {
     "type": "[[",
     "named": false
   },
@@ -567,10 +577,6 @@
   },
   {
     "type": "clock",
-    "named": true
-  },
-  {
-    "type": "comment_keyword",
     "named": true
   },
   {
