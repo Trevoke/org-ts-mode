@@ -37,7 +37,7 @@ Based on the official spec at https://orgmode.org/worg/org-syntax.html
 | **Fixed Width Areas** | ✅ | Yes | Lines starting with `:` and space |
 | **Horizontal Rules** | ✅ | Yes | Five or more hyphens |
 | **Keywords/Directives** | ✅ | Yes | `#+KEY: VALUE` |
-| **LaTeX Environments** | ❌ | No | `\begin{NAME}` ... `\end{NAME}` |
+| **LaTeX Environments** | ✅ | Yes | `\begin{NAME}` ... `\end{NAME}` - nested envs limited |
 | **Node Properties** | 🟡 | Partial | In property drawers, but `:NAME+:` syntax? |
 | **Paragraphs** | ✅ | Yes | Default element |
 | **Table Rows** | ✅ | Yes | Rows and rules |
@@ -181,8 +181,11 @@ These should be parsed by the inline grammar within paragraphs, titles, table ce
     - **Bounding**: Excellent - distinctive %% marker, single-line constraint, self-contained
 
 12. **LaTeX Environments** (`\begin{...}`)
-    - **Impact**: Academic documents
-    - **Complexity**: Medium
+    - **Status**: ✅ **COMPLETE** (7/7 tests passing)
+    - **Impact**: Academic documents (equations, align, matrix, proof, etc.)
+    - **Complexity**: Medium - nested environments partially supported
+    - **Bounding**: Excellent - distinctive \begin{}/\end{} markers, self-contained, graceful degradation
+    - **Note**: Deeply nested environments (e.g., cases inside align) are a known limitation
 
 13. **Dynamic Blocks** (`#+begin: name`)
     - **Status**: ✅ **COMPLETE** (8/8 tests passing)
@@ -219,7 +222,7 @@ These should be parsed by the inline grammar within paragraphs, titles, table ce
 - **Implemented**: ~20 types (✅ 80%)
 - **Partial**: ~4 types (🟡 16%)
 - **Missing**: ~5 types (❌ 20%)
-- **Test Coverage**: 139/139 tests passing
+- **Test Coverage**: 146/146 tests passing
 
 ### Inline Grammar (tree-sitter-org-inline)
 - **Total Objects**: ~25 types
@@ -241,6 +244,7 @@ These should be parsed by the inline grammar within paragraphs, titles, table ce
 ✅ Lists and tables (structure)
 ✅ Blocks and drawers
 ✅ **Dynamic blocks** (clocktable, columnview: #+begin: name ... #+end:)
+✅ **LaTeX environments** (equations, align, matrix: \begin{name} ... \end{name})
 ✅ Properties
 ✅ Comments and horizontal rules
 ✅ Directives/keywords
