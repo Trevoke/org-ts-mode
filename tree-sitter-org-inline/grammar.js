@@ -21,7 +21,10 @@ module.exports = grammar({
   name: 'org_inline',
 
   externals: $ => [
-    $.TAGS,  // Tags portion (:tag1:tag2:) - detected by scanner
+    $.TAGS,        // Tags portion (:tag1:tag2:) - detected by scanner
+    $.SUBSCRIPT,   // Subscript pattern (BASE_SCRIPT) - validated by scanner
+    $.SUPERSCRIPT, // Superscript pattern (BASE^SCRIPT) - validated by scanner
+    $.WORD,        // Alphanumeric word NOT followed by _/^ - prevents plain_text from consuming subscript bases
   ],
 
   // Only skip newlines (they delimit inline content) - not spaces (they're part of plain_text)
@@ -55,7 +58,7 @@ module.exports = grammar({
     title: $ => prec.right(repeat1(choice(
       prec(4, $.plain_link),              // FIRST: contains ':' - must override standalone ':'
       prec.dynamic(10, $.text_markup),    // HIGHEST: underline takes priority over subscript (org-mode spec)
-      prec.dynamic(5, $.subscript),       // MEDIUM: beats plain_text but yields to underline (e.g., "a_b_c" → underline)
+      prec.dynamic(5, $.subscript),       // MEDIUM: beats plain_text but yields to underline
       prec.dynamic(5, $.superscript),     // MEDIUM: beats plain_text but yields to other markup
       prec(3, $.regular_link),       // BEFORE footnote_reference (longer match: [[ vs [fn:)
       prec(3, $.angle_link),         // BEFORE timestamp (both use <>, but angle_link has protocol)
@@ -68,7 +71,7 @@ module.exports = grammar({
       prec(3, $.entity),             // LaTeX entities: \alpha, \nbsp, etc.
       prec(3, $.macro),              // Org macros: {{{name}}} or {{{name(args)}}}
       prec(2, ':'),  // Allow colons in title (lower precedence than TAGS and plain_link)
-      prec(1, $.plain_text)
+      prec(1, $.plain_text)          // LOWEST: fallback for all other text
     ))),
 
     // Text markup: bold, italic, underline, code, verbatim, strike-through
@@ -290,29 +293,24 @@ module.exports = grammar({
     )),
 
     // Subscript: BASE_SCRIPT (e.g., H_2O, A_i,j)
-    // Base: alphanumeric word (letters and digits)
-    // Script: any characters until whitespace or newline
-    // Distinguished from underline markup (_text_) by having only ONE underscore
-    // Unlike block version, no newline required (for inline usage)
-    // Not using token() to allow base to be parsed separately in inline contexts
-    subscript: $ => seq(
-      alias(/[a-zA-Z0-9]+/, $.base),  // Base text: alphanumeric word
-      '_',                             // Underscore separator
-      alias(/[^\s\n]+/, $.script)      // Script content: anything except whitespace/newline
-    ),
+    // Atomic token validated by external scanner
+    // Scanner validates:
+    //   - BASE: alphanumeric characters
+    //   - _: underscore marker
+    //   - SCRIPT: asterisk, braced expr, or SIGN CHARS FINAL pattern
+    //   - "Underline takes priority" rule (per org-mode spec)
+    // External scanner solves lookahead problem where plain_text would consume BASE
+    subscript: $ => $.SUBSCRIPT,
 
     // Superscript: BASE^SCRIPT (e.g., x^2, x^{y^{z}})
-    // Base: alphanumeric word (letters and digits)
-    // Script: any characters until whitespace or newline
-    // Unlike block version, no newline required (for inline usage)
-    // Not using token() to allow base to be parsed separately in inline contexts
-    superscript: $ => seq(
-      alias(/[a-zA-Z0-9]+/, $.base),  // Base text: alphanumeric word
-      '^',                             // Caret separator
-      alias(/[^\s\n]+/, $.script)      // Script content: anything except whitespace/newline
-    ),
+    // Atomic token validated by external scanner
+    // Scanner validates same pattern as subscript but with ^ marker
+    superscript: $ => $.SUPERSCRIPT,
 
-    // Plain text - any characters except markup delimiters, brackets, @, angle brackets, colon, backslash, braces, newline
+    // Plain text - matches text that's not part of other inline elements
+    // Uses repeat1 to merge consecutive non-alphanumeric text and WORD tokens
+    // Non-alphanumeric: spaces, punctuation, etc (matched by regex)
+    // Alphanumeric: handled by WORD external token (scanner validates not subscript/superscript)
     // Lower precedence so markup, cookies, snippets, targets, links, entities, macros, subscript, superscript are preferred
     // Colons are excluded to allow external scanner to detect TAGS (:tag1:tag2:)
     // Square brackets are excluded so statistics cookies and regular_link can be recognized
@@ -321,6 +319,9 @@ module.exports = grammar({
     // Backslash is excluded so entities can be recognized
     // Braces are excluded so macros can be recognized
     // Underscore and caret excluded so subscript/superscript can be recognized
-    plain_text: $ => prec(1, /[^*\/~=_+:@\[\]<>\\\{\}\^\n]+/),
+    plain_text: $ => prec.right(repeat1(choice(
+      /[^*\/~=_+:@\[\]<>\\\{\}\^\na-zA-Z0-9]+/,  // Non-alphanumeric text
+      alias($.WORD, $.plain_text)                 // Words validated by scanner
+    ))),
   }
 });

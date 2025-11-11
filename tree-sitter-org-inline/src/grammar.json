@@ -684,65 +684,36 @@
       }
     },
     "subscript": {
-      "type": "SEQ",
-      "members": [
-        {
-          "type": "ALIAS",
-          "content": {
-            "type": "PATTERN",
-            "value": "[a-zA-Z0-9]+"
-          },
-          "named": true,
-          "value": "base"
-        },
-        {
-          "type": "STRING",
-          "value": "_"
-        },
-        {
-          "type": "ALIAS",
-          "content": {
-            "type": "PATTERN",
-            "value": "[^\\s\\n]+"
-          },
-          "named": true,
-          "value": "script"
-        }
-      ]
+      "type": "SYMBOL",
+      "name": "SUBSCRIPT"
     },
     "superscript": {
-      "type": "SEQ",
-      "members": [
-        {
-          "type": "ALIAS",
-          "content": {
-            "type": "PATTERN",
-            "value": "[a-zA-Z0-9]+"
-          },
-          "named": true,
-          "value": "base"
-        },
-        {
-          "type": "STRING",
-          "value": "^"
-        },
-        {
-          "type": "ALIAS",
-          "content": {
-            "type": "PATTERN",
-            "value": "[^\\s\\n]+"
-          },
-          "named": true,
-          "value": "script"
-        }
-      ]
+      "type": "SYMBOL",
+      "name": "SUPERSCRIPT"
     },
     "plain_text": {
-      "type": "PREC",
-      "value": 1,
+      "type": "PREC_RIGHT",
+      "value": 0,
       "content": {
-        "type": "PATTERN",
-        "value": "[^*\\/~=_+:@\\[\\]<>\\\\\\{\\}\\^\\n]+"
+        "type": "REPEAT1",
+        "content": {
+          "type": "CHOICE",
+          "members": [
+            {
+              "type": "PATTERN",
+              "value": "[^*\\/~=_+:@\\[\\]<>\\\\\\{\\}\\^\\na-zA-Z0-9]+"
+            },
+            {
+              "type": "ALIAS",
+              "content": {
+                "type": "SYMBOL",
+                "name": "WORD"
+              },
+              "named": true,
+              "value": "plain_text"
+            }
+          ]
+        }
       }
     }
   },
@@ -758,6 +729,18 @@
     {
       "type": "SYMBOL",
       "name": "TAGS"
+    },
+    {
+      "type": "SYMBOL",
+      "name": "SUBSCRIPT"
+    },
+    {
+      "type": "SYMBOL",
+      "name": "SUPERSCRIPT"
+    },
+    {
+      "type": "SYMBOL",
+      "name": "WORD"
     }
   ],
   "inline": [],

@@ -71,7 +71,17 @@
   {
     "type": "plain_text",
     "named": true,
-    "fields": {}
+    "fields": {},
+    "children": {
+      "multiple": true,
+      "required": false,
+      "types": [
+        {
+          "type": "plain_text",
+          "named": true
+        }
+      ]
+    }
   },
   {
     "type": "radio_target",
@@ -98,15 +108,11 @@
     "named": true,
     "fields": {},
     "children": {
-      "multiple": true,
+      "multiple": false,
       "required": true,
       "types": [
         {
-          "type": "base",
-          "named": true
-        },
-        {
-          "type": "script",
+          "type": "SUBSCRIPT",
           "named": true
         }
       ]
@@ -117,15 +123,11 @@
     "named": true,
     "fields": {},
     "children": {
-      "multiple": true,
+      "multiple": false,
       "required": true,
       "types": [
         {
-          "type": "base",
-          "named": true
-        },
-        {
-          "type": "script",
+          "type": "SUPERSCRIPT",
           "named": true
         }
       ]
@@ -355,6 +357,14 @@
     "named": false
   },
   {
+    "type": "SUBSCRIPT",
+    "named": true
+  },
+  {
+    "type": "SUPERSCRIPT",
+    "named": true
+  },
+  {
     "type": "[",
     "named": false
   },
@@ -379,16 +389,8 @@
     "named": false
   },
   {
-    "type": "^",
-    "named": false
-  },
-  {
     "type": "_",
     "named": false
-  },
-  {
-    "type": "base",
-    "named": true
   },
   {
     "type": "footnote_reference",
@@ -404,10 +406,6 @@
   },
   {
     "type": "plain_link",
-    "named": true
-  },
-  {
-    "type": "script",
     "named": true
   },
   {
