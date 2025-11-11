@@ -51,13 +51,17 @@ module.exports = grammar({
     // Right-associative to greedily consume all content
     title: $ => prec.right(repeat1(choice(
       prec(4, $.plain_link),         // FIRST: contains ':' - must override standalone ':'
+      prec(3, $.subscript),          // BEFORE text_markup (both use _, but subscript is BASE_SCRIPT pattern)
+      prec(3, $.superscript),        // BEFORE text_markup (^ could conflict)
       prec(3, $.text_markup),
-      prec(3, $.regular_link),       // BEFORE statistics_cookie (longer match: [[ vs [)
-      prec(3, $.statistics_cookie),
+      prec(3, $.regular_link),       // BEFORE footnote_reference (longer match: [[ vs [fn:)
+      prec(3, $.angle_link),         // BEFORE timestamp (both use <>, but angle_link has protocol)
+      prec(3, $.footnote_reference), // BEFORE statistics_cookie (both start with [, but [fn: is more specific)
+      prec.dynamic(4, $.statistics_cookie),  // Higher dynamic precedence than timestamp
+      prec.dynamic(3, $.timestamp),          // Lower dynamic precedence - fallback for [\d...] patterns
       prec(3, $.export_snippet),
       prec(3, $.radio_target),       // Triple angle brackets <<<>>>
       prec(3, $.target),             // Double angle brackets <<>>
-      prec(3, $.angle_link),         // Single angle brackets <>
       prec(3, $.entity),             // LaTeX entities: \alpha, \nbsp, etc.
       prec(3, $.macro),              // Org macros: {{{name}}} or {{{name(args)}}}
       prec(2, ':'),  // Allow colons in title (lower precedence than TAGS and plain_link)
@@ -230,14 +234,90 @@ module.exports = grammar({
       '}}}'
     ),
 
+    // Footnote reference: [fn:label], [fn:label:def], or [fn::def]
+    // Used to reference or define footnotes inline
+    // Three formats:
+    //   1. Named reference: [fn:label] - references a footnote defined elsewhere
+    //   2. Inline with definition: [fn:label:definition text] - defines footnote inline
+    //   3. Anonymous: [fn::definition text] - anonymous inline footnote
+    // Label: alphanumeric, hyphens, underscores (no spaces)
+    // Definition: any text except ] and newline
+    // Unlike block version, no newline required (for inline usage)
+    // Atomic token for bounding - prevents internal components from leaking
+    footnote_reference: $ => token(seq(
+      '[fn:',
+      choice(
+        // Named with definition: [fn:label:definition]
+        seq(
+          /[a-zA-Z0-9_-]+/,  // Label
+          ':',
+          /[^\]]+/           // Definition (excludes ] to prevent greedy matching)
+        ),
+        // Named without definition: [fn:label]
+        /[a-zA-Z0-9_-]+/,    // Label only
+        // Anonymous: [fn::definition]
+        seq(
+          ':',
+          /[^\]]+/           // Definition (excludes ] to prevent greedy matching)
+        )
+      ),
+      ']'
+    )),
+
+    // Timestamp: <2024-01-15 Mon> or [2024-01-15 Mon]
+    // Active timestamps (<>) appear in agenda, inactive ([]) are for reference
+    // Can include time (14:30), ranges (09:00-17:00), repeaters (+1w), delays (-2d)
+    // Pattern specificity for bounding:
+    // - Active: Must NOT contain ':/' early (to avoid matching <protocol://url> angle links)
+    // - Inactive: Must start with digit and contain '-' or space (date format, not [50%] cookie)
+    // Unlike block version, no newline required (for inline usage)
+    // Atomic token for bounding - prevents internal components from leaking
+    timestamp: $ => token(choice(
+      // Active timestamp: <2024-01-15 Mon 14:30>
+      // Must start with digit and contain dash (date separator)
+      // This distinguishes from angle links which have protocol:// early on
+      seq('<', /[0-9][^>]*-[^>]*/, '>'),
+      // Inactive timestamp: [2024-01-15 Mon 14:30]
+      // Must start with digit and contain dash (date separator)
+      // This distinguishes from:
+      // - [fn:...] (starts with 'f', not digit)
+      // - [50%] (no dash)
+      // - [1/2] (no dash)
+      seq('[', /\d[^\]]*-[^\]]*/, ']')
+    )),
+
+    // Subscript: BASE_SCRIPT (e.g., H_2O, A_i,j)
+    // Base: alphanumeric word (letters and digits)
+    // Script: any characters until whitespace or newline
+    // Distinguished from underline markup (_text_) by having only ONE underscore
+    // Unlike block version, no newline required (for inline usage)
+    // Not using token() to allow base to be parsed separately in inline contexts
+    subscript: $ => seq(
+      alias(/[a-zA-Z0-9]+/, $.base),  // Base text: alphanumeric word
+      '_',                             // Underscore separator
+      alias(/[^\s\n]+/, $.script)      // Script content: anything except whitespace/newline
+    ),
+
+    // Superscript: BASE^SCRIPT (e.g., x^2, x^{y^{z}})
+    // Base: alphanumeric word (letters and digits)
+    // Script: any characters until whitespace or newline
+    // Unlike block version, no newline required (for inline usage)
+    // Not using token() to allow base to be parsed separately in inline contexts
+    superscript: $ => seq(
+      alias(/[a-zA-Z0-9]+/, $.base),  // Base text: alphanumeric word
+      '^',                             // Caret separator
+      alias(/[^\s\n]+/, $.script)      // Script content: anything except whitespace/newline
+    ),
+
     // Plain text - any characters except markup delimiters, brackets, @, angle brackets, colon, backslash, braces, newline
-    // Lower precedence so markup, cookies, snippets, targets, links, entities, macros are preferred
+    // Lower precedence so markup, cookies, snippets, targets, links, entities, macros, subscript, superscript are preferred
     // Colons are excluded to allow external scanner to detect TAGS (:tag1:tag2:)
     // Square brackets are excluded so statistics cookies and regular_link can be recognized
     // @ is excluded so export snippets can be recognized
     // Angle brackets are excluded so targets can be recognized
     // Backslash is excluded so entities can be recognized
     // Braces are excluded so macros can be recognized
-    plain_text: $ => prec(1, /[^*\/~=_+:@\[\]<>\\\{\}\n]+/),
+    // Underscore and caret excluded so subscript/superscript can be recognized
+    plain_text: $ => prec(1, /[^*\/~=_+:@\[\]<>\\\{\}\^\n]+/),
   }
 });
