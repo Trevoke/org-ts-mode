@@ -83,7 +83,7 @@ These should be parsed by the inline grammar within paragraphs, titles, table ce
 | **Inline Source Blocks** | ❌ | `src_LANG{BODY}` or `src_LANG[HEADERS]{BODY}` |
 | **Line Breaks** | ❌ | `\\` at end of line |
 | **Radio Links** | ❌ | Text matched by radio targets |
-| **Plain Links** | ❌ | `http://example.com` without brackets |
+| **Plain Links** | ✅ | `http://example.com` - bare URLs, standalone usage |
 | **Angle Links** | ✅ | `<http://example.com>` - protocol-based URL links |
 | **Regular Links (inline)** | ✅ | `[[URL]]`, `[[URL][DESC]]` - now in inline grammar |
 | **Targets** | ✅ | `<<TARGET>>` - internal link anchors |
@@ -102,13 +102,14 @@ These should be parsed by the inline grammar within paragraphs, titles, table ce
 - ✅ Statistics cookies: percentage and fraction formats (11/11 tests)
 - ✅ Export snippets: backend-specific formatting (11/11 tests)
 - ✅ Targets: internal link anchors `<<NAME>>` (11/11 tests)
-- ✅ Angle links: protocol-based URLs `<PROTOCOL:PATH>` (14/14 tests)
-- ✅ Regular links: `[[URL]]` and `[[URL][DESC]]` (17/17 tests)
+- ✅ **Links trilogy complete:**
+  - Regular links: `[[URL]]` and `[[URL][DESC]]` (17/17 tests)
+  - Angle links: `<PROTOCOL:PATH>` (14/14 tests)
+  - Plain links: bare URLs `http://example.com` (9/9 tests)
 - ✅ Plain text with proper whitespace handling
 - ✅ Colons in titles (distinct from tags)
 
 **TODO for Inline Grammar:**
-- Plain links (bare URLs without brackets)
 - Radio targets (`<<<RADIO>>>`)
 - Line breaks (`\\`)
 - Inline babel/source blocks
@@ -140,11 +141,11 @@ These should be parsed by the inline grammar within paragraphs, titles, table ce
    - **Location**: Block grammar
    - **Bounding**: Excellent - distinctive start pattern, graceful degradation
 
-4. **Inline Links** (currently block-only)
-   - **Status**: 📋 **NEXT PRIORITY**
-   - **Impact**: Links should work within paragraphs
-   - **Location**: Move from block to inline grammar
-   - **Complexity**: Medium - need to handle in object context
+4. **Inline Links** (regular/angle/plain)
+   - **Status**: ✅ **COMPLETE** - all three link types implemented (40/40 tests)
+   - **Impact**: Links work within paragraphs and titles
+   - **Location**: Inline grammar
+   - **Bounding**: Excellent - distinctive delimiters (`[[]]`, `<>`, protocol requirements), graceful degradation
 
 5. **Table Cells as Object Containers**
    - **Impact**: Table cells should contain objects (links, markup, etc.)
@@ -158,17 +159,13 @@ These should be parsed by the inline grammar within paragraphs, titles, table ce
    - **Impact**: Used for manual line wrapping
    - **Complexity**: Medium - requires paragraph restructuring
 
-7. **Plain Links** (URLs without brackets)
-   - **Impact**: Convenient for quick links
-   - **Complexity**: Medium - need link type detection
-
-8. **Statistics Cookies** (`[50%]`, `[1/2]`)
+7. **Statistics Cookies** (`[50%]`, `[1/2]`)
    - **Status**: ✅ **COMPLETE** (11/11 tests passing)
    - **Impact**: Used in task lists and progress tracking
    - **Location**: Inline grammar
    - **Bounding**: Excellent - bracket-delimited, self-contained, graceful degradation
 
-9. **Export Snippets** (`@@backend:content@@`)
+8. **Export Snippets** (`@@backend:content@@`)
    - **Status**: ✅ **COMPLETE** (11/11 tests passing)
    - **Impact**: Used for multi-format export
    - **Location**: Inline grammar
@@ -228,10 +225,10 @@ These should be parsed by the inline grammar within paragraphs, titles, table ce
 
 ### Inline Grammar (tree-sitter-org-inline)
 - **Total Objects**: ~25 types
-- **Implemented**: ~12 types (title/tags, 6 markup types, statistics cookies, export snippets, targets, angle links, regular links, plain text)
+- **Implemented**: ~13 types (title/tags, 6 markup types, statistics cookies, export snippets, targets, 3 link types: angle/regular/plain, plain text)
 - **In Block (Should Move)**: ~6 types (entities, latex, footnotes, macros, sub/super, timestamps)
 - **Missing**: ~6 types
-- **Test Coverage**: 83/83 tests passing
+- **Test Coverage**: 92/92 tests passing
 
 ### Overall Syntax Coverage
 - **Fully Functional**: ~35%
@@ -255,9 +252,9 @@ These should be parsed by the inline grammar within paragraphs, titles, table ce
 ✅ **Complete text markup** (all 6 types: bold, italic, underline, code, verbatim, strike-through)
 ✅ **Statistics cookies** (progress tracking: [50%], [2/5])
 ✅ **Export snippets** (backend-specific export: @@html:...@@)
+✅ **Links trilogy** (regular `[[]]`, angle `<>`, plain http://... - all inline)
 
 ### What's Missing That Users Will Notice
-❌ Inline links in paragraphs - **Very Common**
 ❌ COMMENT keyword in headlines - **BLOCKED**
 ❌ Line breaks - **Requires paragraph restructuring**
 ❌ Objects in table cells
