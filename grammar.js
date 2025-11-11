@@ -10,6 +10,12 @@
 module.exports = grammar({
   name: 'org',
 
+  externals: $ => [
+    $._headline_title,      // Must match scanner enum order
+    $._headline_tags,
+    $._list_item_content_line,
+  ],
+
   rules: {
     document: $ => repeat($._element),
 
@@ -350,7 +356,8 @@ module.exports = grammar({
         $.checkbox,  // Required: includes trailing space
         $.tag,       // Required: includes ' :: ' separator
         /[^\n]*/,    // Content after tag
-        '\n'
+        '\n',
+        optional(alias(repeat($._list_item_content_line), $.list_item_content))
       )),
       // Variant 2: With checkbox only
       prec(3, seq(
@@ -359,7 +366,8 @@ module.exports = grammar({
         ' ',
         $.checkbox,  // Required: includes trailing space
         /[^\n]*/,
-        '\n'
+        '\n',
+        optional(alias(repeat($._list_item_content_line), $.list_item_content))
       )),
       // Variant 3: With tag only
       prec(2, seq(
@@ -368,7 +376,8 @@ module.exports = grammar({
         ' ',
         $.tag,       // Required: includes ' :: ' separator
         /[^\n]*/,    // Content after tag
-        '\n'
+        '\n',
+        optional(alias(repeat($._list_item_content_line), $.list_item_content))
       )),
       // Variant 4: Plain item (lowest precedence)
       prec(1, seq(
@@ -376,7 +385,8 @@ module.exports = grammar({
         $.bullet,
         ' ',
         /[^\n]*/,
-        '\n'
+        '\n',
+        optional(alias(repeat($._list_item_content_line), $.list_item_content))
       ))
     ),
 

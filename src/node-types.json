@@ -467,11 +467,20 @@
           "named": true
         },
         {
+          "type": "list_item_content",
+          "named": true
+        },
+        {
           "type": "tag",
           "named": true
         }
       ]
     }
+  },
+  {
+    "type": "list_item_content",
+    "named": true,
+    "fields": {}
   },
   {
     "type": "macro",

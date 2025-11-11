@@ -224,3 +224,55 @@ Description list with last occurrence rule
     (list_item
       (bullet)
       (tag))))
+
+==================
+List item with simple continuation line
+==================
+
+- First line
+  continuation text
+
+---
+
+(document
+  (list
+    (list_item
+      (bullet)
+      (list_item_content))))
+
+==================
+List item with multiple continuation lines
+==================
+
+- First line
+  continuation one
+  continuation two
+  continuation three
+
+---
+
+(document
+  (list
+    (list_item
+      (bullet)
+      (list_item_content))))
+
+==================
+Multiple items each with continuations
+==================
+
+- Item one
+  continues
+- Item two
+  also continues
+
+---
+
+(document
+  (list
+    (list_item
+      (bullet)
+      (list_item_content))
+    (list_item
+      (bullet)
+      (list_item_content))))

@@ -21,7 +21,7 @@ Based on the official spec at https://orgmode.org/worg/org-syntax.html
 | **Dynamic Blocks** | ✅ | Yes | Pattern `#+begin: NAME ... #+end:` for dynamic content |
 | **Footnote Definitions** | 🟡 | Yes | References work, but definitions as greater elements? |
 | **Inlinetasks** | ✅ | Yes | 15+ stars (org-inlinetask-min-level), opening markers only |
-| **Plain Lists** (Items) | ✅ | Yes | Bullets, ordered, unordered, checkboxes ([ ], [X], [-]), description lists (term :: def) |
+| **Plain Lists** (Items) | ✅ | Yes | Bullets, ordered, unordered, checkboxes ([ ], [X], [-]), description lists (term :: def), **multi-line items** (continuation lines via external scanner) |
 | **Property Drawers** | ✅ | Yes | `:properties:` ... `:end:` |
 | **Tables** | ✅ | Yes | Org tables with `|` |
 
@@ -229,7 +229,8 @@ These should be parsed by the inline grammar within paragraphs, titles, table ce
 - **Implemented**: ~23 types (✅ 92%)
 - **Partial**: ~2 types (🟡 8%)
 - **Missing**: ~3 types (❌ 12%)
-- **Test Coverage**: 183/183 tests passing (146 existing + 14 COMMENT + 4 checkbox + 4 description list + 3 property accumulation + 12 inlinetask tests)
+- **Test Coverage**: 186/186 tests passing (146 existing + 14 COMMENT + 4 checkbox + 4 description list + 3 property accumulation + 12 inlinetask + 3 multi-line list tests)
+- **External Scanner**: Implemented for list indentation tracking (tabs=8 spaces per Org spec)
 
 ### Inline Grammar (tree-sitter-org-inline)
 - **Total Objects**: ~25 types
@@ -249,7 +250,7 @@ These should be parsed by the inline grammar within paragraphs, titles, table ce
 ✅ Planning and timestamps
 ✅ **Clock elements** (time tracking)
 ✅ **Diary sexp** (advanced scheduling: %%(lisp-expression))
-✅ **Lists with checkboxes and descriptions** (task tracking: [ ], [X], [-]; description lists: term :: def)
+✅ **Lists with checkboxes and descriptions** (task tracking: [ ], [X], [-]; description lists: term :: def; multi-line items with continuation lines)
 ✅ Tables (structure)
 ✅ Blocks and drawers
 ✅ **Dynamic blocks** (clocktable, columnview: #+begin: name ... #+end:)
