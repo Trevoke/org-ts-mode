@@ -13,6 +13,14 @@
       "type": "CHOICE",
       "members": [
         {
+          "type": "PREC",
+          "value": 3,
+          "content": {
+            "type": "SYMBOL",
+            "name": "inlinetask"
+          }
+        },
+        {
           "type": "SYMBOL",
           "name": "headline"
         },
@@ -313,6 +321,178 @@
     "stars": {
       "type": "PATTERN",
       "value": "\\*+"
+    },
+    "inlinetask": {
+      "type": "CHOICE",
+      "members": [
+        {
+          "type": "PREC_DYNAMIC",
+          "value": 3,
+          "content": {
+            "type": "SEQ",
+            "members": [
+              {
+                "type": "SYMBOL",
+                "name": "_inlinetask_prefix"
+              },
+              {
+                "type": "FIELD",
+                "name": "comment",
+                "content": {
+                  "type": "ALIAS",
+                  "content": {
+                    "type": "SYMBOL",
+                    "name": "_comment_with_space"
+                  },
+                  "named": true,
+                  "value": "comment_keyword"
+                }
+              },
+              {
+                "type": "FIELD",
+                "name": "title",
+                "content": {
+                  "type": "SYMBOL",
+                  "name": "title"
+                }
+              },
+              {
+                "type": "STRING",
+                "value": "\n"
+              }
+            ]
+          }
+        },
+        {
+          "type": "PREC_DYNAMIC",
+          "value": 2,
+          "content": {
+            "type": "SEQ",
+            "members": [
+              {
+                "type": "SYMBOL",
+                "name": "_inlinetask_prefix"
+              },
+              {
+                "type": "FIELD",
+                "name": "comment",
+                "content": {
+                  "type": "ALIAS",
+                  "content": {
+                    "type": "SYMBOL",
+                    "name": "_comment_with_newline"
+                  },
+                  "named": true,
+                  "value": "comment_keyword"
+                }
+              }
+            ]
+          }
+        },
+        {
+          "type": "PREC_DYNAMIC",
+          "value": 1,
+          "content": {
+            "type": "SEQ",
+            "members": [
+              {
+                "type": "SYMBOL",
+                "name": "_inlinetask_prefix"
+              },
+              {
+                "type": "CHOICE",
+                "members": [
+                  {
+                    "type": "FIELD",
+                    "name": "title",
+                    "content": {
+                      "type": "SYMBOL",
+                      "name": "title"
+                    }
+                  },
+                  {
+                    "type": "BLANK"
+                  }
+                ]
+              },
+              {
+                "type": "STRING",
+                "value": "\n"
+              }
+            ]
+          }
+        }
+      ]
+    },
+    "_inlinetask_prefix": {
+      "type": "SEQ",
+      "members": [
+        {
+          "type": "ALIAS",
+          "content": {
+            "type": "SYMBOL",
+            "name": "inlinetask_stars"
+          },
+          "named": true,
+          "value": "stars"
+        },
+        {
+          "type": "STRING",
+          "value": " "
+        },
+        {
+          "type": "CHOICE",
+          "members": [
+            {
+              "type": "FIELD",
+              "name": "keyword",
+              "content": {
+                "type": "SYMBOL",
+                "name": "keyword"
+              }
+            },
+            {
+              "type": "BLANK"
+            }
+          ]
+        },
+        {
+          "type": "CHOICE",
+          "members": [
+            {
+              "type": "SEQ",
+              "members": [
+                {
+                  "type": "FIELD",
+                  "name": "priority",
+                  "content": {
+                    "type": "SYMBOL",
+                    "name": "priority"
+                  }
+                },
+                {
+                  "type": "STRING",
+                  "value": " "
+                }
+              ]
+            },
+            {
+              "type": "BLANK"
+            }
+          ]
+        }
+      ]
+    },
+    "inlinetask_stars": {
+      "type": "TOKEN",
+      "content": {
+        "type": "PREC",
+        "value": 2,
+        "content": {
+          "type": "PATTERN",
+          "value": "\\*{15}\\**"
+        }
+      }
     },
     "keyword": {
       "type": "TOKEN",

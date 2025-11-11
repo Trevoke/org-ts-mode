@@ -14,6 +14,7 @@ module.exports = grammar({
     document: $ => repeat($._element),
 
     _element: $ => choice(
+      prec(3, $.inlinetask),  // Higher precedence than headline to match 15+ stars first
       $.headline,
       prec(2, $.planning_line),
       prec(2, $.clock),
@@ -86,6 +87,46 @@ module.exports = grammar({
 
     // Stars: one or more asterisks at the start of a line
     stars: $ => /\*+/,
+
+    // Inlinetask: Like headline but requires 15+ stars (org-inlinetask-min-level)
+    // Follows same structure: STARS KEYWORD PRIORITY COMMENT TITLE TAGS
+    // Three variants to handle COMMENT keyword (same pattern as headline)
+    inlinetask: $ => choice(
+      // Variant 1: WITH COMMENT keyword + title
+      prec.dynamic(3, seq(
+        $._inlinetask_prefix,
+        field('comment', alias($._comment_with_space, $.comment_keyword)),
+        field('title', $.title),
+        '\n'
+      )),
+      // Variant 2: WITH COMMENT keyword, NO title
+      prec.dynamic(2, seq(
+        $._inlinetask_prefix,
+        field('comment', alias($._comment_with_newline, $.comment_keyword))
+      )),
+      // Variant 3: WITHOUT COMMENT keyword
+      prec.dynamic(1, seq(
+        $._inlinetask_prefix,
+        optional(field('title', $.title)),
+        '\n'
+      ))
+    ),
+
+    // Helper: Inlinetask prefix (15+ stars, optional keyword, optional priority)
+    _inlinetask_prefix: $ => seq(
+      alias($.inlinetask_stars, $.stars),  // Alias so it appears as "stars" node
+      ' ',
+      optional(field('keyword', $.keyword)),
+      optional(seq(
+        field('priority', $.priority),
+        ' '
+      ))
+    ),
+
+    // Inlinetask stars: 15 or more asterisks (default org-inlinetask-min-level)
+    // Use token with precedence to ensure this matches before regular stars
+    // Pattern: exactly 15 stars followed by zero or more additional stars
+    inlinetask_stars: $ => token(prec(2, /\*{15}\**/)),
 
     // Keywords: TODO, DONE, etc.
     // Include trailing space to ensure exact word match (prevents "TODOX" matching "TODO")

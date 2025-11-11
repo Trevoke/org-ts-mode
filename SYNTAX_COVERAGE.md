@@ -20,7 +20,7 @@ Based on the official spec at https://orgmode.org/worg/org-syntax.html
 | **Drawers** | ✅ | Yes | Pattern `:NAME:` ... `:end:` |
 | **Dynamic Blocks** | ✅ | Yes | Pattern `#+begin: NAME ... #+end:` for dynamic content |
 | **Footnote Definitions** | 🟡 | Yes | References work, but definitions as greater elements? |
-| **Inlinetasks** | ❌ | No | Requires 15+ stars |
+| **Inlinetasks** | ✅ | Yes | 15+ stars (org-inlinetask-min-level), opening markers only |
 | **Plain Lists** (Items) | ✅ | Yes | Bullets, ordered, unordered, checkboxes ([ ], [X], [-]), description lists (term :: def) |
 | **Property Drawers** | ✅ | Yes | `:properties:` ... `:end:` |
 | **Tables** | ✅ | Yes | Org tables with `|` |
@@ -226,10 +226,10 @@ These should be parsed by the inline grammar within paragraphs, titles, table ce
 
 ### Block Grammar (tree-sitter-org)
 - **Total Elements**: ~25 types
-- **Implemented**: ~22 types (✅ 88%)
+- **Implemented**: ~23 types (✅ 92%)
 - **Partial**: ~2 types (🟡 8%)
-- **Missing**: ~4 types (❌ 16%)
-- **Test Coverage**: 171/171 tests passing (146 existing + 14 COMMENT + 4 checkbox + 4 description list + 3 property accumulation tests)
+- **Missing**: ~3 types (❌ 12%)
+- **Test Coverage**: 183/183 tests passing (146 existing + 14 COMMENT + 4 checkbox + 4 description list + 3 property accumulation + 12 inlinetask tests)
 
 ### Inline Grammar (tree-sitter-org-inline)
 - **Total Objects**: ~25 types
@@ -245,6 +245,7 @@ These should be parsed by the inline grammar within paragraphs, titles, table ce
 
 ### What's Working Well
 ✅ Core structure (headlines, sections, paragraphs)
+✅ **Inlinetasks** (15+ stars for inline task markers)
 ✅ Planning and timestamps
 ✅ **Clock elements** (time tracking)
 ✅ **Diary sexp** (advanced scheduling: %%(lisp-expression))
