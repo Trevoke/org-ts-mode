@@ -1,0 +1,281 @@
+==================
+Simple subscript
+==================
+
+Water H_2O molecule
+
+---
+
+(inline
+  (title
+    (plain_text)
+    (subscript)
+    (plain_text)))
+
+==================
+Simple superscript
+==================
+
+Formula x^2 squared
+
+---
+
+(inline
+  (title
+    (plain_text)
+    (superscript)
+    (plain_text)))
+
+==================
+Subscript at start
+==================
+
+H_2O is water
+
+---
+
+(inline
+  (title
+    (subscript)
+    (plain_text)))
+
+==================
+Superscript at end
+==================
+
+Power of x^2
+
+---
+
+(inline
+  (title
+    (plain_text)
+    (superscript)))
+
+==================
+Subscript with single letter
+==================
+
+Index A_i notation
+
+---
+
+(inline
+  (title
+    (plain_text)
+    (subscript)
+    (plain_text)))
+
+==================
+Superscript with sign
+==================
+
+Exponent x^-2 negative
+
+---
+
+(inline
+  (title
+    (plain_text)
+    (superscript)
+    (plain_text)))
+
+==================
+Subscript with comma
+==================
+
+Matrix A_i,j element
+
+---
+
+(inline
+  (title
+    (plain_text)
+    (subscript)
+    (plain_text)))
+
+==================
+Subscript with braces
+==================
+
+Complex A_{n,m} notation
+
+---
+
+(inline
+  (title
+    (plain_text)
+    (subscript)
+    (plain_text)))
+
+==================
+Superscript with braces
+==================
+
+Nested x^{y^{z}} power
+
+---
+
+(inline
+  (title
+    (plain_text)
+    (superscript)
+    (plain_text)))
+
+==================
+Superscript asterisk
+==================
+
+Conjugate z^* notation
+
+---
+
+(inline
+  (title
+    (plain_text)
+    (superscript)
+    (plain_text)))
+
+==================
+Subscript with parentheses
+==================
+
+Function f_(n) notation
+
+---
+
+(inline
+  (title
+    (plain_text)
+    (subscript)
+    (plain_text)))
+
+==================
+Multiple subscripts and superscripts
+==================
+
+Both x^2 and A_i present
+
+---
+
+(inline
+  (title
+    (plain_text)
+    (superscript)
+    (plain_text)
+    (subscript)
+    (plain_text)))
+
+==================
+CRITICAL: Underline vs subscript distinction
+==================
+
+The _underlined text_ and H_2O formula
+
+---
+
+(inline
+  (title
+    (plain_text)
+    (underline)
+    (plain_text)
+    (subscript)
+    (plain_text)))
+
+==================
+CRITICAL: Incomplete underscore is plain text
+==================
+
+Variable A_ incomplete
+
+---
+
+(inline
+  (title
+    (plain_text)
+    (plain_text)
+    (plain_text)))
+
+==================
+CRITICAL: Space after underscore
+==================
+
+Not H_ 2O subscript
+
+---
+
+(inline
+  (title
+    (plain_text)
+    (plain_text)
+    (plain_text)
+    (plain_text)
+    (plain_text)))
+
+==================
+Subscript only
+==================
+
+H_2O
+
+---
+
+(inline
+  (title
+    (subscript)))
+
+==================
+Superscript only
+==================
+
+x^2
+
+---
+
+(inline
+  (title
+    (superscript)))
+
+==================
+Invalid - no base
+==================
+
+Just _2 or ^2 alone
+
+---
+
+(inline
+  (title
+    (plain_text)
+    (plain_text)
+    (plain_text)
+    (plain_text)
+    (plain_text)))
+
+==================
+Mixed bold and subscript
+==================
+
+Formula *E=mc^2* equation
+
+---
+
+(inline
+  (title
+    (plain_text)
+    (bold)
+    (plain_text)))
+
+==================
+Subscript with numbers in base
+==================
+
+Variable A123_i notation
+
+---
+
+(inline
+  (title
+    (plain_text)
+    (subscript)
+    (plain_text)))

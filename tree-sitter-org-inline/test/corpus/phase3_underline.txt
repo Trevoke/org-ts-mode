@@ -1,0 +1,154 @@
+==================
+Simple underline
+==================
+
+This is _underlined_ text
+
+---
+
+(inline
+  (title
+    (plain_text)
+    (underline)
+    (plain_text)))
+
+==================
+Underline at start
+==================
+
+_Underlined_ at start
+
+---
+
+(inline
+  (title
+    (underline)
+    (plain_text)))
+
+==================
+Underline at end
+==================
+
+Text with _underline_
+
+---
+
+(inline
+  (title
+    (plain_text)
+    (underline)))
+
+==================
+Multiple underlines
+==================
+
+_First_ and _second_ underline
+
+---
+
+(inline
+  (title
+    (underline)
+    (plain_text)
+    (underline)
+    (plain_text)))
+
+==================
+Single character underline
+==================
+
+Just _x_ here
+
+---
+
+(inline
+  (title
+    (plain_text)
+    (underline)
+    (plain_text)))
+
+==================
+Underline with hyphens
+==================
+
+This is _multi-word_ underline
+
+---
+
+(inline
+  (title
+    (plain_text)
+    (underline)
+    (plain_text)))
+
+==================
+Invalid underline - no closing
+==================
+
+This is _incomplete
+
+---
+
+(inline
+  (title
+    (plain_text)
+    (plain_text)
+    (plain_text)))
+
+==================
+Invalid underline - starts with space
+==================
+
+This _ under _ invalid
+
+---
+
+(inline
+  (title
+    (plain_text)
+    (plain_text)
+    (plain_text)
+    (plain_text)
+    (plain_text)))
+
+==================
+Underline only
+==================
+
+_underlined_
+
+---
+
+(inline
+  (title
+    (underline)))
+
+==================
+Plain text with underscore not forming underline
+==================
+
+2_3 or single_underscore
+
+---
+
+(inline
+  (title
+    (plain_text)
+    (plain_text)
+    (plain_text)
+    (plain_text)
+    (plain_text)))
+
+==================
+Multiple words underlined
+==================
+
+The _important note here_ is underlined
+
+---
+
+(inline
+  (title
+    (plain_text)
+    (underline)
+    (plain_text)))

@@ -35,6 +35,18 @@
         {
           "type": "plain_text",
           "named": true
+        },
+        {
+          "type": "subscript",
+          "named": true
+        },
+        {
+          "type": "superscript",
+          "named": true
+        },
+        {
+          "type": "underline",
+          "named": true
         }
       ]
     }
@@ -44,7 +56,27 @@
     "named": false
   },
   {
+    "type": "^",
+    "named": false
+  },
+  {
+    "type": "_",
+    "named": false
+  },
+  {
     "type": "bold",
+    "named": true
+  },
+  {
+    "type": "subscript",
+    "named": true
+  },
+  {
+    "type": "superscript",
+    "named": true
+  },
+  {
+    "type": "underline",
     "named": true
   }
 ]
