@@ -2002,6 +2002,18 @@
           "name": "key"
         },
         {
+          "type": "CHOICE",
+          "members": [
+            {
+              "type": "STRING",
+              "value": "+"
+            },
+            {
+              "type": "BLANK"
+            }
+          ]
+        },
+        {
           "type": "STRING",
           "value": ":"
         },
@@ -2010,8 +2022,16 @@
           "value": "[ \\t]*"
         },
         {
-          "type": "SYMBOL",
-          "name": "value"
+          "type": "CHOICE",
+          "members": [
+            {
+              "type": "SYMBOL",
+              "name": "value"
+            },
+            {
+              "type": "BLANK"
+            }
+          ]
         },
         {
           "type": "STRING",

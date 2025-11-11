@@ -504,13 +504,15 @@ module.exports = grammar({
       '\n'
     ),
 
-    // Property: :KEY: value
+    // Property: :KEY: value or :KEY+: value (accumulative)
+    // Value is optional: :KEY: or :KEY+:
     property: $ => seq(
       ':',
       $.key,
+      optional('+'),  // Optional accumulation marker
       ':',
       /[ \t]*/,
-      $.value,
+      optional($.value),  // Value is optional
       '\n'
     ),
 

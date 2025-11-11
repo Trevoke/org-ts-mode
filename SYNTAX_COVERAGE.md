@@ -38,7 +38,7 @@ Based on the official spec at https://orgmode.org/worg/org-syntax.html
 | **Horizontal Rules** | ✅ | Yes | Five or more hyphens |
 | **Keywords/Directives** | ✅ | Yes | `#+KEY: VALUE` |
 | **LaTeX Environments** | ✅ | Yes | `\begin{NAME}` ... `\end{NAME}` - nested envs limited |
-| **Node Properties** | 🟡 | Partial | In property drawers, but `:NAME+:` syntax? |
+| **Node Properties** | ✅ | Yes | In property drawers, including `:NAME+:` accumulation syntax |
 | **Paragraphs** | ✅ | Yes | Default element |
 | **Table Rows** | ✅ | Yes | Rows and rules |
 
@@ -226,10 +226,10 @@ These should be parsed by the inline grammar within paragraphs, titles, table ce
 
 ### Block Grammar (tree-sitter-org)
 - **Total Elements**: ~25 types
-- **Implemented**: ~21 types (✅ 84%)
-- **Partial**: ~3 types (🟡 12%)
+- **Implemented**: ~22 types (✅ 88%)
+- **Partial**: ~2 types (🟡 8%)
 - **Missing**: ~4 types (❌ 16%)
-- **Test Coverage**: 168/168 tests passing (146 existing + 14 COMMENT + 4 checkbox + 4 description list tests)
+- **Test Coverage**: 171/171 tests passing (146 existing + 14 COMMENT + 4 checkbox + 4 description list + 3 property accumulation tests)
 
 ### Inline Grammar (tree-sitter-org-inline)
 - **Total Objects**: ~25 types
@@ -253,7 +253,7 @@ These should be parsed by the inline grammar within paragraphs, titles, table ce
 ✅ Blocks and drawers
 ✅ **Dynamic blocks** (clocktable, columnview: #+begin: name ... #+end:)
 ✅ **LaTeX environments** (equations, align, matrix: \begin{name} ... \end{name})
-✅ Properties
+✅ **Properties** (including accumulation: :NAME+: syntax)
 ✅ Comments and horizontal rules
 ✅ Directives/keywords
 ✅ Fixed width areas
