@@ -59,6 +59,7 @@ module.exports = grammar({
       prec(3, $.target),             // Double angle brackets <<>>
       prec(3, $.angle_link),         // Single angle brackets <>
       prec(3, $.entity),             // LaTeX entities: \alpha, \nbsp, etc.
+      prec(3, $.macro),              // Org macros: {{{name}}} or {{{name(args)}}}
       prec(2, ':'),  // Allow colons in title (lower precedence than TAGS and plain_link)
       prec(1, $.plain_text)
     ))),
@@ -213,13 +214,30 @@ module.exports = grammar({
       optional('{}')    // Optional explicit braces
     ),
 
-    // Plain text - any characters except markup delimiters, brackets, @, angle brackets, colon, backslash, newline
-    // Lower precedence so markup, cookies, snippets, targets, links, entities are preferred
+    // Macro: {{{name}}} or {{{name(args)}}}
+    // Used for text replacement and templating in org-mode
+    // Name: letter followed by letters/digits/underscores/hyphens
+    // Args: any characters except } and ) (simplified from spec)
+    // Unlike block version, no newline required (for inline usage)
+    macro: $ => seq(
+      '{{{',
+      alias(/[a-zA-Z][a-zA-Z0-9_-]*/, $.macro_name),
+      optional(seq(
+        '(',
+        alias(/[^})]+/, $.macro_args),
+        ')'
+      )),
+      '}}}'
+    ),
+
+    // Plain text - any characters except markup delimiters, brackets, @, angle brackets, colon, backslash, braces, newline
+    // Lower precedence so markup, cookies, snippets, targets, links, entities, macros are preferred
     // Colons are excluded to allow external scanner to detect TAGS (:tag1:tag2:)
     // Square brackets are excluded so statistics cookies and regular_link can be recognized
     // @ is excluded so export snippets can be recognized
     // Angle brackets are excluded so targets can be recognized
     // Backslash is excluded so entities can be recognized
-    plain_text: $ => prec(1, /[^*\/~=_+:@\[\]<>\\\n]+/),
+    // Braces are excluded so macros can be recognized
+    plain_text: $ => prec(1, /[^*\/~=_+:@\[\]<>\\\{\}\n]+/),
   }
 });

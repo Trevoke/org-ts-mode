@@ -68,7 +68,7 @@ These should be parsed by the inline grammar within paragraphs, titles, table ce
 | **LaTeX Fragments** | ✅ | `\NAME`, `$$...$$`, `$...$` - still in block grammar |
 | **Footnote References** | ✅ | `[fn:LABEL]`, `[fn::DEF]` - still in block grammar |
 | **Links** | ✅ | `[[URL]]`, `[[URL][DESC]]` - **MOVED TO INLINE** |
-| **Macros** | ✅ | `{{{NAME}}}`, `{{{NAME(ARGS)}}}` - still in block grammar |
+| **Macros** | ✅ | `{{{NAME}}}`, `{{{NAME(ARGS)}}}` - **NOW IN INLINE GRAMMAR** (11/11 tests) |
 | **Subscript/Superscript** | ✅ | `CHAR_SCRIPT`, `CHAR^SCRIPT` - still in block grammar |
 | **Timestamps** | ✅ | Active `<>`, Inactive `[]` - still in block grammar |
 
@@ -108,6 +108,7 @@ These should be parsed by the inline grammar within paragraphs, titles, table ce
   - Angle links: `<PROTOCOL:PATH>` (14/14 tests)
   - Plain links: bare URLs `http://example.com` (9/9 tests)
 - ✅ Entities: LaTeX-style entities `\alpha`, `\beta`, `\nbsp`, etc. (6/6 tests)
+- ✅ Macros: text replacement `{{{name}}}` and `{{{name(args)}}}` (11/11 tests)
 - ✅ Plain text with proper whitespace handling
 - ✅ Colons in titles (distinct from tags)
 
@@ -235,10 +236,10 @@ These should be parsed by the inline grammar within paragraphs, titles, table ce
 
 ### Inline Grammar (tree-sitter-org-inline)
 - **Total Objects**: ~25 types
-- **Implemented**: ~15 types (title/tags, 6 markup types, statistics cookies, export snippets, targets, radio targets, 3 link types: angle/regular/plain, entities, plain text)
-- **In Block (Should Move)**: ~5 types (latex, footnotes, macros, sub/super, timestamps)
+- **Implemented**: ~16 types (title/tags, 6 markup types, statistics cookies, export snippets, targets, radio targets, 3 link types: angle/regular/plain, entities, macros, plain text)
+- **In Block (Should Move)**: ~4 types (latex, footnotes, sub/super, timestamps)
 - **Missing**: ~5 types
-- **Test Coverage**: 110/110 tests passing (104 existing + 6 entity tests)
+- **Test Coverage**: 121/121 tests passing (104 existing + 6 entity + 11 macro tests)
 
 ### Overall Syntax Coverage
 - **Fully Functional**: ~35%
@@ -267,6 +268,7 @@ These should be parsed by the inline grammar within paragraphs, titles, table ce
 ✅ **Links trilogy** (regular `[[]]`, angle `<>`, plain http://... - all inline)
 ✅ **Targets and radio targets** (anchors: `<<>>`, automatic link anchors: `<<<>>>`)
 ✅ **Entities** (LaTeX-style: `\alpha`, `\beta`, `\nbsp` - inline grammar)
+✅ **Macros** (text replacement: `{{{name}}}`, `{{{name(args)}}}` - inline grammar)
 ✅ **COMMENT keyword** (headlines: marks heading and subtree as commented)
 
 ### What's Missing That Users Will Notice
