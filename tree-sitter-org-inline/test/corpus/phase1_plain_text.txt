@@ -1,0 +1,95 @@
+==================
+Simple text
+==================
+
+Hello world
+
+---
+
+(inline
+  (title
+    (plain_text)))
+
+==================
+Text with punctuation
+==================
+
+Hello, world! How are you?
+
+---
+
+(inline
+  (title
+    (plain_text)))
+
+==================
+Single word
+==================
+
+Hello
+
+---
+
+(inline
+  (title
+    (plain_text)))
+
+==================
+Sentence with period
+==================
+
+This is a sentence.
+
+---
+
+(inline
+  (title
+    (plain_text)))
+
+==================
+Multiple spaces between words
+==================
+
+Word1    Word2
+
+---
+
+(inline
+  (title
+    (plain_text)))
+
+==================
+Hyphenated words
+==================
+
+tree-sitter parser
+
+---
+
+(inline
+  (title
+    (plain_text)))
+
+==================
+Numbers and letters
+==================
+
+Version 1.0 released
+
+---
+
+(inline
+  (title
+    (plain_text)))
+
+==================
+Question marks and exclamations
+==================
+
+Really? Yes!
+
+---
+
+(inline
+  (title
+    (plain_text)))

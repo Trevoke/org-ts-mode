@@ -1,0 +1,154 @@
+==================
+Simple bold
+==================
+
+This is *bold* text
+
+---
+
+(inline
+  (title
+    (plain_text)
+    (bold)
+    (plain_text)))
+
+==================
+Bold at start
+==================
+
+*Bold* at start
+
+---
+
+(inline
+  (title
+    (bold)
+    (plain_text)))
+
+==================
+Bold at end
+==================
+
+Text with *bold*
+
+---
+
+(inline
+  (title
+    (plain_text)
+    (bold)))
+
+==================
+Multiple bold
+==================
+
+*First* and *second* bold
+
+---
+
+(inline
+  (title
+    (bold)
+    (plain_text)
+    (bold)
+    (plain_text)))
+
+==================
+Single character bold
+==================
+
+Just *x* here
+
+---
+
+(inline
+  (title
+    (plain_text)
+    (bold)
+    (plain_text)))
+
+==================
+Bold with hyphen
+==================
+
+This is *multi-word* bold
+
+---
+
+(inline
+  (title
+    (plain_text)
+    (bold)
+    (plain_text)))
+
+==================
+Invalid bold - no closing delimiter
+==================
+
+This is *incomplete
+
+---
+
+(inline
+  (title
+    (plain_text)
+    (plain_text)
+    (plain_text)))
+
+==================
+Invalid bold - starts with space
+==================
+
+This * bold * invalid
+
+---
+
+(inline
+  (title
+    (plain_text)
+    (plain_text)
+    (plain_text)
+    (plain_text)
+    (plain_text)))
+
+==================
+Nested asterisks (not supported)
+==================
+
+*outer *inner* outer*
+
+---
+
+(inline
+  (title
+    (plain_text)
+    (plain_text)
+    (bold)
+    (plain_text)
+    (plain_text)))
+
+==================
+Bold only
+==================
+
+*bold*
+
+---
+
+(inline
+  (title
+    (bold)))
+
+==================
+Plain text with asterisk not forming bold
+==================
+
+2*3 equals 6
+
+---
+
+(inline
+  (title
+    (plain_text)
+    (plain_text)
+    (plain_text)))
