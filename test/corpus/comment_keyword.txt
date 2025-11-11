@@ -198,3 +198,16 @@ Nested headlines with COMMENT
   (headline
     (stars)
     (title)))
+
+==================
+COMMENTED should be treated as title, not COMMENT keyword
+==================
+
+* COMMENTED This is just a regular title
+
+---
+
+(document
+  (headline
+    (stars)
+    (title)))

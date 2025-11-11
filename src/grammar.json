@@ -174,7 +174,7 @@
                   "type": "ALIAS",
                   "content": {
                     "type": "SYMBOL",
-                    "name": "_comment_keyword_space"
+                    "name": "_comment_with_space"
                   },
                   "named": true,
                   "value": "comment_keyword"
@@ -212,15 +212,11 @@
                   "type": "ALIAS",
                   "content": {
                     "type": "SYMBOL",
-                    "name": "_comment_keyword_eol"
+                    "name": "_comment_with_newline"
                   },
                   "named": true,
                   "value": "comment_keyword"
                 }
-              },
-              {
-                "type": "STRING",
-                "value": "\n"
               }
             ]
           }
@@ -370,49 +366,27 @@
         }
       }
     },
-    "_comment_keyword_space": {
+    "_comment_with_space": {
       "type": "TOKEN",
       "content": {
         "type": "PREC",
         "value": 10,
         "content": {
-          "type": "SEQ",
-          "members": [
-            {
-              "type": "STRING",
-              "value": "COMMENT"
-            },
-            {
-              "type": "STRING",
-              "value": " "
-            }
-          ]
+          "type": "STRING",
+          "value": "COMMENT "
         }
       }
     },
-    "_comment_keyword_eol": {
+    "_comment_with_newline": {
       "type": "TOKEN",
       "content": {
         "type": "PREC",
         "value": 9,
         "content": {
           "type": "STRING",
-          "value": "COMMENT"
+          "value": "COMMENT\n"
         }
       }
-    },
-    "comment_keyword": {
-      "type": "CHOICE",
-      "members": [
-        {
-          "type": "SYMBOL",
-          "name": "_comment_keyword_space"
-        },
-        {
-          "type": "SYMBOL",
-          "name": "_comment_keyword_eol"
-        }
-      ]
     },
     "title": {
       "type": "PATTERN",

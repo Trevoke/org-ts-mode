@@ -540,7 +540,11 @@
     "named": false
   },
   {
-    "type": "COMMENT",
+    "type": "COMMENT\n",
+    "named": false
+  },
+  {
+    "type": "COMMENT ",
     "named": false
   },
   {

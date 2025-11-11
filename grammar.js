@@ -43,27 +43,25 @@ module.exports = grammar({
     // Headline: STARS KEYWORD PRIORITY COMMENT TITLE
     // Restructured as choice to handle COMMENT keyword token conflict
     // The title regex /[^\n]+/ would greedily consume "COMMENT ..." before
-    // the COMMENT token could match, so we use three alternative structures:
-    // 1. With COMMENT keyword + title (highest precedence)
-    // 2. With COMMENT keyword, no title (medium precedence)
-    // 3. Without COMMENT keyword (lowest precedence)
+    // the COMMENT token could match, so we use two alternative structures:
+    // 1. With COMMENT keyword (higher precedence)
+    // 2. Without COMMENT keyword (lower precedence)
     // Note: Tags are currently absorbed into title. This is a known limitation
     // that will be addressed via inline grammar injection (see tree-sitter-org-inline)
     headline: $ => choice(
-      // Variant 1: Headline WITH COMMENT keyword + title (preferred)
-      // comment_keyword includes trailing space to prevent matching "COMMENTED"
+      // Variant 1: Headline WITH COMMENT keyword + title
+      // comment_keyword matches "COMMENT " (space ensures word boundary)
       prec.dynamic(3, seq(
         $._headline_prefix,
-        field('comment', alias($._comment_keyword_space, $.comment_keyword)),
+        field('comment', alias($._comment_with_space, $.comment_keyword)),
         field('title', $.title),
         '\n'
       )),
       // Variant 2: Headline WITH COMMENT keyword, NO title
-      // Uses exact 'COMMENT' at end of line
+      // comment_keyword matches "COMMENT\n" (newline ensures word boundary)
       prec.dynamic(2, seq(
         $._headline_prefix,
-        field('comment', alias($._comment_keyword_eol, $.comment_keyword)),
-        '\n'
+        field('comment', alias($._comment_with_newline, $.comment_keyword))
       )),
       // Variant 3: Headline WITHOUT COMMENT keyword
       prec.dynamic(1, seq(
@@ -103,19 +101,10 @@ module.exports = grammar({
     // Priority: [#A], [#B], [#C]
     priority: $ => token(prec(1, /\[#[A-Z]\]/)),
 
-    // COMMENT keyword with trailing space (used when title follows)
-    // Internal rule - aliased to comment_keyword in headline
-    // Includes trailing space to prevent matching "COMMENTED" as "COMMENT" + "ED"
-    _comment_keyword_space: $ => token(prec(10, seq('COMMENT', ' '))),
-
-    // COMMENT keyword at end of line (no title after)
-    // Internal rule - aliased to comment_keyword in headline
-    // Lower precedence to prefer space variant when space exists
-    _comment_keyword_eol: $ => token(prec(9, 'COMMENT')),
-
-    // Public comment_keyword node (appears in parse tree)
-    // Exists for documentation - actual matching done by internal rules
-    comment_keyword: $ => choice($._comment_keyword_space, $._comment_keyword_eol),
+    // COMMENT keyword tokens - includes trailing whitespace to prevent matching "COMMENTED"
+    // Two variants: one with space (for titles), one with newline (no title)
+    _comment_with_space: $ => token(prec(10, 'COMMENT ')),
+    _comment_with_newline: $ => token(prec(9, 'COMMENT\n')),
 
     // Title: headline text (currently absorbs tags)
     // This will be replaced by inline grammar injection in tree-sitter-org-inline
