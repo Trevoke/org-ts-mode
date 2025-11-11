@@ -144,6 +144,10 @@
           "named": true
         },
         {
+          "type": "latex_environment",
+          "named": true
+        },
+        {
           "type": "latex_fragment",
           "named": true
         },
@@ -302,6 +306,39 @@
     "type": "key",
     "named": true,
     "fields": {}
+  },
+  {
+    "type": "latex_env_begin",
+    "named": true,
+    "fields": {}
+  },
+  {
+    "type": "latex_env_end",
+    "named": true,
+    "fields": {}
+  },
+  {
+    "type": "latex_environment",
+    "named": true,
+    "fields": {},
+    "children": {
+      "multiple": true,
+      "required": true,
+      "types": [
+        {
+          "type": "latex_env_begin",
+          "named": true
+        },
+        {
+          "type": "latex_env_content",
+          "named": true
+        },
+        {
+          "type": "latex_env_end",
+          "named": true
+        }
+      ]
+    }
   },
   {
     "type": "link",
@@ -491,6 +528,14 @@
     "named": false
   },
   {
+    "type": "\\begin{",
+    "named": false
+  },
+  {
+    "type": "\\end{",
+    "named": false
+  },
+  {
     "type": "][",
     "named": false
   },
@@ -544,6 +589,10 @@
   },
   {
     "type": "language",
+    "named": true
+  },
+  {
+    "type": "latex_env_content",
     "named": true
   },
   {
@@ -608,6 +657,10 @@
   },
   {
     "type": "|",
+    "named": false
+  },
+  {
+    "type": "}",
     "named": false
   },
   {

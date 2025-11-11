@@ -23,6 +23,7 @@ module.exports = grammar({
       $.timestamp,
       $.macro,
       $.latex_fragment,
+      prec(2, $.latex_environment),
       $.entity,
       prec(-1, $.subscript),
       prec(-1, $.superscript),
@@ -195,6 +196,35 @@ module.exports = grammar({
       ),
       '\n'
     )),
+
+    // LaTeX Environment: \begin{name} ... \end{name}
+    // Used for equations, align, matrix, proof, etc.
+    latex_environment: $ => seq(
+      $.latex_env_begin,
+      optional($.latex_env_content),
+      $.latex_env_end
+    ),
+
+    // LaTeX environment begin: \begin{name} or \begin{name*}
+    latex_env_begin: $ => seq(
+      '\\begin{',
+      field('name', /[a-zA-Z]+\*?/),  // Environment name, optional asterisk
+      '}',
+      '\n'
+    ),
+
+    // LaTeX environment content: everything until \end{
+    // Stops before \end{ to allow parser to match environment terminator
+    // Note: Nested environments are partially supported (known limitation)
+    latex_env_content: $ => /([^\\]|\\[^eE]|\\[eE][^nN]|\\[eE][nN][^dD]|\\[eE][nN][dD][^{])+/,
+
+    // LaTeX environment end: \end{name} or \end{name*}
+    latex_env_end: $ => seq(
+      '\\end{',
+      optional(field('name', /[a-zA-Z]+\*?/)),  // Optional for flexibility
+      '}',
+      '\n'
+    ),
 
     // Entity: \name or \name{}
     entity: $ => token(seq(
@@ -431,9 +461,9 @@ module.exports = grammar({
     )),
 
     // Paragraph: any line that doesn't start with special characters
-    // Excludes: *, #, |, [, -, +, :, {, digits, lowercase letters
+    // Excludes: *, #, |, [, -, +, :, {, digits, lowercase letters, backslash
     paragraph: $ => seq(
-      /[^*#|\[\-+:{0-9a-z\n][^\n]*/,
+      /[^*#|\[\-+:{0-9a-z\\\n][^\n]*/,
       /\n/
     ),
   }

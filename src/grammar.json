@@ -64,6 +64,14 @@
           "name": "latex_fragment"
         },
         {
+          "type": "PREC",
+          "value": 2,
+          "content": {
+            "type": "SYMBOL",
+            "name": "latex_environment"
+          }
+        },
+        {
           "type": "SYMBOL",
           "name": "entity"
         },
@@ -745,6 +753,93 @@
           }
         ]
       }
+    },
+    "latex_environment": {
+      "type": "SEQ",
+      "members": [
+        {
+          "type": "SYMBOL",
+          "name": "latex_env_begin"
+        },
+        {
+          "type": "CHOICE",
+          "members": [
+            {
+              "type": "SYMBOL",
+              "name": "latex_env_content"
+            },
+            {
+              "type": "BLANK"
+            }
+          ]
+        },
+        {
+          "type": "SYMBOL",
+          "name": "latex_env_end"
+        }
+      ]
+    },
+    "latex_env_begin": {
+      "type": "SEQ",
+      "members": [
+        {
+          "type": "STRING",
+          "value": "\\begin{"
+        },
+        {
+          "type": "FIELD",
+          "name": "name",
+          "content": {
+            "type": "PATTERN",
+            "value": "[a-zA-Z]+\\*?"
+          }
+        },
+        {
+          "type": "STRING",
+          "value": "}"
+        },
+        {
+          "type": "STRING",
+          "value": "\n"
+        }
+      ]
+    },
+    "latex_env_content": {
+      "type": "PATTERN",
+      "value": "([^\\\\]|\\\\[^eE]|\\\\[eE][^nN]|\\\\[eE][nN][^dD]|\\\\[eE][nN][dD][^{])+"
+    },
+    "latex_env_end": {
+      "type": "SEQ",
+      "members": [
+        {
+          "type": "STRING",
+          "value": "\\end{"
+        },
+        {
+          "type": "CHOICE",
+          "members": [
+            {
+              "type": "FIELD",
+              "name": "name",
+              "content": {
+                "type": "PATTERN",
+                "value": "[a-zA-Z]+\\*?"
+              }
+            },
+            {
+              "type": "BLANK"
+            }
+          ]
+        },
+        {
+          "type": "STRING",
+          "value": "}"
+        },
+        {
+          "type": "STRING",
+          "value": "\n"
+        }
+      ]
     },
     "entity": {
       "type": "TOKEN",
@@ -1683,7 +1778,7 @@
       "members": [
         {
           "type": "PATTERN",
-          "value": "[^*#|\\[\\-+:{0-9a-z\\n][^\\n]*"
+          "value": "[^*#|\\[\\-+:{0-9a-z\\\\\\n][^\\n]*"
         },
         {
           "type": "PATTERN",
