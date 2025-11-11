@@ -25,15 +25,24 @@
 
 // Token types (must match order in grammar.js externals array)
 enum TokenType {
-    HEADLINE_TITLE,  // Title portion of headline (before tags)
-    HEADLINE_TAGS,   // Tags portion of headline (:tag1:tag2:)
+    HEADLINE_TITLE,           // Title portion of headline (before tags)
+    HEADLINE_TAGS,            // Tags portion of headline (:tag1:tag2:)
+    LIST_ITEM_CONTENT_LINE,   // Continuation line within list item
 };
+
+// Maximum nesting depth for lists
+#define MAX_INDENT_STACK 32
 
 // Scanner state structure
 typedef struct {
     // State for headline tag parsing
     bool has_tags;              // Whether current headline has tags
     uint32_t tag_content_len;   // Length of tag content (for serialization)
+
+    // State for list item indentation tracking
+    uint16_t indent_stack[MAX_INDENT_STACK];  // Stack of indentation levels
+    uint8_t indent_stack_len;                  // Current stack depth
+    uint8_t consecutive_blank_lines;           // Count of consecutive blank lines
 } Scanner;
 
 // Forward declarations
@@ -43,6 +52,10 @@ static bool is_valid_tag_char(int32_t c);
 static bool scan_tags_from_end(TSLexer *lexer, uint32_t *title_len, uint32_t *tags_len);
 static bool starts_with_keyword(TSLexer *lexer);
 static bool starts_with_priority(TSLexer *lexer);
+static bool scan_list_item_content_line(Scanner *scanner, TSLexer *lexer);
+static uint16_t count_indentation(TSLexer *lexer);
+static bool is_blank_line(TSLexer *lexer);
+static bool looks_like_bullet(TSLexer *lexer);
 
 /**
  * Create and initialize a new scanner instance
@@ -51,6 +64,8 @@ void *tree_sitter_org_external_scanner_create() {
     Scanner *scanner = (Scanner *)calloc(1, sizeof(Scanner));
     scanner->has_tags = false;
     scanner->tag_content_len = 0;
+    scanner->indent_stack_len = 0;
+    scanner->consecutive_blank_lines = 0;
     return scanner;
 }
 
@@ -86,6 +101,8 @@ void tree_sitter_org_external_scanner_deserialize(void *payload, const char *buf
     if (length == 0) {
         scanner->has_tags = false;
         scanner->tag_content_len = 0;
+        scanner->indent_stack_len = 0;
+        scanner->consecutive_blank_lines = 0;
         return;
     }
 
@@ -104,6 +121,11 @@ void tree_sitter_org_external_scanner_deserialize(void *payload, const char *buf
  */
 bool tree_sitter_org_external_scanner_scan(void *payload, TSLexer *lexer, const bool *valid_symbols) {
     Scanner *scanner = (Scanner *)payload;
+
+    // Try to scan list item content line
+    if (valid_symbols[LIST_ITEM_CONTENT_LINE]) {
+        return scan_list_item_content_line(scanner, lexer);
+    }
 
     // Try to scan headline title
     if (valid_symbols[HEADLINE_TITLE]) {
@@ -371,4 +393,145 @@ static bool starts_with_keyword(TSLexer *lexer) {
 static bool starts_with_priority(TSLexer *lexer) {
     // Priority pattern: [#X] where X is A-Z
     return lexer->lookahead == '[';
+}
+
+/**
+ * Count indentation at current position
+ * Spaces count as 1, tabs count as 8 (per Org-mode spec)
+ * Stops at first non-whitespace character or newline
+ *
+ * @param lexer Lexer interface
+ * @return Indentation level
+ */
+static uint16_t count_indentation(TSLexer *lexer) {
+    uint16_t indent = 0;
+
+    while (lexer->lookahead == ' ' || lexer->lookahead == '\t') {
+        if (lexer->lookahead == '\t') {
+            indent += 8;  // Org-mode: tabs = 8 spaces
+        } else {
+            indent += 1;
+        }
+        lexer->advance(lexer, true);  // Skip whitespace
+    }
+
+    return indent;
+}
+
+/**
+ * Check if current line is blank (only whitespace until newline or EOF)
+ *
+ * @param lexer Lexer interface
+ * @return true if line is blank, false otherwise
+ */
+static bool is_blank_line(TSLexer *lexer) {
+    // Skip whitespace
+    while (lexer->lookahead == ' ' || lexer->lookahead == '\t') {
+        lexer->advance(lexer, true);
+    }
+
+    // Check if we hit newline or EOF
+    return lexer->lookahead == '\n' || lexer->lookahead == 0;
+}
+
+/**
+ * Scan list item content line (continuation line within list item)
+ *
+ * This function is called when the parser is looking for continuation lines
+ * within a list item. It checks if the current line is indented enough to
+ * be part of the list item's content.
+ *
+ * Org-mode spec: List item contents continue until:
+ * 1. A line less or equally indented than the starting line
+ * 2. Two consecutive blank lines
+ * 3. The next item or other element
+ *
+ * Strategy:
+ * - Peek at indentation of current line (without consuming)
+ * - If indented: consume entire line and emit token
+ * - If not indented: return false (end of item)
+ * - Track blank lines for two-blank termination
+ *
+ * @param scanner Scanner state
+ * @param lexer Lexer interface
+ * @return true if content line token emitted, false otherwise
+ */
+static bool scan_list_item_content_line(Scanner *scanner, TSLexer *lexer) {
+    // Check if line starts with whitespace (indented)
+    // Simple heuristic: any indentation means continuation
+    // TODO: More sophisticated logic comparing against bullet column
+
+    // If line starts with a bullet at column 0, it's a new item, not a continuation
+    if (looks_like_bullet(lexer)) {
+        scanner->consecutive_blank_lines = 0;
+        return false;  // New list item
+    }
+
+    if (lexer->lookahead == ' ' || lexer->lookahead == '\t') {
+        // Line is indented - it's a continuation line
+        // Consume the entire line including newline
+        while (lexer->lookahead != '\n' && lexer->lookahead != 0) {
+            lexer->advance(lexer, false);
+        }
+
+        if (lexer->lookahead == '\n') {
+            lexer->advance(lexer, false);
+        }
+
+        lexer->mark_end(lexer);
+        lexer->result_symbol = LIST_ITEM_CONTENT_LINE;
+        scanner->consecutive_blank_lines = 0;  // Reset blank counter
+        return true;
+    }
+
+    // Check for blank line
+    if (lexer->lookahead == '\n') {
+        scanner->consecutive_blank_lines++;
+
+        // Two consecutive blank lines terminate the item
+        if (scanner->consecutive_blank_lines >= 2) {
+            return false;  // End of item
+        }
+
+        // Single blank line is OK - consume it
+        lexer->advance(lexer, false);
+        lexer->mark_end(lexer);
+        lexer->result_symbol = LIST_ITEM_CONTENT_LINE;
+        return true;
+    }
+
+    // Line starts at column 0 with non-whitespace, non-bullet - could be another element
+    scanner->consecutive_blank_lines = 0;
+    return false;
+}
+
+/**
+ * Check if current position looks like a list bullet
+ * Bullets: -, +, *, number., number), letter., letter)
+ * followed by space
+ *
+ * @param lexer Lexer interface
+ * @return true if looks like a bullet, false otherwise
+ */
+static bool looks_like_bullet(TSLexer *lexer) {
+    int32_t c = lexer->lookahead;
+
+    // Simple bullets: -, +
+    if (c == '-' || c == '+') {
+        return true;
+    }
+
+    // Asterisk: * (but could be headline, so be careful)
+    if (c == '*') {
+        return true;
+    }
+
+    // Numbered or lettered bullets: need to look ahead
+    if ((c >= '0' && c <= '9') || (c >= 'a' && c <= 'z') || (c >= 'A' && c <= 'Z')) {
+        // Could be bullet, but we'd need to scan ahead for . or )
+        // For now, assume it might be
+        return true;
+    }
+
+    return false;
 }

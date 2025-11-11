@@ -69,6 +69,11 @@
     "fields": {}
   },
   {
+    "type": "comment_keyword",
+    "named": true,
+    "fields": {}
+  },
+  {
     "type": "directive",
     "named": true,
     "fields": {},
@@ -90,6 +95,7 @@
   {
     "type": "document",
     "named": true,
+    "root": true,
     "fields": {},
     "children": {
       "multiple": true,
@@ -141,6 +147,10 @@
         },
         {
           "type": "horizontal_rule",
+          "named": true
+        },
+        {
+          "type": "inlinetask",
           "named": true
         },
         {
@@ -313,6 +323,62 @@
     }
   },
   {
+    "type": "inlinetask",
+    "named": true,
+    "fields": {
+      "comment": {
+        "multiple": false,
+        "required": false,
+        "types": [
+          {
+            "type": "comment_keyword",
+            "named": true
+          }
+        ]
+      },
+      "keyword": {
+        "multiple": false,
+        "required": false,
+        "types": [
+          {
+            "type": "keyword",
+            "named": true
+          }
+        ]
+      },
+      "priority": {
+        "multiple": false,
+        "required": false,
+        "types": [
+          {
+            "type": "priority",
+            "named": true
+          }
+        ]
+      },
+      "title": {
+        "multiple": false,
+        "required": false,
+        "types": [
+          {
+            "type": "title",
+            "named": true
+          }
+        ]
+      }
+    },
+    "children": {
+      "multiple": false,
+      "required": true,
+      "types": [
+        {
+          "type": "stars",
+          "named": true
+        }
+      ]
+    }
+  },
+  {
     "type": "key",
     "named": true,
     "fields": {}
@@ -389,15 +455,32 @@
     "named": true,
     "fields": {},
     "children": {
-      "multiple": false,
+      "multiple": true,
       "required": true,
       "types": [
         {
           "type": "bullet",
           "named": true
+        },
+        {
+          "type": "checkbox",
+          "named": true
+        },
+        {
+          "type": "list_item_content",
+          "named": true
+        },
+        {
+          "type": "tag",
+          "named": true
         }
       ]
     }
+  },
+  {
+    "type": "list_item_content",
+    "named": true,
+    "fields": {}
   },
   {
     "type": "macro",
@@ -518,6 +601,10 @@
     "named": false
   },
   {
+    "type": "+",
+    "named": false
+  },
+  {
     "type": ":",
     "named": false
   },
@@ -531,6 +618,14 @@
   },
   {
     "type": ":end:",
+    "named": false
+  },
+  {
+    "type": "COMMENT\n",
+    "named": false
+  },
+  {
+    "type": "COMMENT ",
     "named": false
   },
   {
@@ -566,11 +661,11 @@
     "named": true
   },
   {
-    "type": "clock",
+    "type": "checkbox",
     "named": true
   },
   {
-    "type": "comment_keyword",
+    "type": "clock",
     "named": true
   },
   {
@@ -659,6 +754,10 @@
   },
   {
     "type": "table_separator",
+    "named": true
+  },
+  {
+    "type": "tag",
     "named": true
   },
   {

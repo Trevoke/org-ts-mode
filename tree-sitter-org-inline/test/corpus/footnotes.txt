@@ -1,0 +1,166 @@
+==================
+Simple numeric footnote in title
+==================
+
+Some text[fn:1] with more text
+
+---
+
+(inline
+  (title_only
+    (title
+      (plain_text)
+      (footnote_reference)
+      (plain_text))))
+
+==================
+Named footnote in title
+==================
+
+Check this reference[fn:important-note] here
+
+---
+
+(inline
+  (title_only
+    (title
+      (plain_text)
+      (footnote_reference)
+      (plain_text))))
+
+==================
+Inline footnote with definition in title
+==================
+
+See here[fn:inline:This is the definition text] for details
+
+---
+
+(inline
+  (title_only
+    (title
+      (plain_text)
+      (footnote_reference)
+      (plain_text))))
+
+==================
+Anonymous footnote in title
+==================
+
+Important point[fn::This is anonymous] to note
+
+---
+
+(inline
+  (title_only
+    (title
+      (plain_text)
+      (footnote_reference)
+      (plain_text))))
+
+==================
+Multiple footnotes in title
+==================
+
+First point[fn:1] and second point[fn:2] here
+
+---
+
+(inline
+  (title_only
+    (title
+      (plain_text)
+      (footnote_reference)
+      (plain_text)
+      (footnote_reference)
+      (plain_text))))
+
+==================
+Footnote at start of title
+==================
+
+[fn:1]Starting with footnote
+
+---
+
+(inline
+  (title_only
+    (title
+      (footnote_reference)
+      (plain_text))))
+
+==================
+Footnote at end of title
+==================
+
+Ending with footnote[fn:end]
+
+---
+
+(inline
+  (title_only
+    (title
+      (plain_text)
+      (footnote_reference))))
+
+==================
+Footnote with spaces in definition
+==================
+
+Text with[fn:note:Long definition with spaces] content
+
+---
+
+(inline
+  (title_only
+    (title
+      (plain_text)
+      (footnote_reference)
+      (plain_text))))
+
+==================
+Footnote with special characters in label
+==================
+
+Reference[fn:my-note_123] here
+
+---
+
+(inline
+  (title_only
+    (title
+      (plain_text)
+      (footnote_reference)
+      (plain_text))))
+
+==================
+Footnote near statistics cookie
+==================
+
+Progress [50%] and note[fn:1] here
+
+---
+
+(inline
+  (title_only
+    (title
+      (plain_text)
+      (statistics_cookie)
+      (plain_text)
+      (footnote_reference)
+      (plain_text))))
+
+==================
+Footnote with link in definition
+==================
+
+See[fn:link:Check https://example.com for more] this
+
+---
+
+(inline
+  (title_only
+    (title
+      (plain_text)
+      (footnote_reference)
+      (plain_text))))

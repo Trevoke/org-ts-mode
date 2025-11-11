@@ -100,3 +100,70 @@ Multiple headlines with property drawers
     (property
       (key)
       (value))))
+
+==================
+Property with accumulation syntax
+==================
+
+* Headline
+:PROPERTIES:
+:TAGS+: work
+:END:
+
+---
+
+(document
+  (headline
+    (stars)
+    (title))
+  (property_drawer
+    (property
+      (key)
+      (value))))
+
+==================
+Multiple accumulative properties
+==================
+
+* Headline
+:PROPERTIES:
+:TAGS+: work
+:TAGS+: project
+:CATEGORY: tasks
+:END:
+
+---
+
+(document
+  (headline
+    (stars)
+    (title))
+  (property_drawer
+    (property
+      (key)
+      (value))
+    (property
+      (key)
+      (value))
+    (property
+      (key)
+      (value))))
+
+==================
+Accumulative property without value
+==================
+
+* Headline
+:PROPERTIES:
+:EMPTY+:
+:END:
+
+---
+
+(document
+  (headline
+    (stars)
+    (title))
+  (property_drawer
+    (property
+      (key))))

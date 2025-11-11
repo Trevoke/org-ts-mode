@@ -10,10 +10,17 @@
 module.exports = grammar({
   name: 'org',
 
+  externals: $ => [
+    $._headline_title,      // Must match scanner enum order
+    $._headline_tags,
+    $._list_item_content_line,
+  ],
+
   rules: {
     document: $ => repeat($._element),
 
     _element: $ => choice(
+      prec(3, $.inlinetask),  // Higher precedence than headline to match 15+ stars first
       $.headline,
       prec(2, $.planning_line),
       prec(2, $.clock),
@@ -49,15 +56,21 @@ module.exports = grammar({
     // Note: Tags are currently absorbed into title. This is a known limitation
     // that will be addressed via inline grammar injection (see tree-sitter-org-inline)
     headline: $ => choice(
-      // Variant 1: Headline WITH COMMENT keyword (preferred)
-      // Dynamic precedence + conflicts declaration enables GLR disambiguation
-      prec.dynamic(2, seq(
+      // Variant 1: Headline WITH COMMENT keyword + title
+      // comment_keyword matches "COMMENT " (space ensures word boundary)
+      prec.dynamic(3, seq(
         $._headline_prefix,
-        field('comment', $.comment_keyword),
-        optional(seq(' ', field('title', $.title))),
+        field('comment', alias($._comment_with_space, $.comment_keyword)),
+        field('title', $.title),
         '\n'
       )),
-      // Variant 2: Headline WITHOUT COMMENT keyword
+      // Variant 2: Headline WITH COMMENT keyword, NO title
+      // comment_keyword matches "COMMENT\n" (newline ensures word boundary)
+      prec.dynamic(2, seq(
+        $._headline_prefix,
+        field('comment', alias($._comment_with_newline, $.comment_keyword))
+      )),
+      // Variant 3: Headline WITHOUT COMMENT keyword
       prec.dynamic(1, seq(
         $._headline_prefix,
         optional(field('title', $.title)),
@@ -67,13 +80,11 @@ module.exports = grammar({
 
     // Helper: Common headline prefix (stars, optional keyword, optional priority)
     // Underscore prefix means this is an internal/hidden rule
+    // Note: keyword includes trailing space, so no explicit space after it
     _headline_prefix: $ => seq(
       $.stars,
       ' ',
-      optional(seq(
-        field('keyword', $.keyword),
-        ' '
-      )),
+      optional(field('keyword', $.keyword)),
       optional(seq(
         field('priority', $.priority),
         ' '
@@ -83,25 +94,63 @@ module.exports = grammar({
     // Stars: one or more asterisks at the start of a line
     stars: $ => /\*+/,
 
+    // Inlinetask: Like headline but requires 15+ stars (org-inlinetask-min-level)
+    // Follows same structure: STARS KEYWORD PRIORITY COMMENT TITLE TAGS
+    // Three variants to handle COMMENT keyword (same pattern as headline)
+    inlinetask: $ => choice(
+      // Variant 1: WITH COMMENT keyword + title
+      prec.dynamic(3, seq(
+        $._inlinetask_prefix,
+        field('comment', alias($._comment_with_space, $.comment_keyword)),
+        field('title', $.title),
+        '\n'
+      )),
+      // Variant 2: WITH COMMENT keyword, NO title
+      prec.dynamic(2, seq(
+        $._inlinetask_prefix,
+        field('comment', alias($._comment_with_newline, $.comment_keyword))
+      )),
+      // Variant 3: WITHOUT COMMENT keyword
+      prec.dynamic(1, seq(
+        $._inlinetask_prefix,
+        optional(field('title', $.title)),
+        '\n'
+      ))
+    ),
+
+    // Helper: Inlinetask prefix (15+ stars, optional keyword, optional priority)
+    _inlinetask_prefix: $ => seq(
+      alias($.inlinetask_stars, $.stars),  // Alias so it appears as "stars" node
+      ' ',
+      optional(field('keyword', $.keyword)),
+      optional(seq(
+        field('priority', $.priority),
+        ' '
+      ))
+    ),
+
+    // Inlinetask stars: 15 or more asterisks (default org-inlinetask-min-level)
+    // Use token with precedence to ensure this matches before regular stars
+    // Pattern: exactly 15 stars followed by zero or more additional stars
+    inlinetask_stars: $ => token(prec(2, /\*{15}\**/)),
+
     // Keywords: TODO, DONE, etc.
+    // Include trailing space to ensure exact word match (prevents "TODOX" matching "TODO")
     keyword: $ => token(prec(1, choice(
-      'TODO',
-      'DONE',
-      'NEXT',
-      'WAITING',
-      'CANCELED'
+      'TODO ',
+      'DONE ',
+      'NEXT ',
+      'WAITING ',
+      'CANCELED '
     ))),
 
     // Priority: [#A], [#B], [#C]
     priority: $ => token(prec(1, /\[#[A-Z]\]/)),
 
-    // COMMENT keyword: marks entire headline (and subtree) as commented
-    // Must be exact string "COMMENT" (case-sensitive)
-    // Appears after TODO/priority but before title
-    // High token precedence ensures it's matched before title can consume it
-    // Note: Like TODO/DONE keywords, this will match as a prefix (e.g., "COMMENTED" will match "COMMENT")
-    // This is a known limitation - proper word boundary checking requires external scanner
-    comment_keyword: $ => token(prec(10, 'COMMENT')),
+    // COMMENT keyword tokens - includes trailing whitespace to prevent matching "COMMENTED"
+    // Two variants: one with space (for titles), one with newline (no title)
+    _comment_with_space: $ => token(prec(10, 'COMMENT ')),
+    _comment_with_newline: $ => token(prec(9, 'COMMENT\n')),
 
     // Title: headline text (currently absorbs tags)
     // This will be replaced by inline grammar injection in tree-sitter-org-inline
@@ -295,13 +344,50 @@ module.exports = grammar({
     // List: consecutive list items
     list: $ => prec.right(repeat1($.list_item)),
 
-    // List item: BULLET CONTENT
-    list_item: $ => seq(
-      optional(/[ \t]+/),
-      $.bullet,
-      ' ',
-      /[^\n]*/,
-      '\n'
+    // List item: BULLET [CHECKBOX] [TAG] CONTENT
+    // Use choice pattern to handle optional checkbox and tag
+    // Four variants to cover all combinations:
+    list_item: $ => choice(
+      // Variant 1: With checkbox AND tag (highest precedence)
+      prec(4, seq(
+        optional(/[ \t]+/),
+        $.bullet,
+        ' ',
+        $.checkbox,  // Required: includes trailing space
+        $.tag,       // Required: includes ' :: ' separator
+        /[^\n]*/,    // Content after tag
+        '\n',
+        optional(alias(repeat($._list_item_content_line), $.list_item_content))
+      )),
+      // Variant 2: With checkbox only
+      prec(3, seq(
+        optional(/[ \t]+/),
+        $.bullet,
+        ' ',
+        $.checkbox,  // Required: includes trailing space
+        /[^\n]*/,
+        '\n',
+        optional(alias(repeat($._list_item_content_line), $.list_item_content))
+      )),
+      // Variant 3: With tag only
+      prec(2, seq(
+        optional(/[ \t]+/),
+        $.bullet,
+        ' ',
+        $.tag,       // Required: includes ' :: ' separator
+        /[^\n]*/,    // Content after tag
+        '\n',
+        optional(alias(repeat($._list_item_content_line), $.list_item_content))
+      )),
+      // Variant 4: Plain item (lowest precedence)
+      prec(1, seq(
+        optional(/[ \t]+/),
+        $.bullet,
+        ' ',
+        /[^\n]*/,
+        '\n',
+        optional(alias(repeat($._list_item_content_line), $.list_item_content))
+      ))
     ),
 
     // Bullet: -, +, 1., a), etc.
@@ -313,6 +399,25 @@ module.exports = grammar({
       seq(/[a-zA-Z]/, '.'),
       seq(/[a-zA-Z]/, ')')
     )),
+
+    // Checkbox: [ ], [X], or [-] WITH trailing space
+    // Include space in token (whitespace-significant) to prevent content from matching
+    // This is the same technique used for COMMENT keyword
+    // Precedence 11: Higher than tag (10) to ensure checkbox is matched before tag in "- [ ] term :: def"
+    checkbox: $ => token(prec(11, choice(
+      seq('[', ' ', ']', ' '),
+      seq('[', 'X', ']', ' '),
+      seq('[', '-', ']', ' ')
+    ))),
+
+    // Tag: description list tag ending with ' :: ' separator
+    // Pattern: TAG-TEXT followed by space-colon-colon-space
+    // Note: Currently matches first occurrence of ' :: '; last occurrence rule is a known limitation
+    // High precedence to ensure tag matching is tried before plain content
+    tag: $ => token(prec(10, seq(
+      /[^:\n]+/,  // Tag text (non-colon characters)
+      ' :: '      // Separator with spaces
+    ))),
 
     // Block: #+begin_NAME ... #+end_NAME
     block: $ => seq(
@@ -450,13 +555,15 @@ module.exports = grammar({
       '\n'
     ),
 
-    // Property: :KEY: value
+    // Property: :KEY: value or :KEY+: value (accumulative)
+    // Value is optional: :KEY: or :KEY+:
     property: $ => seq(
       ':',
       $.key,
+      optional('+'),  // Optional accumulation marker
       ':',
       /[ \t]*/,
-      $.value,
+      optional($.value),  // Value is optional
       '\n'
     ),
 

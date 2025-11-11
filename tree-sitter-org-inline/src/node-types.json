@@ -15,6 +15,11 @@
     "fields": {}
   },
   {
+    "type": "entity",
+    "named": true,
+    "fields": {}
+  },
+  {
     "type": "export_snippet",
     "named": true,
     "fields": {}
@@ -22,6 +27,7 @@
   {
     "type": "inline",
     "named": true,
+    "root": true,
     "fields": {},
     "children": {
       "multiple": false,
@@ -42,6 +48,25 @@
     "type": "italic",
     "named": true,
     "fields": {}
+  },
+  {
+    "type": "macro",
+    "named": true,
+    "fields": {},
+    "children": {
+      "multiple": true,
+      "required": true,
+      "types": [
+        {
+          "type": "macro_args",
+          "named": true
+        },
+        {
+          "type": "macro_name",
+          "named": true
+        }
+      ]
+    }
   },
   {
     "type": "plain_text",
@@ -67,6 +92,44 @@
     "type": "strike_through",
     "named": true,
     "fields": {}
+  },
+  {
+    "type": "subscript",
+    "named": true,
+    "fields": {},
+    "children": {
+      "multiple": true,
+      "required": true,
+      "types": [
+        {
+          "type": "base",
+          "named": true
+        },
+        {
+          "type": "script",
+          "named": true
+        }
+      ]
+    }
+  },
+  {
+    "type": "superscript",
+    "named": true,
+    "fields": {},
+    "children": {
+      "multiple": true,
+      "required": true,
+      "types": [
+        {
+          "type": "base",
+          "named": true
+        },
+        {
+          "type": "script",
+          "named": true
+        }
+      ]
+    }
   },
   {
     "type": "target",
@@ -121,7 +184,19 @@
           "named": true
         },
         {
+          "type": "entity",
+          "named": true
+        },
+        {
           "type": "export_snippet",
+          "named": true
+        },
+        {
+          "type": "footnote_reference",
+          "named": true
+        },
+        {
+          "type": "macro",
           "named": true
         },
         {
@@ -145,11 +220,23 @@
           "named": true
         },
         {
+          "type": "subscript",
+          "named": true
+        },
+        {
+          "type": "superscript",
+          "named": true
+        },
+        {
           "type": "target",
           "named": true
         },
         {
           "type": "text_markup",
+          "named": true
+        },
+        {
+          "type": "timestamp",
           "named": true
         }
       ]
@@ -212,6 +299,14 @@
     "named": false
   },
   {
+    "type": "(",
+    "named": false
+  },
+  {
+    "type": ")",
+    "named": false
+  },
+  {
     "type": "*",
     "named": false
   },
@@ -268,6 +363,10 @@
     "named": false
   },
   {
+    "type": "\\",
+    "named": false
+  },
+  {
     "type": "]",
     "named": false
   },
@@ -280,16 +379,56 @@
     "named": false
   },
   {
+    "type": "^",
+    "named": false
+  },
+  {
     "type": "_",
     "named": false
+  },
+  {
+    "type": "base",
+    "named": true
+  },
+  {
+    "type": "footnote_reference",
+    "named": true
+  },
+  {
+    "type": "macro_args",
+    "named": true
+  },
+  {
+    "type": "macro_name",
+    "named": true
   },
   {
     "type": "plain_link",
     "named": true
   },
   {
+    "type": "script",
+    "named": true
+  },
+  {
     "type": "tags",
     "named": true
+  },
+  {
+    "type": "timestamp",
+    "named": true
+  },
+  {
+    "type": "{{{",
+    "named": false
+  },
+  {
+    "type": "{}",
+    "named": false
+  },
+  {
+    "type": "}}}",
+    "named": false
   },
   {
     "type": "~",

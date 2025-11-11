@@ -1,0 +1,159 @@
+==================
+Simple inlinetask without title
+==================
+
+***************  
+
+---
+
+(document
+  (inlinetask
+    (stars)))
+
+==================
+Inlinetask with TODO keyword only
+==================
+
+*************** TODO 
+
+---
+
+(document
+  (inlinetask
+    (stars)
+    (keyword)))
+
+==================
+Inlinetask with TODO and title
+==================
+
+*************** TODO Task with keyword
+
+---
+
+(document
+  (inlinetask
+    (stars)
+    (keyword)
+    (title)))
+
+==================
+Inlinetask with title only
+==================
+
+*************** Some task title here
+
+---
+
+(document
+  (inlinetask
+    (stars)
+    (title)))
+
+==================
+Inlinetask with keyword and title
+==================
+
+*************** TODO Implement this feature
+
+---
+
+(document
+  (inlinetask
+    (stars)
+    (keyword)
+    (title)))
+
+==================
+Inlinetask with priority only
+==================
+
+*************** [#A] 
+
+---
+
+(document
+  (inlinetask
+    (stars)
+    (priority)))
+
+==================
+Inlinetask with priority and title
+==================
+
+*************** [#A] High priority task
+
+---
+
+(document
+  (inlinetask
+    (stars)
+    (priority)
+    (title)))
+
+==================
+Inlinetask with keyword, priority, and title
+==================
+
+*************** TODO [#B] Complete documentation
+
+---
+
+(document
+  (inlinetask
+    (stars)
+    (keyword)
+    (priority)
+    (title)))
+
+==================
+Regular headline should not be inlinetask
+==================
+
+** Not an inlinetask
+
+---
+
+(document
+  (headline
+    (stars)
+    (title)))
+
+==================
+Exactly 14 stars is headline not inlinetask
+==================
+
+************** Fourteen stars
+
+---
+
+(document
+  (headline
+    (stars)
+    (title)))
+
+==================
+Exactly 15 stars is inlinetask
+==================
+
+*************** Fifteen stars
+
+---
+
+(document
+  (inlinetask
+    (stars)
+    (title)))
+
+==================
+More than 15 stars is also inlinetask
+==================
+
+******************** Twenty stars
+
+---
+
+(document
+  (inlinetask
+    (stars)
+    (title)))

@@ -20,8 +20,8 @@ Based on the official spec at https://orgmode.org/worg/org-syntax.html
 | **Drawers** | ✅ | Yes | Pattern `:NAME:` ... `:end:` |
 | **Dynamic Blocks** | ✅ | Yes | Pattern `#+begin: NAME ... #+end:` for dynamic content |
 | **Footnote Definitions** | 🟡 | Yes | References work, but definitions as greater elements? |
-| **Inlinetasks** | ❌ | No | Requires 15+ stars |
-| **Plain Lists** (Items) | ✅ | Yes | Bullets, ordered, unordered |
+| **Inlinetasks** | ✅ | Yes | 15+ stars (org-inlinetask-min-level), opening markers only |
+| **Plain Lists** (Items) | ✅ | Yes | Bullets, ordered, unordered, checkboxes ([ ], [X], [-]), description lists (term :: def), **multi-line items** (continuation lines via external scanner) |
 | **Property Drawers** | ✅ | Yes | `:properties:` ... `:end:` |
 | **Tables** | ✅ | Yes | Org tables with `|` |
 
@@ -38,7 +38,7 @@ Based on the official spec at https://orgmode.org/worg/org-syntax.html
 | **Horizontal Rules** | ✅ | Yes | Five or more hyphens |
 | **Keywords/Directives** | ✅ | Yes | `#+KEY: VALUE` |
 | **LaTeX Environments** | ✅ | Yes | `\begin{NAME}` ... `\end{NAME}` - nested envs limited |
-| **Node Properties** | 🟡 | Partial | In property drawers, but `:NAME+:` syntax? |
+| **Node Properties** | ✅ | Yes | In property drawers, including `:NAME+:` accumulation syntax |
 | **Paragraphs** | ✅ | Yes | Default element |
 | **Table Rows** | ✅ | Yes | Rows and rules |
 
@@ -64,13 +64,13 @@ These should be parsed by the inline grammar within paragraphs, titles, table ce
 
 | Object | Status | Notes |
 |--------|--------|-------|
-| **Entities** | ✅ | `\NAME`, `\NAME{}`, `\ SPACES` |
-| **LaTeX Fragments** | ✅ | `\NAME`, `$$...$$`, `$...$` |
-| **Footnote References** | ✅ | `[fn:LABEL]`, `[fn::DEF]` |
-| **Links** | ✅ | `[[URL]]`, `[[URL][DESC]]` - but block-level only |
-| **Macros** | ✅ | `{{{NAME}}}`, `{{{NAME(ARGS)}}}` |
-| **Subscript/Superscript** | ✅ | `CHAR_SCRIPT`, `CHAR^SCRIPT` |
-| **Timestamps** | ✅ | Active `<>`, Inactive `[]` |
+| **Entities** | ✅ | `\NAME`, `\NAME{}` - **NOW IN INLINE GRAMMAR** (6/6 tests) |
+| **LaTeX Fragments** | ✅ | `\NAME`, `$$...$$`, `$...$` - still in block grammar |
+| **Footnote References** | ✅ | `[fn:LABEL]`, `[fn::DEF]` - still in block grammar |
+| **Links** | ✅ | `[[URL]]`, `[[URL][DESC]]` - **MOVED TO INLINE** |
+| **Macros** | ✅ | `{{{NAME}}}`, `{{{NAME(ARGS)}}}` - **NOW IN INLINE GRAMMAR** (11/11 tests) |
+| **Subscript/Superscript** | ✅ | `CHAR_SCRIPT`, `CHAR^SCRIPT` - still in block grammar |
+| **Timestamps** | ✅ | Active `<>`, Inactive `[]` - still in block grammar |
 
 ### Not Implemented (Need in Inline Grammar)
 
@@ -107,6 +107,8 @@ These should be parsed by the inline grammar within paragraphs, titles, table ce
   - Regular links: `[[URL]]` and `[[URL][DESC]]` (17/17 tests)
   - Angle links: `<PROTOCOL:PATH>` (14/14 tests)
   - Plain links: bare URLs `http://example.com` (9/9 tests)
+- ✅ Entities: LaTeX-style entities `\alpha`, `\beta`, `\nbsp`, etc. (6/6 tests)
+- ✅ Macros: text replacement `{{{name}}}` and `{{{name(args)}}}` (11/11 tests)
 - ✅ Plain text with proper whitespace handling
 - ✅ Colons in titles (distinct from tags)
 
@@ -128,13 +130,13 @@ These should be parsed by the inline grammar within paragraphs, titles, table ce
    - **Bounding**: Excellent - self-contained, localized failures, graceful degradation
 
 2. **COMMENT Keyword in Headlines**
-   - **Status**: ✅ **COMPLETE** (13/13 tests passing)
+   - **Status**: ✅ **COMPLETE** (14/14 tests passing)
    - **Impact**: Common for disabling sections and subtrees
    - **Location**: Block grammar headline
-   - **Complexity**: HIGH - solved with token precedence and grammar restructuring
-   - **Solution**: `token(prec(10, 'COMMENT'))` + choice structure with prec.dynamic
-   - **Bounding**: Good - restructured headline as choice to isolate COMMENT variant
-   - **Known limitation**: Like TODO/DONE, will match prefix (e.g., "COMMENTED" matches "COMMENT")
+   - **Complexity**: HIGH - solved with whitespace-significant tokens
+   - **Solution**: Include trailing whitespace IN the token: `'COMMENT '` and `'COMMENT\n'`
+   - **Bounding**: Excellent - whitespace as part of token ensures exact word match
+   - **Word boundaries**: Properly implemented - "COMMENTED" won't match "COMMENT"
 
 3. **Fixed Width Areas** (`: content`)
    - **Status**: ✅ **COMPLETE** (5/5 tests passing)
@@ -226,17 +228,18 @@ These should be parsed by the inline grammar within paragraphs, titles, table ce
 
 ### Block Grammar (tree-sitter-org)
 - **Total Elements**: ~25 types
-- **Implemented**: ~21 types (✅ 84%)
-- **Partial**: ~3 types (🟡 12%)
-- **Missing**: ~4 types (❌ 16%)
-- **Test Coverage**: 159/159 tests passing (146 existing + 13 COMMENT tests)
+- **Implemented**: ~23 types (✅ 92%)
+- **Partial**: ~2 types (🟡 8%)
+- **Missing**: ~3 types (❌ 12%)
+- **Test Coverage**: 186/186 tests passing (146 existing + 14 COMMENT + 4 checkbox + 4 description list + 3 property accumulation + 12 inlinetask + 3 multi-line list tests)
+- **External Scanner**: Implemented for list indentation tracking (tabs=8 spaces per Org spec)
 
 ### Inline Grammar (tree-sitter-org-inline)
 - **Total Objects**: ~25 types
-- **Implemented**: ~14 types (title/tags, 6 markup types, statistics cookies, export snippets, targets, radio targets, 3 link types: angle/regular/plain, plain text)
-- **In Block (Should Move)**: ~6 types (entities, latex, footnotes, macros, sub/super, timestamps)
+- **Implemented**: ~16 types (title/tags, 6 markup types, statistics cookies, export snippets, targets, radio targets, 3 link types: angle/regular/plain, entities, macros, plain text)
+- **In Block (Should Move)**: ~4 types (latex, footnotes, sub/super, timestamps)
 - **Missing**: ~5 types
-- **Test Coverage**: 104/104 tests passing
+- **Test Coverage**: 121/121 tests passing (104 existing + 6 entity + 11 macro tests)
 
 ### Overall Syntax Coverage
 - **Fully Functional**: ~35%
@@ -245,14 +248,16 @@ These should be parsed by the inline grammar within paragraphs, titles, table ce
 
 ### What's Working Well
 ✅ Core structure (headlines, sections, paragraphs)
+✅ **Inlinetasks** (15+ stars for inline task markers)
 ✅ Planning and timestamps
 ✅ **Clock elements** (time tracking)
 ✅ **Diary sexp** (advanced scheduling: %%(lisp-expression))
-✅ Lists and tables (structure)
+✅ **Lists with checkboxes and descriptions** (task tracking: [ ], [X], [-]; description lists: term :: def; multi-line items with continuation lines)
+✅ Tables (structure)
 ✅ Blocks and drawers
 ✅ **Dynamic blocks** (clocktable, columnview: #+begin: name ... #+end:)
 ✅ **LaTeX environments** (equations, align, matrix: \begin{name} ... \end{name})
-✅ Properties
+✅ **Properties** (including accumulation: :NAME+: syntax)
 ✅ Comments and horizontal rules
 ✅ Directives/keywords
 ✅ Fixed width areas
@@ -262,6 +267,8 @@ These should be parsed by the inline grammar within paragraphs, titles, table ce
 ✅ **Export snippets** (backend-specific export: @@html:...@@)
 ✅ **Links trilogy** (regular `[[]]`, angle `<>`, plain http://... - all inline)
 ✅ **Targets and radio targets** (anchors: `<<>>`, automatic link anchors: `<<<>>>`)
+✅ **Entities** (LaTeX-style: `\alpha`, `\beta`, `\nbsp` - inline grammar)
+✅ **Macros** (text replacement: `{{{name}}}`, `{{{name(args)}}}` - inline grammar)
 ✅ **COMMENT keyword** (headlines: marks heading and subtree as commented)
 
 ### What's Missing That Users Will Notice
