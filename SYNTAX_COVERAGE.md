@@ -31,7 +31,7 @@ Based on the official spec at https://orgmode.org/worg/org-syntax.html
 |---------|--------|-------|-------|
 | **Blocks** (comment, example, export, src, verse) | ✅ | Yes | Generic block implementation |
 | **Clock Elements** | ✅ | Yes | `CLOCK: TIMESTAMP` with 3 formats supported |
-| **Diary Sexp** | ❌ | No | `%%SEXP` pattern |
+| **Diary Sexp** | ✅ | Yes | `%%SEXP` pattern with balanced parens |
 | **Planning** | ✅ | Yes | DEADLINE, SCHEDULED, CLOSED |
 | **Comments** | ✅ | Yes | Lines starting with `#` |
 | **Fixed Width Areas** | ✅ | Yes | Lines starting with `:` and space |
@@ -175,8 +175,10 @@ These should be parsed by the inline grammar within paragraphs, titles, table ce
 ### Low Priority (Advanced/Rare)
 
 11. **Diary Sexp** (`%%(...)`)**
+    - **Status**: ✅ **COMPLETE** (7/7 tests passing)
     - **Impact**: Advanced scheduling
     - **Complexity**: Medium - needs balanced paren matching
+    - **Bounding**: Excellent - distinctive %% marker, single-line constraint, self-contained
 
 12. **LaTeX Environments** (`\begin{...}`)
     - **Impact**: Academic documents
@@ -215,7 +217,7 @@ These should be parsed by the inline grammar within paragraphs, titles, table ce
 - **Implemented**: ~20 types (✅ 80%)
 - **Partial**: ~4 types (🟡 16%)
 - **Missing**: ~5 types (❌ 20%)
-- **Test Coverage**: 124/124 tests passing
+- **Test Coverage**: 131/131 tests passing
 
 ### Inline Grammar (tree-sitter-org-inline)
 - **Total Objects**: ~25 types
@@ -233,6 +235,7 @@ These should be parsed by the inline grammar within paragraphs, titles, table ce
 ✅ Core structure (headlines, sections, paragraphs)
 ✅ Planning and timestamps
 ✅ **Clock elements** (time tracking)
+✅ **Diary sexp** (advanced scheduling: %%(lisp-expression))
 ✅ Lists and tables (structure)
 ✅ Blocks and drawers
 ✅ Properties
