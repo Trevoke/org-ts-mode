@@ -405,6 +405,10 @@
         {
           "type": "checkbox",
           "named": true
+        },
+        {
+          "type": "tag",
+          "named": true
         }
       ]
     }
@@ -677,6 +681,10 @@
   },
   {
     "type": "table_separator",
+    "named": true
+  },
+  {
+    "type": "tag",
     "named": true
   },
   {

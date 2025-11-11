@@ -297,21 +297,39 @@ module.exports = grammar({
     // List: consecutive list items
     list: $ => prec.right(repeat1($.list_item)),
 
-    // List item: BULLET CHECKBOX? CONTENT
-    // Use choice pattern (like COMMENT keyword) to handle optional checkbox
-    // Variant 1: With checkbox (higher precedence)
-    // Variant 2: Without checkbox (lower precedence)
+    // List item: BULLET [CHECKBOX] [TAG] CONTENT
+    // Use choice pattern to handle optional checkbox and tag
+    // Four variants to cover all combinations:
     list_item: $ => choice(
-      // With checkbox
+      // Variant 1: With checkbox AND tag (highest precedence)
+      prec(4, seq(
+        optional(/[ \t]+/),
+        $.bullet,
+        ' ',
+        $.checkbox,  // Required: includes trailing space
+        $.tag,       // Required: includes ' :: ' separator
+        /[^\n]*/,    // Content after tag
+        '\n'
+      )),
+      // Variant 2: With checkbox only
+      prec(3, seq(
+        optional(/[ \t]+/),
+        $.bullet,
+        ' ',
+        $.checkbox,  // Required: includes trailing space
+        /[^\n]*/,
+        '\n'
+      )),
+      // Variant 3: With tag only
       prec(2, seq(
         optional(/[ \t]+/),
         $.bullet,
         ' ',
-        $.checkbox,  // Required in this variant, includes trailing space
-        /[^\n]*/,
+        $.tag,       // Required: includes ' :: ' separator
+        /[^\n]*/,    // Content after tag
         '\n'
       )),
-      // Without checkbox
+      // Variant 4: Plain item (lowest precedence)
       prec(1, seq(
         optional(/[ \t]+/),
         $.bullet,
@@ -334,11 +352,20 @@ module.exports = grammar({
     // Checkbox: [ ], [X], or [-] WITH trailing space
     // Include space in token (whitespace-significant) to prevent content from matching
     // This is the same technique used for COMMENT keyword
-    // High precedence to ensure it's tried before other [ tokens (priority, footnote, etc.)
-    checkbox: $ => token(prec(10, choice(
+    // Precedence 11: Higher than tag (10) to ensure checkbox is matched before tag in "- [ ] term :: def"
+    checkbox: $ => token(prec(11, choice(
       seq('[', ' ', ']', ' '),
       seq('[', 'X', ']', ' '),
       seq('[', '-', ']', ' ')
+    ))),
+
+    // Tag: description list tag ending with ' :: ' separator
+    // Pattern: TAG-TEXT followed by space-colon-colon-space
+    // Note: Currently matches first occurrence of ' :: '; last occurrence rule is a known limitation
+    // High precedence to ensure tag matching is tried before plain content
+    tag: $ => token(prec(10, seq(
+      /[^:\n]+/,  // Tag text (non-colon characters)
+      ' :: '      // Separator with spaces
     ))),
 
     // Block: #+begin_NAME ... #+end_NAME

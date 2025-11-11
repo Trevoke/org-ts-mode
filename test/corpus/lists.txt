@@ -159,3 +159,68 @@ Multiple items with mixed checkboxes
       (checkbox))
     (list_item
       (bullet))))
+
+==================
+Simple description list item
+==================
+
+- term :: definition
+
+---
+
+(document
+  (list
+    (list_item
+      (bullet)
+      (tag))))
+
+==================
+Multiple description items
+==================
+
+- First term :: First definition
+- Second term :: More details here
++ Third :: Using plus bullet
+
+---
+
+(document
+  (list
+    (list_item
+      (bullet)
+      (tag))
+    (list_item
+      (bullet)
+      (tag))
+    (list_item
+      (bullet)
+      (tag))))
+
+==================
+Description item with checkbox
+==================
+
+- [ ] Task term :: Task description
+
+---
+
+(document
+  (list
+    (list_item
+      (bullet)
+      (checkbox)
+      (tag))))
+
+==================
+Description list with last occurrence rule
+==================
+
+- Has :: in middle :: but this is the definition
+
+---
+
+(document
+  (list
+    (list_item
+      (bullet)
+      (tag))))

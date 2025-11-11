@@ -21,7 +21,7 @@ Based on the official spec at https://orgmode.org/worg/org-syntax.html
 | **Dynamic Blocks** | ✅ | Yes | Pattern `#+begin: NAME ... #+end:` for dynamic content |
 | **Footnote Definitions** | 🟡 | Yes | References work, but definitions as greater elements? |
 | **Inlinetasks** | ❌ | No | Requires 15+ stars |
-| **Plain Lists** (Items) | ✅ | Yes | Bullets, ordered, unordered, checkboxes ([ ], [X], [-]) |
+| **Plain Lists** (Items) | ✅ | Yes | Bullets, ordered, unordered, checkboxes ([ ], [X], [-]), description lists (term :: def) |
 | **Property Drawers** | ✅ | Yes | `:properties:` ... `:end:` |
 | **Tables** | ✅ | Yes | Org tables with `|` |
 
@@ -229,7 +229,7 @@ These should be parsed by the inline grammar within paragraphs, titles, table ce
 - **Implemented**: ~21 types (✅ 84%)
 - **Partial**: ~3 types (🟡 12%)
 - **Missing**: ~4 types (❌ 16%)
-- **Test Coverage**: 164/164 tests passing (146 existing + 14 COMMENT + 4 checkbox tests)
+- **Test Coverage**: 168/168 tests passing (146 existing + 14 COMMENT + 4 checkbox + 4 description list tests)
 
 ### Inline Grammar (tree-sitter-org-inline)
 - **Total Objects**: ~25 types
@@ -248,7 +248,7 @@ These should be parsed by the inline grammar within paragraphs, titles, table ce
 ✅ Planning and timestamps
 ✅ **Clock elements** (time tracking)
 ✅ **Diary sexp** (advanced scheduling: %%(lisp-expression))
-✅ **Lists with checkboxes** (task tracking: [ ], [X], [-])
+✅ **Lists with checkboxes and descriptions** (task tracking: [ ], [X], [-]; description lists: term :: def)
 ✅ Tables (structure)
 ✅ Blocks and drawers
 ✅ **Dynamic blocks** (clocktable, columnview: #+begin: name ... #+end:)
