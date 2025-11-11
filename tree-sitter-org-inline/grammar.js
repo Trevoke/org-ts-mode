@@ -32,12 +32,39 @@ module.exports = grammar({
     // Title without tags (tags come in Phase 5)
     title_only: $ => field('title', $.title),
 
-    // Title: Plain text only for Phase 1
-    // In later phases, this will be repeat1(choice($.plain_text, ...objects...))
-    title: $ => $.plain_text,
+    // Title: Sequence of objects and plain text
+    // Phase 1: Just plain text
+    // Phase 2a: Add targets and radio targets
+    title: $ => repeat1(choice(
+      // Phase 2a: Targets (unique delimiters, no conflicts)
+      prec(3, $.radio_target),  // <<<>>> - must match before target (longer delimiter)
+      prec(3, $.target),         // <<>>
 
-    // Plain text: Any characters except newline
-    // In later phases, we'll exclude markup delimiters
-    plain_text: $ => /[^\n]+/,
+      // Plain text (fallback)
+      prec(1, $.plain_text)
+    )),
+
+    // Target: <<TARGET>>
+    // Atomic token for bounding - prevents partial consumption
+    // Content: any characters except angle brackets and newline
+    target: $ => token(seq(
+      '<<',
+      /[^<>\n]+/,
+      '>>'
+    )),
+
+    // Radio target: <<<TARGET>>>
+    // Creates automatic links for matching text in document
+    // Atomic token for bounding - prevents partial consumption
+    // Content: any characters except angle brackets and newline
+    radio_target: $ => token(seq(
+      '<<<',
+      /[^<>\n]+/,
+      '>>>'
+    )),
+
+    // Plain text: Any characters except newline or angle brackets
+    // Exclude < and > so targets can be recognized
+    plain_text: $ => /[^<\n]+/,
   }
 });

@@ -20,11 +20,19 @@
     "named": true,
     "fields": {},
     "children": {
-      "multiple": false,
+      "multiple": true,
       "required": true,
       "types": [
         {
           "type": "plain_text",
+          "named": true
+        },
+        {
+          "type": "radio_target",
+          "named": true
+        },
+        {
+          "type": "target",
           "named": true
         }
       ]
@@ -48,6 +56,14 @@
   },
   {
     "type": "plain_text",
+    "named": true
+  },
+  {
+    "type": "radio_target",
+    "named": true
+  },
+  {
+    "type": "target",
     "named": true
   }
 ]

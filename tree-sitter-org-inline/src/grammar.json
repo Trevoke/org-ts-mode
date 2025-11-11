@@ -23,12 +23,80 @@
       }
     },
     "title": {
-      "type": "SYMBOL",
-      "name": "plain_text"
+      "type": "REPEAT1",
+      "content": {
+        "type": "CHOICE",
+        "members": [
+          {
+            "type": "PREC",
+            "value": 3,
+            "content": {
+              "type": "SYMBOL",
+              "name": "radio_target"
+            }
+          },
+          {
+            "type": "PREC",
+            "value": 3,
+            "content": {
+              "type": "SYMBOL",
+              "name": "target"
+            }
+          },
+          {
+            "type": "PREC",
+            "value": 1,
+            "content": {
+              "type": "SYMBOL",
+              "name": "plain_text"
+            }
+          }
+        ]
+      }
+    },
+    "target": {
+      "type": "TOKEN",
+      "content": {
+        "type": "SEQ",
+        "members": [
+          {
+            "type": "STRING",
+            "value": "<<"
+          },
+          {
+            "type": "PATTERN",
+            "value": "[^<>\\n]+"
+          },
+          {
+            "type": "STRING",
+            "value": ">>"
+          }
+        ]
+      }
+    },
+    "radio_target": {
+      "type": "TOKEN",
+      "content": {
+        "type": "SEQ",
+        "members": [
+          {
+            "type": "STRING",
+            "value": "<<<"
+          },
+          {
+            "type": "PATTERN",
+            "value": "[^<>\\n]+"
+          },
+          {
+            "type": "STRING",
+            "value": ">>>"
+          }
+        ]
+      }
     },
     "plain_text": {
       "type": "PATTERN",
-      "value": "[^\\n]+"
+      "value": "[^<\\n]+"
     }
   },
   "extras": [
