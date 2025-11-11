@@ -395,11 +395,15 @@
     "named": true,
     "fields": {},
     "children": {
-      "multiple": false,
+      "multiple": true,
       "required": true,
       "types": [
         {
           "type": "bullet",
+          "named": true
+        },
+        {
+          "type": "checkbox",
           "named": true
         }
       ]
@@ -577,6 +581,10 @@
   },
   {
     "type": "bullet",
+    "named": true
+  },
+  {
+    "type": "checkbox",
     "named": true
   },
   {

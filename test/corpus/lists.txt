@@ -92,3 +92,70 @@ c. Third
       (bullet))
     (list_item
       (bullet))))
+
+==================
+List item with unchecked checkbox
+==================
+
+- [ ] Unchecked task
+
+---
+
+(document
+  (list
+    (list_item
+      (bullet)
+      (checkbox))))
+
+==================
+List item with checked checkbox
+==================
+
+- [X] Completed task
+
+---
+
+(document
+  (list
+    (list_item
+      (bullet)
+      (checkbox))))
+
+==================
+List item with partial checkbox
+==================
+
+- [-] Partially done task
+
+---
+
+(document
+  (list
+    (list_item
+      (bullet)
+      (checkbox))))
+
+==================
+Multiple items with mixed checkboxes
+==================
+
+- [ ] Todo item
+- [X] Done item
+- [-] Partial item
+- Regular item
+
+---
+
+(document
+  (list
+    (list_item
+      (bullet)
+      (checkbox))
+    (list_item
+      (bullet)
+      (checkbox))
+    (list_item
+      (bullet)
+      (checkbox))
+    (list_item
+      (bullet))))

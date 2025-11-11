@@ -297,13 +297,28 @@ module.exports = grammar({
     // List: consecutive list items
     list: $ => prec.right(repeat1($.list_item)),
 
-    // List item: BULLET CONTENT
-    list_item: $ => seq(
-      optional(/[ \t]+/),
-      $.bullet,
-      ' ',
-      /[^\n]*/,
-      '\n'
+    // List item: BULLET CHECKBOX? CONTENT
+    // Use choice pattern (like COMMENT keyword) to handle optional checkbox
+    // Variant 1: With checkbox (higher precedence)
+    // Variant 2: Without checkbox (lower precedence)
+    list_item: $ => choice(
+      // With checkbox
+      prec(2, seq(
+        optional(/[ \t]+/),
+        $.bullet,
+        ' ',
+        $.checkbox,  // Required in this variant, includes trailing space
+        /[^\n]*/,
+        '\n'
+      )),
+      // Without checkbox
+      prec(1, seq(
+        optional(/[ \t]+/),
+        $.bullet,
+        ' ',
+        /[^\n]*/,
+        '\n'
+      ))
     ),
 
     // Bullet: -, +, 1., a), etc.
@@ -315,6 +330,16 @@ module.exports = grammar({
       seq(/[a-zA-Z]/, '.'),
       seq(/[a-zA-Z]/, ')')
     )),
+
+    // Checkbox: [ ], [X], or [-] WITH trailing space
+    // Include space in token (whitespace-significant) to prevent content from matching
+    // This is the same technique used for COMMENT keyword
+    // High precedence to ensure it's tried before other [ tokens (priority, footnote, etc.)
+    checkbox: $ => token(prec(10, choice(
+      seq('[', ' ', ']', ' '),
+      seq('[', 'X', ']', ' '),
+      seq('[', '-', ']', ' ')
+    ))),
 
     // Block: #+begin_NAME ... #+end_NAME
     block: $ => seq(
