@@ -260,6 +260,16 @@
     "type": "headline",
     "named": true,
     "fields": {
+      "comment": {
+        "multiple": false,
+        "required": false,
+        "types": [
+          {
+            "type": "comment_keyword",
+            "named": true
+          }
+        ]
+      },
       "keyword": {
         "multiple": false,
         "required": false,
@@ -557,6 +567,10 @@
   },
   {
     "type": "clock",
+    "named": true
+  },
+  {
+    "type": "comment_keyword",
     "named": true
   },
   {

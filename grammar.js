@@ -40,10 +40,35 @@ module.exports = grammar({
       $.paragraph
     ),
 
-    // Headline: STARS KEYWORD PRIORITY TITLE
+    // Headline: STARS KEYWORD PRIORITY COMMENT TITLE
+    // Restructured as choice to handle COMMENT keyword token conflict
+    // The title regex /[^\n]+/ would greedily consume "COMMENT ..." before
+    // the COMMENT token could match, so we use two alternative structures:
+    // 1. With COMMENT keyword (higher precedence)
+    // 2. Without COMMENT keyword (lower precedence)
     // Note: Tags are currently absorbed into title. This is a known limitation
     // that will be addressed via inline grammar injection (see tree-sitter-org-inline)
-    headline: $ => seq(
+    headline: $ => choice(
+      // Variant 2: Headline WITHOUT COMMENT keyword
+      prec.dynamic(1, seq(
+        $._headline_prefix,
+        optional(field('title', $.title)),
+        '\n'
+      )),
+      // Variant 1: Headline WITH COMMENT keyword (preferred)
+      // Dynamic precedence ensures this variant is chosen when both could match
+      prec.dynamic(2, seq(
+        $._headline_prefix,
+        field('comment', $.comment_keyword),
+        ' ',
+        optional(field('title', $.title)),
+        '\n'
+      ))
+    ),
+
+    // Helper: Common headline prefix (stars, optional keyword, optional priority)
+    // Underscore prefix means this is an internal/hidden rule
+    _headline_prefix: $ => seq(
       $.stars,
       ' ',
       optional(seq(
@@ -53,9 +78,7 @@ module.exports = grammar({
       optional(seq(
         field('priority', $.priority),
         ' '
-      )),
-      optional(field('title', $.title)),
-      '\n'
+      ))
     ),
 
     // Stars: one or more asterisks at the start of a line
@@ -72,6 +95,11 @@ module.exports = grammar({
 
     // Priority: [#A], [#B], [#C]
     priority: $ => token(prec(1, /\[#[A-Z]\]/)),
+
+    // COMMENT keyword: marks entire headline (and subtree) as commented
+    // Must be exact string "COMMENT" (case-sensitive)
+    // Appears after TODO/priority but before title
+    comment_keyword: $ => 'COMMENT',
 
     // Title: headline text (currently absorbs tags)
     // This will be replaced by inline grammar injection in tree-sitter-org-inline
