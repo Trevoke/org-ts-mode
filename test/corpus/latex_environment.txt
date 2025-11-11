@@ -1,0 +1,123 @@
+==================
+Simple equation environment
+==================
+
+\begin{equation}
+x^2 + y^2 = z^2
+\end{equation}
+
+---
+
+(document
+  (latex_environment
+    (latex_env_begin)
+    (latex_env_content)
+    (latex_env_end)))
+
+==================
+Align environment with multiple lines
+==================
+
+\begin{align}
+a &= b + c \\
+d &= e + f
+\end{align}
+
+---
+
+(document
+  (latex_environment
+    (latex_env_begin)
+    (latex_env_content)
+    (latex_env_end)))
+
+==================
+Matrix environment
+==================
+
+\begin{matrix}
+1 & 0 \\
+0 & 1
+\end{matrix}
+
+---
+
+(document
+  (latex_environment
+    (latex_env_begin)
+    (latex_env_content)
+    (latex_env_end)))
+
+==================
+LaTeX environment under headline
+==================
+
+* Mathematical Proof
+\begin{proof}
+By induction on n.
+\end{proof}
+
+---
+
+(document
+  (headline
+    (stars)
+    (title))
+  (latex_environment
+    (latex_env_begin)
+    (latex_env_content)
+    (latex_env_end)))
+
+==================
+Multiple LaTeX environments
+==================
+
+\begin{equation}
+E = mc^2
+\end{equation}
+
+\begin{align}
+F &= ma
+\end{align}
+
+---
+
+(document
+  (latex_environment
+    (latex_env_begin)
+    (latex_env_content)
+    (latex_env_end))
+  (latex_environment
+    (latex_env_begin)
+    (latex_env_content)
+    (latex_env_end)))
+
+==================
+Empty LaTeX environment
+==================
+
+\begin{equation}
+\end{equation}
+
+---
+
+(document
+  (latex_environment
+    (latex_env_begin)
+    (latex_env_end)))
+
+==================
+LaTeX environment with asterisk variant
+==================
+
+\begin{equation*}
+x = y
+\end{equation*}
+
+---
+
+(document
+  (latex_environment
+    (latex_env_begin)
+    (latex_env_content)
+    (latex_env_end)))

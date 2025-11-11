@@ -90,7 +90,6 @@
   {
     "type": "document",
     "named": true,
-    "root": true,
     "fields": {},
     "children": {
       "multiple": true,
@@ -101,7 +100,15 @@
           "named": true
         },
         {
+          "type": "clock",
+          "named": true
+        },
+        {
           "type": "comment",
+          "named": true
+        },
+        {
+          "type": "diary_sexp",
           "named": true
         },
         {
@@ -113,7 +120,15 @@
           "named": true
         },
         {
+          "type": "dynamic_block",
+          "named": true
+        },
+        {
           "type": "entity",
+          "named": true
+        },
+        {
+          "type": "fixed_width",
           "named": true
         },
         {
@@ -126,6 +141,10 @@
         },
         {
           "type": "horizontal_rule",
+          "named": true
+        },
+        {
+          "type": "latex_environment",
           "named": true
         },
         {
@@ -200,9 +219,57 @@
     "fields": {}
   },
   {
+    "type": "dynamic_block",
+    "named": true,
+    "fields": {},
+    "children": {
+      "multiple": true,
+      "required": true,
+      "types": [
+        {
+          "type": "dynamic_block_begin",
+          "named": true
+        },
+        {
+          "type": "dynamic_block_content",
+          "named": true
+        },
+        {
+          "type": "dynamic_block_end",
+          "named": true
+        }
+      ]
+    }
+  },
+  {
+    "type": "dynamic_block_begin",
+    "named": true,
+    "fields": {}
+  },
+  {
+    "type": "dynamic_block_end",
+    "named": true,
+    "fields": {}
+  },
+  {
+    "type": "fixed_width",
+    "named": true,
+    "fields": {}
+  },
+  {
     "type": "headline",
     "named": true,
     "fields": {
+      "comment": {
+        "multiple": false,
+        "required": false,
+        "types": [
+          {
+            "type": "comment_keyword",
+            "named": true
+          }
+        ]
+      },
       "keyword": {
         "multiple": false,
         "required": false,
@@ -219,16 +286,6 @@
         "types": [
           {
             "type": "priority",
-            "named": true
-          }
-        ]
-      },
-      "tags": {
-        "multiple": false,
-        "required": false,
-        "types": [
-          {
-            "type": "tags",
             "named": true
           }
         ]
@@ -259,6 +316,39 @@
     "type": "key",
     "named": true,
     "fields": {}
+  },
+  {
+    "type": "latex_env_begin",
+    "named": true,
+    "fields": {}
+  },
+  {
+    "type": "latex_env_end",
+    "named": true,
+    "fields": {}
+  },
+  {
+    "type": "latex_environment",
+    "named": true,
+    "fields": {},
+    "children": {
+      "multiple": true,
+      "required": true,
+      "types": [
+        {
+          "type": "latex_env_begin",
+          "named": true
+        },
+        {
+          "type": "latex_env_content",
+          "named": true
+        },
+        {
+          "type": "latex_env_end",
+          "named": true
+        }
+      ]
+    }
   },
   {
     "type": "link",
@@ -402,21 +492,6 @@
     }
   },
   {
-    "type": "tags",
-    "named": true,
-    "fields": {},
-    "children": {
-      "multiple": true,
-      "required": true,
-      "types": [
-        {
-          "type": "tag",
-          "named": true
-        }
-      ]
-    }
-  },
-  {
     "type": "title",
     "named": true,
     "fields": {}
@@ -463,6 +538,14 @@
     "named": false
   },
   {
+    "type": "\\begin{",
+    "named": false
+  },
+  {
+    "type": "\\end{",
+    "named": false
+  },
+  {
     "type": "][",
     "named": false
   },
@@ -483,7 +566,23 @@
     "named": true
   },
   {
+    "type": "clock",
+    "named": true
+  },
+  {
+    "type": "comment_keyword",
+    "named": true
+  },
+  {
+    "type": "diary_sexp",
+    "named": true
+  },
+  {
     "type": "drawer_content",
+    "named": true
+  },
+  {
+    "type": "dynamic_block_content",
     "named": true
   },
   {
@@ -504,6 +603,10 @@
   },
   {
     "type": "language",
+    "named": true
+  },
+  {
+    "type": "latex_env_content",
     "named": true
   },
   {
@@ -559,10 +662,6 @@
     "named": true
   },
   {
-    "type": "tag",
-    "named": true
-  },
-  {
     "type": "timestamp",
     "named": true
   },
@@ -572,6 +671,10 @@
   },
   {
     "type": "|",
+    "named": false
+  },
+  {
+    "type": "}",
     "named": false
   },
   {

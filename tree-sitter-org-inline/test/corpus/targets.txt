@@ -1,0 +1,155 @@
+==================
+Simple target
+==================
+
+<<simple>>
+
+---
+
+(inline
+  (title_only
+    (title
+      (target))))
+
+==================
+Target with spaces
+==================
+
+<<target with spaces>>
+
+---
+
+(inline
+  (title_only
+    (title
+      (target))))
+
+==================
+Target with hyphens and underscores
+==================
+
+<<my-target_name>>
+
+---
+
+(inline
+  (title_only
+    (title
+      (target))))
+
+==================
+Target with numbers
+==================
+
+<<section-123>>
+
+---
+
+(inline
+  (title_only
+    (title
+      (target))))
+
+==================
+Target with text before
+==================
+
+Some text <<anchor>> here
+
+---
+
+(inline
+  (title_only
+    (title
+      (plain_text)
+      (target)
+      (plain_text))))
+
+==================
+Target with text after
+==================
+
+<<start>> of document
+
+---
+
+(inline
+  (title_only
+    (title
+      (target)
+      (plain_text))))
+
+==================
+Multiple targets in title
+==================
+
+<<first>> and <<second>>
+
+---
+
+(inline
+  (title_only
+    (title
+      (target)
+      (plain_text)
+      (target))))
+
+==================
+Target with markup
+==================
+
+*bold* <<anchor>> /italic/
+
+---
+
+(inline
+  (title_only
+    (title
+      (text_markup
+        (bold))
+      (plain_text)
+      (target)
+      (plain_text)
+      (text_markup
+        (italic)))))
+
+==================
+Target with statistics cookie
+==================
+
+<<progress>> [50%]
+
+---
+
+(inline
+  (title_only
+    (title
+      (target)
+      (plain_text)
+      (statistics_cookie))))
+
+==================
+Target with special characters
+==================
+
+<<my.target@example>>
+
+---
+
+(inline
+  (title_only
+    (title
+      (target))))
+
+==================
+Target with colon
+==================
+
+<<section:subsection>>
+
+---
+
+(inline
+  (title_only
+    (title
+      (target))))

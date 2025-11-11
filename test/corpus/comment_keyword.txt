@@ -1,0 +1,200 @@
+==================
+Simple COMMENT keyword
+==================
+
+* COMMENT This is a commented headline
+
+---
+
+(document
+  (headline
+    (stars)
+    (comment_keyword)
+    (title)))
+
+==================
+COMMENT with title text
+==================
+
+* COMMENT Multiple words in the title here
+
+---
+
+(document
+  (headline
+    (stars)
+    (comment_keyword)
+    (title)))
+
+==================
+TODO with COMMENT
+==================
+
+* TODO COMMENT This needs to be done
+
+---
+
+(document
+  (headline
+    (stars)
+    (keyword)
+    (comment_keyword)
+    (title)))
+
+==================
+DONE with COMMENT
+==================
+
+* DONE COMMENT This is finished
+
+---
+
+(document
+  (headline
+    (stars)
+    (keyword)
+    (comment_keyword)
+    (title)))
+
+==================
+Priority with COMMENT
+==================
+
+* [#A] COMMENT High priority but commented
+
+---
+
+(document
+  (headline
+    (stars)
+    (priority)
+    (comment_keyword)
+    (title)))
+
+==================
+TODO, priority, and COMMENT
+==================
+
+* TODO [#A] COMMENT All components present
+
+---
+
+(document
+  (headline
+    (stars)
+    (keyword)
+    (priority)
+    (comment_keyword)
+    (title)))
+
+==================
+COMMENT without title
+==================
+
+* COMMENT
+
+---
+
+(document
+  (headline
+    (stars)
+    (comment_keyword)))
+
+==================
+TODO COMMENT without title
+==================
+
+* TODO COMMENT
+
+---
+
+(document
+  (headline
+    (stars)
+    (keyword)
+    (comment_keyword)))
+
+==================
+COMMENT is case-sensitive (lowercase should be title)
+==================
+
+* comment This is just a title
+
+---
+
+(document
+  (headline
+    (stars)
+    (title)))
+
+==================
+COMMENT is case-sensitive (mixed case should be title)
+==================
+
+* Comment This is just a title
+
+---
+
+(document
+  (headline
+    (stars)
+    (title)))
+
+==================
+COMMENT with multiple headlines
+==================
+
+* TODO Regular headline
+* COMMENT Commented headline
+* Another regular headline
+
+---
+
+(document
+  (headline
+    (stars)
+    (keyword)
+    (title))
+  (headline
+    (stars)
+    (comment_keyword)
+    (title))
+  (headline
+    (stars)
+    (title)))
+
+==================
+COMMENT preserves title with special chars
+==================
+
+* COMMENT Title with :colons: and other-chars_123
+
+---
+
+(document
+  (headline
+    (stars)
+    (comment_keyword)
+    (title)))
+
+==================
+Nested headlines with COMMENT
+==================
+
+* Regular parent
+** COMMENT Commented child
+*** Regular grandchild
+
+---
+
+(document
+  (headline
+    (stars)
+    (title))
+  (headline
+    (stars)
+    (comment_keyword)
+    (title))
+  (headline
+    (stars)
+    (title)))

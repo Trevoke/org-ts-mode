@@ -1,7 +1,7 @@
 {
-  "name": "tree-sitter-org",
+  "name": "tree-sitter-org-inline",
   "version": "0.1.0",
-  "description": "Org-mode grammar for tree-sitter",
+  "description": "Inline (object-level) grammar for Org-mode - handles tags, markup, links",
   "main": "bindings/node",
   "types": "bindings/node",
   "scripts": {
@@ -14,7 +14,9 @@
     "tree-sitter",
     "parser",
     "org-mode",
-    "emacs"
+    "emacs",
+    "inline",
+    "markup"
   ],
   "files": [
     "grammar.js",
@@ -45,11 +47,8 @@
   },
   "tree-sitter": [
     {
-      "scope": "source.org",
-      "file-types": [
-        "org"
-      ],
-      "injection-regex": "org"
+      "scope": "source.org_inline",
+      "injection-regex": "org_inline"
     }
   ]
 }

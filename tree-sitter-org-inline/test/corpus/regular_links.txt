@@ -1,0 +1,237 @@
+==================
+Simple HTTP link without description
+==================
+
+[[http://example.com]]
+
+---
+
+(inline
+  (title_only
+    (title
+      (regular_link))))
+
+==================
+Simple HTTPS link without description
+==================
+
+[[https://example.com]]
+
+---
+
+(inline
+  (title_only
+    (title
+      (regular_link))))
+
+==================
+Link with description
+==================
+
+[[https://example.com][Example Site]]
+
+---
+
+(inline
+  (title_only
+    (title
+      (regular_link))))
+
+==================
+File link
+==================
+
+[[file:/path/to/document.org]]
+
+---
+
+(inline
+  (title_only
+    (title
+      (regular_link))))
+
+==================
+File link with description
+==================
+
+[[file:document.pdf][My Document]]
+
+---
+
+(inline
+  (title_only
+    (title
+      (regular_link))))
+
+==================
+ID link
+==================
+
+[[id:abc-123-def]]
+
+---
+
+(inline
+  (title_only
+    (title
+      (regular_link))))
+
+==================
+Internal link to headline
+==================
+
+[[#Installation]]
+
+---
+
+(inline
+  (title_only
+    (title
+      (regular_link))))
+
+==================
+Custom protocol link
+==================
+
+[[custom:value]]
+
+---
+
+(inline
+  (title_only
+    (title
+      (regular_link))))
+
+==================
+Link with text before
+==================
+
+Visit [[https://example.com][the site]] today
+
+---
+
+(inline
+  (title_only
+    (title
+      (plain_text)
+      (regular_link)
+      (plain_text))))
+
+==================
+Link with text after
+==================
+
+[[https://example.com][Example]] is useful
+
+---
+
+(inline
+  (title_only
+    (title
+      (regular_link)
+      (plain_text))))
+
+==================
+Multiple links
+==================
+
+[[http://one.com][First]] and [[http://two.com][Second]]
+
+---
+
+(inline
+  (title_only
+    (title
+      (regular_link)
+      (plain_text)
+      (regular_link))))
+
+==================
+Link with markup
+==================
+
+*bold* [[https://example.com][link]] /italic/
+
+---
+
+(inline
+  (title_only
+    (title
+      (text_markup
+        (bold))
+      (plain_text)
+      (regular_link)
+      (plain_text)
+      (text_markup
+        (italic)))))
+
+==================
+Link with target
+==================
+
+<<anchor>> [[https://example.com][site]]
+
+---
+
+(inline
+  (title_only
+    (title
+      (target)
+      (plain_text)
+      (regular_link))))
+
+==================
+Link with angle link
+==================
+
+[[file:doc.org][Doc]] <https://example.com>
+
+---
+
+(inline
+  (title_only
+    (title
+      (regular_link)
+      (plain_text)
+      (angle_link))))
+
+==================
+Link with statistics cookie
+==================
+
+[[file:tasks.org][Tasks]] [50%]
+
+---
+
+(inline
+  (title_only
+    (title
+      (regular_link)
+      (plain_text)
+      (statistics_cookie))))
+
+==================
+Fuzzy link
+==================
+
+[[Some heading text]]
+
+---
+
+(inline
+  (title_only
+    (title
+      (regular_link))))
+
+==================
+Link with path and query
+==================
+
+[[https://example.com/path?foo=bar&baz=qux][Search]]
+
+---
+
+(inline
+  (title_only
+    (title
+      (regular_link))))

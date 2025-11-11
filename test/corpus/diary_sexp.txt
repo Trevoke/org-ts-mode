@@ -1,0 +1,82 @@
+==================
+Simple diary sexp
+==================
+
+%%(org-calendar-holiday)
+
+---
+
+(document
+  (diary_sexp))
+
+==================
+Diary sexp with arguments
+==================
+
+%%(diary-date 1 1 2024)
+
+---
+
+(document
+  (diary_sexp))
+
+==================
+Nested function calls
+==================
+
+%%(org-class 2024 1 1 2024 12 31)
+
+---
+
+(document
+  (diary_sexp))
+
+==================
+Diary sexp under headline
+==================
+
+* Schedule
+%%(diary-float t 4 2)
+
+---
+
+(document
+  (headline
+    (stars)
+    (title))
+  (diary_sexp))
+
+==================
+Multiple diary sexps
+==================
+
+%%(diary-anniversary 1 1 2024)
+%%(org-calendar-holiday)
+
+---
+
+(document
+  (diary_sexp)
+  (diary_sexp))
+
+==================
+Diary sexp with string
+==================
+
+%%(diary-anniversary 1 1 2024 "Birthday")
+
+---
+
+(document
+  (diary_sexp))
+
+==================
+Complex nested expression
+==================
+
+%%(and (diary-block 1 1 2024 12 31 2024) (diary-float t 1 1))
+
+---
+
+(document
+  (diary_sexp))

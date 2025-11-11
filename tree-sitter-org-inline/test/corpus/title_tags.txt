@@ -1,0 +1,111 @@
+==================
+Title with single tag
+==================
+
+Task to complete :work:
+
+---
+
+(inline
+  (title_with_tags
+    (title
+      (plain_text))
+    (tags)))
+
+==================
+Title with multiple tags
+==================
+
+Project documentation :work:urgent:
+
+---
+
+(inline
+  (title_with_tags
+    (title
+      (plain_text))
+    (tags)))
+
+==================
+Title with colon and tags
+==================
+
+Review PR: Add new feature :review:code:
+
+---
+
+(inline
+  (title_with_tags
+    (title
+      (plain_text)
+      (plain_text))
+    (tags)))
+
+==================
+Title without tags
+==================
+
+Simple task to do
+
+---
+
+(inline
+  (title_only
+    (title
+      (plain_text))))
+
+==================
+Title with colon but no tags
+==================
+
+Read the book: "The Great Gatsby"
+
+---
+
+(inline
+  (title_only
+    (title
+      (plain_text)
+      (plain_text))))
+
+==================
+Title with numbers in tags
+==================
+
+Sprint planning :sprint2024:q1:
+
+---
+
+(inline
+  (title_with_tags
+    (title
+      (plain_text))
+    (tags)))
+
+==================
+Title with special chars in tags
+==================
+
+Development task :dev_work:@home:#project:
+
+---
+
+(inline
+  (title_with_tags
+    (title
+      (plain_text))
+    (tags)))
+
+==================
+Only tags (no title)
+==================
+
+:orphan:tag:
+
+---
+
+(inline
+  (title_with_tags
+    (title
+      (plain_text))
+    (tags)))

@@ -1,0 +1,192 @@
+==================
+Simple bold in text
+==================
+
+This is *bold* text.
+
+---
+
+(inline
+  (title_only
+    (title
+      (plain_text)
+      (text_markup
+        (bold))
+      (plain_text))))
+
+==================
+Bold at start of line
+==================
+
+*Bold* at start
+
+---
+
+(inline
+  (title_only
+    (title
+      (text_markup
+        (bold))
+      (plain_text))))
+
+==================
+Bold at end of line
+==================
+
+Text with *bold*
+
+---
+
+(inline
+  (title_only
+    (title
+      (plain_text)
+      (text_markup
+        (bold)))))
+
+==================
+Multiple bold in same line
+==================
+
+*First* and *second* bold
+
+---
+
+(inline
+  (title_only
+    (title
+      (text_markup
+        (bold))
+      (plain_text)
+      (text_markup
+        (bold))
+      (plain_text))))
+
+==================
+Simple italic
+==================
+
+This is /italic/ text.
+
+---
+
+(inline
+  (title_only
+    (title
+      (plain_text)
+      (text_markup
+        (italic))
+      (plain_text))))
+
+==================
+Simple code
+==================
+
+This is ~code~ text.
+
+---
+
+(inline
+  (title_only
+    (title
+      (plain_text)
+      (text_markup
+        (code))
+      (plain_text))))
+
+==================
+Simple verbatim
+==================
+
+This is =verbatim= text.
+
+---
+
+(inline
+  (title_only
+    (title
+      (plain_text)
+      (text_markup
+        (verbatim))
+      (plain_text))))
+
+==================
+Mixed markup types
+==================
+
+*bold* and /italic/ and ~code~
+
+---
+
+(inline
+  (title_only
+    (title
+      (text_markup
+        (bold))
+      (plain_text)
+      (text_markup
+        (italic))
+      (plain_text)
+      (text_markup
+        (code)))))
+
+==================
+Simple underline
+==================
+
+This is _underline_ text.
+
+---
+
+(inline
+  (title_only
+    (title
+      (plain_text)
+      (text_markup
+        (underline))
+      (plain_text))))
+
+==================
+Simple strike-through
+==================
+
+This is +strike+ text.
+
+---
+
+(inline
+  (title_only
+    (title
+      (plain_text)
+      (text_markup
+        (strike_through))
+      (plain_text))))
+
+==================
+All markup types mixed
+==================
+
+*bold* /italic/ _underline_ ~code~ =verbatim= +strike+
+
+---
+
+(inline
+  (title_only
+    (title
+      (text_markup
+        (bold))
+      (plain_text)
+      (text_markup
+        (italic))
+      (plain_text)
+      (text_markup
+        (underline))
+      (plain_text)
+      (text_markup
+        (code))
+      (plain_text)
+      (text_markup
+        (verbatim))
+      (plain_text)
+      (text_markup
+        (strike_through)))))

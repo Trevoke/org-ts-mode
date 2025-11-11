@@ -108,3 +108,124 @@ Headline with multiple levels
   (headline
     (stars)
     (title)))
+
+==================
+Headline with single tag
+==================
+
+* Task to complete :work:
+
+---
+
+(document
+  (headline
+    (stars)
+    (title)))
+
+==================
+Headline with multiple tags
+==================
+
+* Project documentation :work:urgent:
+
+---
+
+(document
+  (headline
+    (stars)
+    (title)))
+
+==================
+Headline with TODO keyword and tags
+==================
+
+* TODO Fix the bug :bug:urgent:
+
+---
+
+(document
+  (headline
+    (stars)
+    (keyword)
+    (title)))
+
+==================
+Headline with priority and tags
+==================
+
+* [#A] Important meeting :meeting:work:
+
+---
+
+(document
+  (headline
+    (stars)
+    (priority)
+    (title)))
+
+==================
+Complete headline with keyword priority and tags
+==================
+
+* TODO [#A] Complete quarterly report :work:deadline:
+
+---
+
+(document
+  (headline
+    (stars)
+    (keyword)
+    (priority)
+    (title)))
+
+==================
+Headline with colon in title but no tags
+==================
+
+* Read the book: "The Great Gatsby"
+
+---
+
+(document
+  (headline
+    (stars)
+    (title)))
+
+==================
+Headline with colon in title and tags
+==================
+
+* Review PR: Add new feature :review:code:
+
+---
+
+(document
+  (headline
+    (stars)
+    (title)))
+
+==================
+Headline with numbers in tags
+==================
+
+* Sprint planning :sprint2024:q1:
+
+---
+
+(document
+  (headline
+    (stars)
+    (title)))
+
+==================
+Headline with special chars in tags
+==================
+
+* Development task :dev_work:@home:#project:
+
+---
+
+(document
+  (headline
+    (stars)
+    (title)))
