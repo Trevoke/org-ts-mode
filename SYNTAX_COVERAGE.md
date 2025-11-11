@@ -18,7 +18,7 @@ Based on the official spec at https://orgmode.org/worg/org-syntax.html
 |---------|--------|-------|-------|
 | **Greater Blocks** (center, quote, special) | ✅ | Yes | Implemented as generic `block` |
 | **Drawers** | ✅ | Yes | Pattern `:NAME:` ... `:end:` |
-| **Dynamic Blocks** | ❌ | No | Pattern `#+begin: NAME` not implemented |
+| **Dynamic Blocks** | ✅ | Yes | Pattern `#+begin: NAME ... #+end:` for dynamic content |
 | **Footnote Definitions** | 🟡 | Yes | References work, but definitions as greater elements? |
 | **Inlinetasks** | ❌ | No | Requires 15+ stars |
 | **Plain Lists** (Items) | ✅ | Yes | Bullets, ordered, unordered |
@@ -185,8 +185,10 @@ These should be parsed by the inline grammar within paragraphs, titles, table ce
     - **Complexity**: Medium
 
 13. **Dynamic Blocks** (`#+begin: name`)
-    - **Impact**: Advanced block types
-    - **Complexity**: Low
+    - **Status**: ✅ **COMPLETE** (8/8 tests passing)
+    - **Impact**: Advanced block types (clocktable, columnview, etc.)
+    - **Complexity**: Low - extends existing block pattern
+    - **Bounding**: Excellent - distinctive colon markers, self-contained, graceful degradation
 
 14. **Inlinetasks** (15+ stars)
     - **Impact**: Niche feature
@@ -217,7 +219,7 @@ These should be parsed by the inline grammar within paragraphs, titles, table ce
 - **Implemented**: ~20 types (✅ 80%)
 - **Partial**: ~4 types (🟡 16%)
 - **Missing**: ~5 types (❌ 20%)
-- **Test Coverage**: 131/131 tests passing
+- **Test Coverage**: 139/139 tests passing
 
 ### Inline Grammar (tree-sitter-org-inline)
 - **Total Objects**: ~25 types
@@ -238,6 +240,7 @@ These should be parsed by the inline grammar within paragraphs, titles, table ce
 ✅ **Diary sexp** (advanced scheduling: %%(lisp-expression))
 ✅ Lists and tables (structure)
 ✅ Blocks and drawers
+✅ **Dynamic blocks** (clocktable, columnview: #+begin: name ... #+end:)
 ✅ Properties
 ✅ Comments and horizontal rules
 ✅ Directives/keywords
