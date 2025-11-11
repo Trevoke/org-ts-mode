@@ -49,6 +49,11 @@
     "fields": {}
   },
   {
+    "type": "regular_link",
+    "named": true,
+    "fields": {}
+  },
+  {
     "type": "statistics_cookie",
     "named": true,
     "fields": {}
@@ -116,6 +121,10 @@
         },
         {
           "type": "plain_text",
+          "named": true
+        },
+        {
+          "type": "regular_link",
           "named": true
         },
         {
@@ -234,7 +243,19 @@
     "named": false
   },
   {
+    "type": "[[",
+    "named": false
+  },
+  {
     "type": "]",
+    "named": false
+  },
+  {
+    "type": "][",
+    "named": false
+  },
+  {
+    "type": "]]",
     "named": false
   },
   {

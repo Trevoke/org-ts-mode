@@ -85,6 +85,14 @@
               "value": 3,
               "content": {
                 "type": "SYMBOL",
+                "name": "regular_link"
+              }
+            },
+            {
+              "type": "PREC",
+              "value": 3,
+              "content": {
+                "type": "SYMBOL",
                 "name": "statistics_cookie"
               }
             },
@@ -353,6 +361,44 @@
         {
           "type": "STRING",
           "value": ">>"
+        }
+      ]
+    },
+    "regular_link": {
+      "type": "SEQ",
+      "members": [
+        {
+          "type": "STRING",
+          "value": "[["
+        },
+        {
+          "type": "PATTERN",
+          "value": "[^\\]\\n]+"
+        },
+        {
+          "type": "CHOICE",
+          "members": [
+            {
+              "type": "SEQ",
+              "members": [
+                {
+                  "type": "STRING",
+                  "value": "]["
+                },
+                {
+                  "type": "PATTERN",
+                  "value": "[^\\]\\n]+"
+                }
+              ]
+            },
+            {
+              "type": "BLANK"
+            }
+          ]
+        },
+        {
+          "type": "STRING",
+          "value": "]]"
         }
       ]
     },

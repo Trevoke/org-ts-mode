@@ -51,6 +51,7 @@ module.exports = grammar({
     // Right-associative to greedily consume all content
     title: $ => prec.right(repeat1(choice(
       prec(3, $.text_markup),
+      prec(3, $.regular_link),      // BEFORE statistics_cookie (longer match: [[ vs [)
       prec(3, $.statistics_cookie),
       prec(3, $.export_snippet),
       prec(3, $.target),
@@ -142,6 +143,25 @@ module.exports = grammar({
       '<<',
       /[^<>\n]+/,  // Target name: any characters except angle brackets and newline
       '>>'
+    ),
+
+    // Regular link: [[URL]] or [[URL][DESCRIPTION]]
+    // The standard org-mode link format with double square brackets
+    // URL can be: protocol:path, file:path, id:uuid, #heading, fuzzy text, etc.
+    // DESCRIPTION is optional human-readable text
+    // Note: No newline at end (unlike block grammar) - allows inline usage
+    regular_link: $ => seq(
+      '[[',
+      // URL/path: any characters except ] and newline
+      /[^\]\n]+/,
+      // Optional description after ][
+      optional(seq(
+        '][',
+        // Description: any characters except ] and newline
+        // Future: could parse description as inline objects (recursive)
+        /[^\]\n]+/
+      )),
+      ']]'
     ),
 
     // Angle link: <PROTOCOL:PATH>
