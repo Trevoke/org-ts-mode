@@ -55,8 +55,9 @@ module.exports = grammar({
       prec(3, $.regular_link),       // BEFORE statistics_cookie (longer match: [[ vs [)
       prec(3, $.statistics_cookie),
       prec(3, $.export_snippet),
-      prec(3, $.target),
-      prec(3, $.angle_link),
+      prec(3, $.radio_target),       // Triple angle brackets <<<>>>
+      prec(3, $.target),             // Double angle brackets <<>>
+      prec(3, $.angle_link),         // Single angle brackets <>
       prec(2, ':'),  // Allow colons in title (lower precedence than TAGS and plain_link)
       prec(1, $.plain_text)
     ))),
@@ -144,6 +145,17 @@ module.exports = grammar({
       '<<',
       /[^<>\n]+/,  // Target name: any characters except angle brackets and newline
       '>>'
+    ),
+
+    // Radio target: <<<TARGET>>>
+    // Creates a target that automatically links all matching text in the document
+    // Target name can contain any characters except < > and newline
+    // Per spec: should start/end with non-whitespace and contain inline objects
+    // Simplified implementation: match content, let validation happen elsewhere
+    radio_target: $ => seq(
+      '<<<',
+      /[^<>\n]+/,  // Target name: any characters except angle brackets and newline
+      '>>>'
     ),
 
     // Regular link: [[URL]] or [[URL][DESCRIPTION]]

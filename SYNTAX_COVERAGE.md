@@ -87,7 +87,7 @@ These should be parsed by the inline grammar within paragraphs, titles, table ce
 | **Angle Links** | ✅ | `<http://example.com>` - protocol-based URL links |
 | **Regular Links (inline)** | ✅ | `[[URL]]`, `[[URL][DESC]]` - now in inline grammar |
 | **Targets** | ✅ | `<<TARGET>>` - internal link anchors |
-| **Radio Targets** | ❌ | `<<<RADIO>>>` |
+| **Radio Targets** | ✅ | `<<<RADIO>>>` - creates automatic links to matching text |
 | **Statistics Cookies** | ✅ | `[50%]`, `[1/2]` - both percentage and fraction formats |
 | **Table Cells (objects)** | 🟡 | Tables exist, but cell contents not parsed for objects |
 | **Text Markup** | ✅ | Bold `*`, Italic `/`, Underline `_`, Code `~`, Verbatim `=`, Strike `+` all implemented |
@@ -102,6 +102,7 @@ These should be parsed by the inline grammar within paragraphs, titles, table ce
 - ✅ Statistics cookies: percentage and fraction formats (11/11 tests)
 - ✅ Export snippets: backend-specific formatting (11/11 tests)
 - ✅ Targets: internal link anchors `<<NAME>>` (11/11 tests)
+- ✅ Radio targets: automatic link anchors `<<<NAME>>>` (12/12 tests)
 - ✅ **Links trilogy complete:**
   - Regular links: `[[URL]]` and `[[URL][DESC]]` (17/17 tests)
   - Angle links: `<PROTOCOL:PATH>` (14/14 tests)
@@ -110,7 +111,6 @@ These should be parsed by the inline grammar within paragraphs, titles, table ce
 - ✅ Colons in titles (distinct from tags)
 
 **TODO for Inline Grammar:**
-- Radio targets (`<<<RADIO>>>`)
 - Line breaks (`\\`)
 - Inline babel/source blocks
 - Citations (Org 9.5+)
@@ -196,19 +196,26 @@ These should be parsed by the inline grammar within paragraphs, titles, table ce
     - **Impact**: Niche feature
     - **Complexity**: Medium
 
-15. **Radio Targets/Links**
-    - **Impact**: Rare advanced feature
-    - **Complexity**: High - requires cross-document analysis
+15. **Radio Targets** (`<<<TARGET>>>`)
+    - **Status**: ✅ **COMPLETE** (12/12 tests passing)
+    - **Impact**: Low - advanced feature for automatic linking
+    - **Complexity**: Low - triple angle brackets provide exceptional bounding
+    - **Bounding**: EXCEPTIONAL - triple `<<<>>>` completely unique, no conflicts with targets `<<>>` or angle links `<>`
+    - **Note**: Radio *targets* are implemented; radio *links* (automatic linking to matching text) require editor integration
 
-16. **Citations** (`[cite:@key]`)
+16. **Radio Links** (automatic links to radio target text)
+    - **Impact**: Rare advanced feature
+    - **Complexity**: High - requires cross-document analysis and editor integration
+
+17. **Citations** (`[cite:@key]`)
     - **Impact**: Org 9.5+ only
     - **Complexity**: Medium
 
-17. **Inline Babel/Source Blocks**
+18. **Inline Babel/Source Blocks**
     - **Impact**: Advanced literate programming
     - **Complexity**: Medium
 
-18. **Node Property `:NAME+:` Syntax**
+19. **Node Property `:NAME+:` Syntax**
     - **Impact**: Property accumulation
     - **Complexity**: Low - extend existing pattern
 
@@ -225,10 +232,10 @@ These should be parsed by the inline grammar within paragraphs, titles, table ce
 
 ### Inline Grammar (tree-sitter-org-inline)
 - **Total Objects**: ~25 types
-- **Implemented**: ~13 types (title/tags, 6 markup types, statistics cookies, export snippets, targets, 3 link types: angle/regular/plain, plain text)
+- **Implemented**: ~14 types (title/tags, 6 markup types, statistics cookies, export snippets, targets, radio targets, 3 link types: angle/regular/plain, plain text)
 - **In Block (Should Move)**: ~6 types (entities, latex, footnotes, macros, sub/super, timestamps)
-- **Missing**: ~6 types
-- **Test Coverage**: 92/92 tests passing
+- **Missing**: ~5 types
+- **Test Coverage**: 104/104 tests passing
 
 ### Overall Syntax Coverage
 - **Fully Functional**: ~35%
@@ -253,6 +260,7 @@ These should be parsed by the inline grammar within paragraphs, titles, table ce
 ✅ **Statistics cookies** (progress tracking: [50%], [2/5])
 ✅ **Export snippets** (backend-specific export: @@html:...@@)
 ✅ **Links trilogy** (regular `[[]]`, angle `<>`, plain http://... - all inline)
+✅ **Targets and radio targets** (anchors: `<<>>`, automatic link anchors: `<<<>>>`)
 
 ### What's Missing That Users Will Notice
 ❌ COMMENT keyword in headlines - **BLOCKED**

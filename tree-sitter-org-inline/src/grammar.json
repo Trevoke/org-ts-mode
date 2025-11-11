@@ -117,6 +117,14 @@
               "value": 3,
               "content": {
                 "type": "SYMBOL",
+                "name": "radio_target"
+              }
+            },
+            {
+              "type": "PREC",
+              "value": 3,
+              "content": {
+                "type": "SYMBOL",
                 "name": "target"
               }
             },
@@ -369,6 +377,23 @@
         {
           "type": "STRING",
           "value": ">>"
+        }
+      ]
+    },
+    "radio_target": {
+      "type": "SEQ",
+      "members": [
+        {
+          "type": "STRING",
+          "value": "<<<"
+        },
+        {
+          "type": "PATTERN",
+          "value": "[^<>\\n]+"
+        },
+        {
+          "type": "STRING",
+          "value": ">>>"
         }
       ]
     },

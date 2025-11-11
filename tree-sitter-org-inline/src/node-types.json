@@ -49,6 +49,11 @@
     "fields": {}
   },
   {
+    "type": "radio_target",
+    "named": true,
+    "fields": {}
+  },
+  {
     "type": "regular_link",
     "named": true,
     "fields": {}
@@ -125,6 +130,10 @@
         },
         {
           "type": "plain_text",
+          "named": true
+        },
+        {
+          "type": "radio_target",
           "named": true
         },
         {
@@ -227,6 +236,10 @@
     "named": false
   },
   {
+    "type": "<<<",
+    "named": false
+  },
+  {
     "type": "=",
     "named": false
   },
@@ -236,6 +249,10 @@
   },
   {
     "type": ">>",
+    "named": false
+  },
+  {
+    "type": ">>>",
     "named": false
   },
   {
