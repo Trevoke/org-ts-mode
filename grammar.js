@@ -99,6 +99,8 @@ module.exports = grammar({
     // Must be exact string "COMMENT" (case-sensitive)
     // Appears after TODO/priority but before title
     // High token precedence ensures it's matched before title can consume it
+    // Note: Like TODO/DONE keywords, this will match as a prefix (e.g., "COMMENTED" will match "COMMENT")
+    // This is a known limitation - proper word boundary checking requires external scanner
     comment_keyword: $ => token(prec(10, 'COMMENT')),
 
     // Title: headline text (currently absorbs tags)
