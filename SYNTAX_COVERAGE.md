@@ -85,7 +85,7 @@ These should be parsed by the inline grammar within paragraphs, titles, table ce
 | **Radio Links** | ❌ | Text matched by radio targets |
 | **Plain Links** | ❌ | `http://example.com` without brackets |
 | **Angle Links** | ✅ | `<http://example.com>` - protocol-based URL links |
-| **Regular Links (inline)** | 📋 | Currently block-level, need inline |
+| **Regular Links (inline)** | ✅ | `[[URL]]`, `[[URL][DESC]]` - now in inline grammar |
 | **Targets** | ✅ | `<<TARGET>>` - internal link anchors |
 | **Radio Targets** | ❌ | `<<<RADIO>>>` |
 | **Statistics Cookies** | ✅ | `[50%]`, `[1/2]` - both percentage and fraction formats |
@@ -103,11 +103,11 @@ These should be parsed by the inline grammar within paragraphs, titles, table ce
 - ✅ Export snippets: backend-specific formatting (11/11 tests)
 - ✅ Targets: internal link anchors `<<NAME>>` (11/11 tests)
 - ✅ Angle links: protocol-based URLs `<PROTOCOL:PATH>` (14/14 tests)
+- ✅ Regular links: `[[URL]]` and `[[URL][DESC]]` (17/17 tests)
 - ✅ Plain text with proper whitespace handling
 - ✅ Colons in titles (distinct from tags)
 
 **TODO for Inline Grammar:**
-- Links within paragraphs (not just block-level)
 - Plain links (bare URLs without brackets)
 - Radio targets (`<<<RADIO>>>`)
 - Line breaks (`\\`)
@@ -228,10 +228,10 @@ These should be parsed by the inline grammar within paragraphs, titles, table ce
 
 ### Inline Grammar (tree-sitter-org-inline)
 - **Total Objects**: ~25 types
-- **Implemented**: ~11 types (title/tags, 6 markup types, statistics cookies, export snippets, targets, angle links, plain text)
-- **In Block (Should Move)**: ~7 types (entities, latex, footnotes, links, macros, sub/super, timestamps)
-- **Missing**: ~7 types
-- **Test Coverage**: 66/66 tests passing
+- **Implemented**: ~12 types (title/tags, 6 markup types, statistics cookies, export snippets, targets, angle links, regular links, plain text)
+- **In Block (Should Move)**: ~6 types (entities, latex, footnotes, macros, sub/super, timestamps)
+- **Missing**: ~6 types
+- **Test Coverage**: 83/83 tests passing
 
 ### Overall Syntax Coverage
 - **Fully Functional**: ~35%
