@@ -1,0 +1,74 @@
+==================
+Simple plain text
+==================
+
+Simple text without markup
+
+---
+
+(inline
+  (title_only
+    (title
+      (plain_text))))
+
+==================
+Plain text with spaces
+==================
+
+Text with multiple spaces here
+
+---
+
+(inline
+  (title_only
+    (title
+      (plain_text))))
+
+==================
+Plain text with punctuation
+==================
+
+Text with punctuation, like this! And more?
+
+---
+
+(inline
+  (title_only
+    (title
+      (plain_text))))
+
+==================
+Plain text with numbers
+==================
+
+Text with numbers 123 and letters
+
+---
+
+(inline
+  (title_only
+    (title
+      (plain_text))))
+
+==================
+Plain text with various characters
+==================
+
+Text-with-dashes_and_underscores+plus
+
+---
+
+(inline
+  (title_only
+    (title
+      (plain_text))))
+
+==================
+Empty title (edge case)
+==================
+
+
+
+---
+
+(inline)
