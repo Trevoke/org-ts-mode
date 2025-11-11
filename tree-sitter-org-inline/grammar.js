@@ -47,13 +47,14 @@ module.exports = grammar({
     // Title: sequence of inline objects, including colons
     // Use repeat1 to ensure at least one object
     // Colons are explicit tokens so external scanner can intercept for tags
-    // Higher precedence for inline objects (markup/cookies/snippets/targets), then colon, then plain text
+    // Higher precedence for inline objects (markup/cookies/snippets/targets/links), then colon, then plain text
     // Right-associative to greedily consume all content
     title: $ => prec.right(repeat1(choice(
       prec(3, $.text_markup),
       prec(3, $.statistics_cookie),
       prec(3, $.export_snippet),
       prec(3, $.target),
+      prec(3, $.angle_link),
       prec(2, ':'),  // Allow colons in title (lower precedence than TAGS)
       prec(1, $.plain_text)
     ))),
@@ -141,6 +142,20 @@ module.exports = grammar({
       '<<',
       /[^<>\n]+/,  // Target name: any characters except angle brackets and newline
       '>>'
+    ),
+
+    // Angle link: <PROTOCOL:PATH>
+    // More permissive than plain links (allows whitespace, parentheses)
+    // Protocol required to distinguish from plain angle brackets in text
+    // Common protocols: http, https, file, ftp, mailto, news, etc.
+    // PATH can contain any character except > (newlines/indentation ignored per spec)
+    angle_link: $ => seq(
+      '<',
+      // Protocol: alphanumeric + optional plus/dot/hyphen, followed by colon
+      /[a-zA-Z][a-zA-Z0-9+.-]*:/,
+      // Path: any characters except > and newline
+      /[^>\n]+/,
+      '>'
     ),
 
     // Plain text - any characters except markup delimiters, brackets, @, angle brackets, colon, newline

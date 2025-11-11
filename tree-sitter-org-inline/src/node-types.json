@@ -1,5 +1,10 @@
 [
   {
+    "type": "angle_link",
+    "named": true,
+    "fields": {}
+  },
+  {
     "type": "bold",
     "named": true,
     "fields": {}
@@ -102,6 +107,10 @@
       "required": false,
       "types": [
         {
+          "type": "angle_link",
+          "named": true
+        },
+        {
           "type": "export_snippet",
           "named": true
         },
@@ -197,11 +206,19 @@
     "named": false
   },
   {
+    "type": "<",
+    "named": false
+  },
+  {
     "type": "<<",
     "named": false
   },
   {
     "type": "=",
+    "named": false
+  },
+  {
+    "type": ">",
     "named": false
   },
   {
