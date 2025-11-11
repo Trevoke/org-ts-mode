@@ -1,11 +1,6 @@
 {
   "name": "org",
-  "word": "_word",
   "rules": {
-    "_word": {
-      "type": "PATTERN",
-      "value": "\\w+"
-    },
     "document": {
       "type": "REPEAT",
       "content": {
@@ -180,19 +175,24 @@
                 }
               },
               {
-                "type": "STRING",
-                "value": " "
-              },
-              {
                 "type": "CHOICE",
                 "members": [
                   {
-                    "type": "FIELD",
-                    "name": "title",
-                    "content": {
-                      "type": "SYMBOL",
-                      "name": "title"
-                    }
+                    "type": "SEQ",
+                    "members": [
+                      {
+                        "type": "STRING",
+                        "value": " "
+                      },
+                      {
+                        "type": "FIELD",
+                        "name": "title",
+                        "content": {
+                          "type": "SYMBOL",
+                          "name": "title"
+                        }
+                      }
+                    ]
                   },
                   {
                     "type": "BLANK"
@@ -352,8 +352,15 @@
       }
     },
     "comment_keyword": {
-      "type": "STRING",
-      "value": "COMMENT"
+      "type": "TOKEN",
+      "content": {
+        "type": "PREC",
+        "value": 10,
+        "content": {
+          "type": "STRING",
+          "value": "COMMENT"
+        }
+      }
     },
     "title": {
       "type": "PATTERN",

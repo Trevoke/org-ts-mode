@@ -49,18 +49,17 @@ module.exports = grammar({
     // Note: Tags are currently absorbed into title. This is a known limitation
     // that will be addressed via inline grammar injection (see tree-sitter-org-inline)
     headline: $ => choice(
-      // Variant 2: Headline WITHOUT COMMENT keyword
-      prec.dynamic(1, seq(
-        $._headline_prefix,
-        optional(field('title', $.title)),
-        '\n'
-      )),
       // Variant 1: Headline WITH COMMENT keyword (preferred)
-      // Dynamic precedence ensures this variant is chosen when both could match
+      // Dynamic precedence + conflicts declaration enables GLR disambiguation
       prec.dynamic(2, seq(
         $._headline_prefix,
         field('comment', $.comment_keyword),
-        ' ',
+        optional(seq(' ', field('title', $.title))),
+        '\n'
+      )),
+      // Variant 2: Headline WITHOUT COMMENT keyword
+      prec.dynamic(1, seq(
+        $._headline_prefix,
         optional(field('title', $.title)),
         '\n'
       ))
@@ -99,7 +98,8 @@ module.exports = grammar({
     // COMMENT keyword: marks entire headline (and subtree) as commented
     // Must be exact string "COMMENT" (case-sensitive)
     // Appears after TODO/priority but before title
-    comment_keyword: $ => 'COMMENT',
+    // High token precedence ensures it's matched before title can consume it
+    comment_keyword: $ => token(prec(10, 'COMMENT')),
 
     // Title: headline text (currently absorbs tags)
     // This will be replaced by inline grammar injection in tree-sitter-org-inline
