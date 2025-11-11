@@ -86,7 +86,7 @@ These should be parsed by the inline grammar within paragraphs, titles, table ce
 | **Plain Links** | ❌ | `http://example.com` without brackets |
 | **Angle Links** | ❌ | `<http://example.com>` |
 | **Regular Links (inline)** | 📋 | Currently block-level, need inline |
-| **Targets** | ❌ | `<<TARGET>>` |
+| **Targets** | ✅ | `<<TARGET>>` - internal link anchors |
 | **Radio Targets** | ❌ | `<<<RADIO>>>` |
 | **Statistics Cookies** | ✅ | `[50%]`, `[1/2]` - both percentage and fraction formats |
 | **Table Cells (objects)** | 🟡 | Tables exist, but cell contents not parsed for objects |
@@ -101,13 +101,14 @@ These should be parsed by the inline grammar within paragraphs, titles, table ce
 - ✅ Text markup: bold, italic, underline, code, verbatim, strike-through (11/11 tests)
 - ✅ Statistics cookies: percentage and fraction formats (11/11 tests)
 - ✅ Export snippets: backend-specific formatting (11/11 tests)
+- ✅ Targets: internal link anchors `<<NAME>>` (11/11 tests)
 - ✅ Plain text with proper whitespace handling
 - ✅ Colons in titles (distinct from tags)
 
 **TODO for Inline Grammar:**
 - Links within paragraphs (not just block-level)
 - Plain links, angle links
-- Targets and radio targets
+- Radio targets (`<<<RADIO>>>`)
 - Line breaks (`\\`)
 - Inline babel/source blocks
 - Citations (Org 9.5+)
@@ -226,10 +227,10 @@ These should be parsed by the inline grammar within paragraphs, titles, table ce
 
 ### Inline Grammar (tree-sitter-org-inline)
 - **Total Objects**: ~25 types
-- **Implemented**: ~9 types (title/tags, 6 markup types, statistics cookies, export snippets, plain text)
+- **Implemented**: ~10 types (title/tags, 6 markup types, statistics cookies, export snippets, targets, plain text)
 - **In Block (Should Move)**: ~7 types (entities, latex, footnotes, links, macros, sub/super, timestamps)
-- **Missing**: ~9 types
-- **Test Coverage**: 41/41 tests passing
+- **Missing**: ~8 types
+- **Test Coverage**: 52/52 tests passing
 
 ### Overall Syntax Coverage
 - **Fully Functional**: ~35%
