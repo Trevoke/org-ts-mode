@@ -16,6 +16,25 @@
     }
   },
   {
+    "type": "macro",
+    "named": true,
+    "fields": {},
+    "children": {
+      "multiple": true,
+      "required": true,
+      "types": [
+        {
+          "type": "macro_args",
+          "named": true
+        },
+        {
+          "type": "macro_name",
+          "named": true
+        }
+      ]
+    }
+  },
+  {
     "type": "title",
     "named": true,
     "fields": {},
@@ -23,6 +42,10 @@
       "multiple": true,
       "required": true,
       "types": [
+        {
+          "type": "macro",
+          "named": true
+        },
         {
           "type": "plain_text",
           "named": true
@@ -55,6 +78,22 @@
     }
   },
   {
+    "type": "(",
+    "named": false
+  },
+  {
+    "type": ")",
+    "named": false
+  },
+  {
+    "type": "macro_args",
+    "named": true
+  },
+  {
+    "type": "macro_name",
+    "named": true
+  },
+  {
     "type": "plain_text",
     "named": true
   },
@@ -65,5 +104,13 @@
   {
     "type": "target",
     "named": true
+  },
+  {
+    "type": "{{{",
+    "named": false
+  },
+  {
+    "type": "}}}",
+    "named": false
   }
 ]

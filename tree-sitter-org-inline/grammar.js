@@ -35,10 +35,14 @@ module.exports = grammar({
     // Title: Sequence of objects and plain text
     // Phase 1: Just plain text
     // Phase 2a: Add targets and radio targets
+    // Phase 2b: Add macros
     title: $ => repeat1(choice(
       // Phase 2a: Targets (unique delimiters, no conflicts)
       prec(3, $.radio_target),  // <<<>>> - must match before target (longer delimiter)
       prec(3, $.target),         // <<>>
+
+      // Phase 2b: Macros (unique delimiters, no conflicts)
+      prec(3, $.macro),          // {{{name}}}
 
       // Plain text (fallback)
       prec(1, $.plain_text)
@@ -63,8 +67,24 @@ module.exports = grammar({
       '>>>'
     )),
 
-    // Plain text: Any characters except newline or angle brackets
-    // Exclude < and > so targets can be recognized
-    plain_text: $ => /[^<\n]+/,
+    // Macro: {{{name}}} or {{{name(args)}}}
+    // Used for text replacement and templating
+    // Name: letter followed by letters/digits/underscores/hyphens
+    // Args: any characters except } and )
+    // NOT atomic - we want internal structure (macro_name, macro_args) visible
+    macro: $ => seq(
+      '{{{',
+      alias(/[a-zA-Z][a-zA-Z0-9_-]*/, $.macro_name),
+      optional(seq(
+        '(',
+        alias(/[^})]+/, $.macro_args),
+        ')'
+      )),
+      '}}}'
+    ),
+
+    // Plain text: Any characters except newline or special delimiters
+    // Exclude <, {, and > so targets and macros can be recognized
+    plain_text: $ => /[^<{\n]+/,
   }
 });
