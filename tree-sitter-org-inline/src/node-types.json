@@ -54,6 +54,11 @@
     "fields": {}
   },
   {
+    "type": "target",
+    "named": true,
+    "fields": {}
+  },
+  {
     "type": "text_markup",
     "named": true,
     "fields": {},
@@ -106,6 +111,10 @@
         },
         {
           "type": "statistics_cookie",
+          "named": true
+        },
+        {
+          "type": "target",
           "named": true
         },
         {
@@ -188,7 +197,15 @@
     "named": false
   },
   {
+    "type": "<<",
+    "named": false
+  },
+  {
     "type": "=",
+    "named": false
+  },
+  {
+    "type": ">>",
     "named": false
   },
   {

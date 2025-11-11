@@ -47,12 +47,13 @@ module.exports = grammar({
     // Title: sequence of inline objects, including colons
     // Use repeat1 to ensure at least one object
     // Colons are explicit tokens so external scanner can intercept for tags
-    // Higher precedence for inline objects (markup/cookies/snippets), then colon, then plain text
+    // Higher precedence for inline objects (markup/cookies/snippets/targets), then colon, then plain text
     // Right-associative to greedily consume all content
     title: $ => prec.right(repeat1(choice(
       prec(3, $.text_markup),
       prec(3, $.statistics_cookie),
       prec(3, $.export_snippet),
+      prec(3, $.target),
       prec(2, ':'),  // Allow colons in title (lower precedence than TAGS)
       prec(1, $.plain_text)
     ))),
@@ -132,11 +133,22 @@ module.exports = grammar({
       '@@'
     ),
 
-    // Plain text - any characters except markup delimiters, brackets, @, colon, newline
-    // Lower precedence so markup, cookies, snippets, and explicit colons are preferred
+    // Target: <<TARGET>>
+    // Used as anchors for internal links and references
+    // Target name can contain any characters except < > and newline
+    // Can include spaces, hyphens, underscores, dots, etc.
+    target: $ => seq(
+      '<<',
+      /[^<>\n]+/,  // Target name: any characters except angle brackets and newline
+      '>>'
+    ),
+
+    // Plain text - any characters except markup delimiters, brackets, @, angle brackets, colon, newline
+    // Lower precedence so markup, cookies, snippets, targets, and explicit colons are preferred
     // Colons are handled separately to allow external scanner to recognize tags
-    // Brackets are excluded so statistics cookies can be recognized
+    // Square brackets are excluded so statistics cookies can be recognized
     // @ is excluded so export snippets can be recognized
-    plain_text: $ => prec(1, /[^*\/~=_+:@\[\]\n]+/),
+    // Angle brackets are excluded so targets can be recognized
+    plain_text: $ => prec(1, /[^*\/~=_+:@\[\]<>\n]+/),
   }
 });
