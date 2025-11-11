@@ -108,6 +108,10 @@
           "named": true
         },
         {
+          "type": "diary_sexp",
+          "named": true
+        },
+        {
           "type": "directive",
           "named": true
         },
@@ -471,6 +475,10 @@
   },
   {
     "type": "clock",
+    "named": true
+  },
+  {
+    "type": "diary_sexp",
     "named": true
   },
   {

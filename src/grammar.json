@@ -32,6 +32,14 @@
           }
         },
         {
+          "type": "PREC",
+          "value": 2,
+          "content": {
+            "type": "SYMBOL",
+            "name": "diary_sexp"
+          }
+        },
+        {
           "type": "SYMBOL",
           "name": "link"
         },
@@ -481,6 +489,34 @@
                 ]
               }
             ]
+          },
+          {
+            "type": "STRING",
+            "value": "\n"
+          }
+        ]
+      }
+    },
+    "diary_sexp": {
+      "type": "TOKEN",
+      "content": {
+        "type": "SEQ",
+        "members": [
+          {
+            "type": "STRING",
+            "value": "%%"
+          },
+          {
+            "type": "STRING",
+            "value": "("
+          },
+          {
+            "type": "PATTERN",
+            "value": "[^\\n)]*(?:\\([^)]*\\)[^\\n)]*)*"
+          },
+          {
+            "type": "STRING",
+            "value": ")"
           },
           {
             "type": "STRING",

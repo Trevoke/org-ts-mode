@@ -17,6 +17,7 @@ module.exports = grammar({
       $.headline,
       prec(2, $.planning_line),
       prec(2, $.clock),
+      prec(2, $.diary_sexp),
       $.link,
       prec(2, $.footnote_reference),
       $.timestamp,
@@ -119,6 +120,19 @@ module.exports = grammar({
           /\d+:\d{2}/
         )
       ),
+      '\n'
+    )),
+
+    // Diary sexp: %%(lisp-expression)
+    // Must be unindented and single-line only per org-mode spec
+    // Content: Lisp expression with balanced parentheses
+    // Simplified pattern: matches ( followed by any content followed by )
+    // Does not validate paren balancing - relies on users writing valid Lisp
+    diary_sexp: $ => token(seq(
+      '%%',
+      '(',
+      /[^\n)]*(?:\([^)]*\)[^\n)]*)*/,  // Content with optional nested parens (simplified)
+      ')',
       '\n'
     )),
 
