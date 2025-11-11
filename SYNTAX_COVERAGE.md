@@ -46,12 +46,12 @@ Based on the official spec at https://orgmode.org/worg/org-syntax.html
 
 | Element | Status | Tests | Notes |
 |---------|--------|-------|-------|
-| **Headings** | 🟡 | Yes | STARS, KEYWORD, PRIORITY, TITLE - missing COMMENT keyword |
+| **Headings** | ✅ | Yes | STARS, KEYWORD, PRIORITY, COMMENT, TITLE all implemented |
 | **Sections** | ✅ | Implicit | Content between headings |
 | **Zeroth Section** | ✅ | Implicit | Content before first heading |
 
-**Heading Components Missing:**
-- ❌ COMMENT keyword (literal "COMMENT" in title makes heading non-TODO)
+**Heading Components:**
+- ✅ COMMENT keyword (marks heading and subtree as commented)
 - 🟡 TAGS (currently absorbed into title, will be in inline grammar)
 
 ---
@@ -127,13 +127,14 @@ These should be parsed by the inline grammar within paragraphs, titles, table ce
    - **Location**: Inline grammar
    - **Bounding**: Excellent - self-contained, localized failures, graceful degradation
 
-2. **COMMENT Keyword in Headlines** ⚠️  **BLOCKED**
-   - **Impact**: Common for disabling sections
+2. **COMMENT Keyword in Headlines**
+   - **Status**: ✅ **COMPLETE** (13/13 tests passing)
+   - **Impact**: Common for disabling sections and subtrees
    - **Location**: Block grammar headline
-   - **Complexity**: HIGH - token conflict with greedy title regex
-   - **Issue**: Title pattern `/[^\n]+/` creates implicit token that consumes "COMMENT..." before COMMENT token can match
-   - **Solution needed**: External scanner for title that checks for/excludes COMMENT, or restructure title to not be a simple regex
-   - **Bounding Impact**: This demonstrates poor bounding - title's greediness prevents proper keyword recognition
+   - **Complexity**: HIGH - solved with token precedence and grammar restructuring
+   - **Solution**: `token(prec(10, 'COMMENT'))` + choice structure with prec.dynamic
+   - **Bounding**: Good - restructured headline as choice to isolate COMMENT variant
+   - **Known limitation**: Like TODO/DONE, will match prefix (e.g., "COMMENTED" matches "COMMENT")
 
 3. **Fixed Width Areas** (`: content`)
    - **Status**: ✅ **COMPLETE** (5/5 tests passing)
@@ -225,10 +226,10 @@ These should be parsed by the inline grammar within paragraphs, titles, table ce
 
 ### Block Grammar (tree-sitter-org)
 - **Total Elements**: ~25 types
-- **Implemented**: ~20 types (✅ 80%)
-- **Partial**: ~4 types (🟡 16%)
-- **Missing**: ~5 types (❌ 20%)
-- **Test Coverage**: 146/146 tests passing
+- **Implemented**: ~21 types (✅ 84%)
+- **Partial**: ~3 types (🟡 12%)
+- **Missing**: ~4 types (❌ 16%)
+- **Test Coverage**: 159/159 tests passing (146 existing + 13 COMMENT tests)
 
 ### Inline Grammar (tree-sitter-org-inline)
 - **Total Objects**: ~25 types
@@ -261,8 +262,9 @@ These should be parsed by the inline grammar within paragraphs, titles, table ce
 ✅ **Export snippets** (backend-specific export: @@html:...@@)
 ✅ **Links trilogy** (regular `[[]]`, angle `<>`, plain http://... - all inline)
 ✅ **Targets and radio targets** (anchors: `<<>>`, automatic link anchors: `<<<>>>`)
+✅ **COMMENT keyword** (headlines: marks heading and subtree as commented)
 
 ### What's Missing That Users Will Notice
-❌ COMMENT keyword in headlines - **BLOCKED**
 ❌ Line breaks - **Requires paragraph restructuring**
 ❌ Objects in table cells
+❌ Inlinetasks (15+ stars)
