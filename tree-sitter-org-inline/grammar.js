@@ -1,15 +1,15 @@
 /**
- * @file Inline (Object-level) grammar for Org-mode - Phase 4: Subscript/Superscript
+ * @file Inline (Object-level) grammar for Org-mode - Phase 5: Tags
  * @author Org-TS-Mode Contributors
  * @license MIT
  *
- * PHASE 4: Subscript and superscript with external scanner
+ * PHASE 5: Tags with external scanner
  *
  * This is a systematic rebuild following TDD principles.
  * See doc/INLINE_GRAMMAR_ANALYSIS.md for complete rebuild plan.
  *
- * Current phase: Phase 4 - Subscript/superscript via C external scanner
- * Next phase: Phase 5 - Tags with external scanner
+ * Current phase: Phase 5 - Tags at end of title (:tag1:tag2:)
+ * Status: All phases complete - systematic TDD rebuild finished!
  */
 
 /// <reference types="tree-sitter-cli/dsl" />
@@ -18,21 +18,31 @@
 module.exports = grammar({
   name: 'org_inline',
 
-  // Phase 4: External scanner for subscript/superscript
+  // Phase 4-5: External scanner for subscript/superscript and tags
   externals: $ => [
     $.subscript,
     $.superscript,
+    $.tags,  // Phase 5: Tags at end of title
   ],
 
   // Only skip newlines (they delimit inline content)
   extras: $ => ['\n'],
 
   rules: {
-    // Root: Optional title_only to handle empty inline content
+    // Root: Optional title (with or without tags)
     // Only start rule can match empty string in tree-sitter
-    inline: $ => optional($.title_only),
+    inline: $ => optional(choice(
+      $.title_with_tags,  // Phase 5: Title with tags at end
+      $.title_only        // Title without tags
+    )),
 
-    // Title without tags (tags come in Phase 5)
+    // Phase 5: Title with tags
+    title_with_tags: $ => seq(
+      field('title', $.title),
+      field('tags', $.tags)
+    ),
+
+    // Title without tags
     title_only: $ => field('title', $.title),
 
     // Title: Sequence of objects and plain text
@@ -81,6 +91,9 @@ module.exports = grammar({
       // Phase 4: Subscript and superscript (external scanner)
       prec(3, $.subscript),    // H_2O - handled by external scanner
       prec(3, $.superscript),  // x^2 - handled by external scanner
+
+      // Phase 5: Standalone colon (for cases like "Note: something" that aren't tags)
+      prec(1, ':'),
 
       // Plain text (fallback)
       prec(1, $.plain_text)
@@ -306,7 +319,8 @@ module.exports = grammar({
     )),
 
     // Plain text: Any characters except newline or special delimiters
-    // Exclude <, {, \, [, @, *, /, ~, =, +, _, ^ so all objects and markup can be recognized
-    plain_text: $ => /[^<{\\\[@*\/~=+_^\n]+/,
+    // Exclude <, {, \, [, @, *, /, ~, =, +, _, ^, : so all objects and markup can be recognized
+    // Note: : is excluded for tags detection (most other : uses are in atomic tokens)
+    plain_text: $ => /[^<{\\\[@*\/~=+_^:\n]+/,
   }
 });

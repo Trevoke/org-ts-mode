@@ -16,6 +16,7 @@
 enum TokenType {
   SUBSCRIPT,
   SUPERSCRIPT,
+  TAGS,  // Phase 5
 };
 
 // Scanner state (currently no state needed)
@@ -109,6 +110,52 @@ static bool parse_script(TSLexer *lexer) {
   return has_content && (iswalnum(last_char));
 }
 
+// Helper: Check if character is valid in tag name
+// Tags can contain: alphanumeric, _, @, #, %
+static inline bool is_valid_tag_char(int32_t c) {
+  return iswalnum(c) || c == '_' || c == '@' || c == '#' || c == '%';
+}
+
+// Helper: Try to parse tags at end of title
+// Pattern: :tag1:tag2:tag3: (at end of line, usually preceded by space)
+// Returns true if valid tags pattern found and consumed
+static bool parse_tags(TSLexer *lexer) {
+  // Tags start with ':'
+  if (lexer->lookahead != ':') return false;
+
+  int tags_count = 0;
+
+  // Parse :tag:tag:tag: pattern
+  while (lexer->lookahead == ':') {
+    lexer->advance(lexer, false); // Consume ':'
+
+    // Check if we're at end of line (final ':' of tags)
+    if (lexer->lookahead == '\n' || lexer->lookahead == 0) {
+      // Valid tags pattern: consumed at least one tag
+      return tags_count > 0;
+    }
+
+    // Parse tag name between colons
+    bool has_tag_chars = false;
+    while (is_valid_tag_char(lexer->lookahead)) {
+      has_tag_chars = true;
+      lexer->advance(lexer, false);
+    }
+
+    // Must have at least one tag character between colons
+    if (!has_tag_chars) {
+      // Empty tag like :: - not valid
+      return false;
+    }
+
+    tags_count++;
+  }
+
+  // Reached here means we exited loop (no more ':')
+  // This shouldn't happen if pattern is correct, return false
+  return false;
+}
+
 // Create scanner instance
 void *tree_sitter_org_inline_external_scanner_create() {
   Scanner *scanner = (Scanner *)malloc(sizeof(Scanner));
@@ -183,6 +230,22 @@ bool tree_sitter_org_inline_external_scanner_scan(
         return true;
       }
       // Pattern didn't match - tree-sitter will backtrack automatically
+      return false;
+    }
+  }
+
+  // Try to scan tags (Phase 5)
+  // Tags appear at end of title: :tag1:tag2:
+  if (valid_symbols[TAGS]) {
+    if (lexer->lookahead == ':') {
+      // Try to parse tags pattern
+      if (parse_tags(lexer)) {
+        // Valid tags pattern found and consumed
+        lexer->mark_end(lexer);
+        lexer->result_symbol = TAGS;
+        return true;
+      }
+      // Not a valid tags pattern, let other parsers handle the ':'
       return false;
     }
   }
