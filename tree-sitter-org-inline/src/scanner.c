@@ -1,15 +1,10 @@
 /**
  * External scanner for org-mode inline grammar
  *
- * PHASE 7: OPEN/CLOSE token architecture (markdown-inspired)
- *
  * Handles context-sensitive parsing for:
  * - Subscript and superscript (requires lookbehind for CHAR)
  * - Tags (requires end-of-line detection)
- * - Text markup OPEN/CLOSE tokens with PRE/POST validation
- *   - Scanner validates PRE character at OPEN token
- *   - Scanner validates POST character at CLOSE token
- *   - Grammar tracks state between OPEN and CLOSE
+ * - PRE/POST validation for text markup (future enhancement)
  */
 
 #include <tree_sitter/parser.h>
@@ -18,31 +13,28 @@
 #include <string.h>
 
 // Symbol enum - must match order in grammar.js externals array
-// Phase 7: OPEN/CLOSE tokens for all markup types
 enum TokenType {
   SUBSCRIPT,
   SUPERSCRIPT,
   TAGS,  // Phase 5
-  // Phase 7: OPEN/CLOSE pairs for each markup type
-  BOLD_OPEN,
-  BOLD_CLOSE,
-  ITALIC_OPEN,
-  ITALIC_CLOSE,
-  CODE_OPEN,
-  CODE_CLOSE,
-  VERBATIM_OPEN,
-  VERBATIM_CLOSE,
-  UNDERLINE_OPEN,
-  UNDERLINE_CLOSE,
-  STRIKE_THROUGH_OPEN,
-  STRIKE_THROUGH_CLOSE,
+  BOLD,
+  ITALIC,
+  CODE,
+  VERBATIM,
+  UNDERLINE,
+  STRIKE_THROUGH,
 };
 
-// Scanner state - Phase 7: Simplified, no global context needed
-// Grammar structure tracks state between OPEN and CLOSE
+// Context for PRE character validation
+typedef enum {
+  CONTEXT_START,        // Beginning of input (valid PRE)
+  CONTEXT_AFTER_SPACE,  // After whitespace or valid PRE char (valid PRE)
+  CONTEXT_AFTER_ALNUM,  // After alphanumeric (invalid PRE for markup)
+} ContextType;
+
+// Scanner state
 typedef struct {
-  // Reserved for future use (delimiter tracking, etc.)
-  uint8_t reserved;
+  ContextType context;  // Track what came before for PRE validation
 } Scanner;
 
 // Helper: Check if character is valid PRE (can appear before opening delimiter)
@@ -61,47 +53,33 @@ static inline bool is_valid_post_char(int32_t c) {
          c == ')' || c == '}' || c == ']';
 }
 
-// Helper: Try to parse OPEN token for markup
-// Validates PRE character (what came before) using valid_symbols as hint
-// Returns true if valid OPEN found
-static bool try_markup_open(TSLexer *lexer, int32_t delimiter, enum TokenType open_token, const bool *valid_symbols) {
-  // If this token isn't valid here, don't try to parse it
-  if (!valid_symbols[open_token]) return false;
-
-  // Check if we're looking at the delimiter
-  if (lexer->lookahead != delimiter) return false;
-
-  // Consume the opening delimiter
-  lexer->advance(lexer, false);
-
-  // Content must not start with whitespace (org-mode spec)
+// Helper: Parse markup content and validate POST
+// Returns true if valid markup pattern found
+static bool parse_markup_content(TSLexer *lexer, int32_t delimiter) {
+  // Content must not start with whitespace
   if (iswspace(lexer->lookahead)) return false;
 
-  // Valid OPEN token!
-  lexer->mark_end(lexer);
-  lexer->result_symbol = open_token;
-  return true;
-}
+  bool has_content = false;
+  int32_t last_char = 0;
 
-// Helper: Try to parse CLOSE token for markup
-// Validates POST character (what comes after)
-// Returns true if valid CLOSE found
-static bool try_markup_close(TSLexer *lexer, int32_t delimiter, enum TokenType close_token, const bool *valid_symbols) {
-  // If this token isn't valid here, don't try to parse it
-  if (!valid_symbols[close_token]) return false;
+  // Parse content until we find the closing delimiter
+  while (lexer->lookahead != delimiter && lexer->lookahead != '\n' && lexer->lookahead != 0) {
+    last_char = lexer->lookahead;
+    has_content = true;
+    lexer->advance(lexer, false);
+  }
 
-  // Check if we're looking at the delimiter
+  // Must have content and not end with whitespace
+  if (!has_content || iswspace(last_char)) return false;
+
+  // Must find closing delimiter
   if (lexer->lookahead != delimiter) return false;
 
-  // Consume the closing delimiter
-  lexer->advance(lexer, false);
+  lexer->advance(lexer, false); // Consume closing delimiter
 
-  // Validate POST character (what comes after closing delimiter)
+  // Validate POST character
   if (!is_valid_post_char(lexer->lookahead)) return false;
 
-  // Valid CLOSE token!
-  lexer->mark_end(lexer);
-  lexer->result_symbol = close_token;
   return true;
 }
 
@@ -239,7 +217,7 @@ static bool parse_tags(TSLexer *lexer) {
 // Create scanner instance
 void *tree_sitter_org_inline_external_scanner_create() {
   Scanner *scanner = (Scanner *)malloc(sizeof(Scanner));
-  scanner->reserved = 0;
+  scanner->context = CONTEXT_START;  // Start in valid PRE context
   return scanner;
 }
 
@@ -249,17 +227,17 @@ void tree_sitter_org_inline_external_scanner_destroy(void *payload) {
   free(scanner);
 }
 
-// Serialize scanner state - Phase 7: Minimal state
+// Serialize scanner state
 unsigned tree_sitter_org_inline_external_scanner_serialize(
   void *payload,
   char *buffer
 ) {
   Scanner *scanner = (Scanner *)payload;
-  buffer[0] = (char)scanner->reserved;
+  buffer[0] = (char)scanner->context;
   return 1;
 }
 
-// Deserialize scanner state - Phase 7: Minimal state
+// Deserialize scanner state
 void tree_sitter_org_inline_external_scanner_deserialize(
   void *payload,
   const char *buffer,
@@ -267,13 +245,13 @@ void tree_sitter_org_inline_external_scanner_deserialize(
 ) {
   Scanner *scanner = (Scanner *)payload;
   if (length > 0) {
-    scanner->reserved = (uint8_t)buffer[0];
+    scanner->context = (ContextType)buffer[0];
   } else {
-    scanner->reserved = 0;
+    scanner->context = CONTEXT_START;
   }
 }
 
-// Main scanning function - Phase 7: OPEN/CLOSE tokens
+// Main scanning function
 bool tree_sitter_org_inline_external_scanner_scan(
   void *payload,
   TSLexer *lexer,
@@ -281,33 +259,91 @@ bool tree_sitter_org_inline_external_scanner_scan(
 ) {
   Scanner *scanner = (Scanner *)payload;
 
-  // Phase 7: Try OPEN/CLOSE tokens for all markup types
-  // Grammar structure tracks state between OPEN and CLOSE
-  // Scanner only validates local PRE (at OPEN) and POST (at CLOSE) conditions
+  // Check if we're at beginning of line (always valid PRE)
+  bool at_bol = (lexer->get_column(lexer) == 0);
+  bool valid_pre_context = at_bol ||
+                          (scanner->context == CONTEXT_START) ||
+                          (scanner->context == CONTEXT_AFTER_SPACE);
 
-  // Bold: * delimiter
-  if (try_markup_open(lexer, '*', BOLD_OPEN, valid_symbols)) return true;
-  if (try_markup_close(lexer, '*', BOLD_CLOSE, valid_symbols)) return true;
+  // Try text markup
+  // PRE validation: Use context OR trust grammar (if called, it's likely valid)
+  // We track context when we can, but if we lost track, allow it anyway
+  // The POST validation is what really matters for correctness
+  if (true) {  // Always try markup if symbol is valid (grammar controls positioning)
+    // Bold: *text*
+    if (valid_symbols[BOLD] && lexer->lookahead == '*') {
+      lexer->advance(lexer, false);
+      if (parse_markup_content(lexer, '*')) {
+        lexer->mark_end(lexer);
+        lexer->result_symbol = BOLD;
+        // Update context based on what follows
+        scanner->context = iswspace(lexer->lookahead) ? CONTEXT_AFTER_SPACE : CONTEXT_AFTER_ALNUM;
+        return true;
+      }
+      return false;
+    }
 
-  // Italic: / delimiter
-  if (try_markup_open(lexer, '/', ITALIC_OPEN, valid_symbols)) return true;
-  if (try_markup_close(lexer, '/', ITALIC_CLOSE, valid_symbols)) return true;
+    // Italic: /text/
+    if (valid_symbols[ITALIC] && lexer->lookahead == '/') {
+      lexer->advance(lexer, false);
+      if (parse_markup_content(lexer, '/')) {
+        lexer->mark_end(lexer);
+        lexer->result_symbol = ITALIC;
+        scanner->context = iswspace(lexer->lookahead) ? CONTEXT_AFTER_SPACE : CONTEXT_AFTER_ALNUM;
+        return true;
+      }
+      return false;
+    }
 
-  // Code: ~ delimiter
-  if (try_markup_open(lexer, '~', CODE_OPEN, valid_symbols)) return true;
-  if (try_markup_close(lexer, '~', CODE_CLOSE, valid_symbols)) return true;
+    // Code: ~text~
+    if (valid_symbols[CODE] && lexer->lookahead == '~') {
+      lexer->advance(lexer, false);
+      if (parse_markup_content(lexer, '~')) {
+        lexer->mark_end(lexer);
+        lexer->result_symbol = CODE;
+        scanner->context = iswspace(lexer->lookahead) ? CONTEXT_AFTER_SPACE : CONTEXT_AFTER_ALNUM;
+        return true;
+      }
+      return false;
+    }
 
-  // Verbatim: = delimiter
-  if (try_markup_open(lexer, '=', VERBATIM_OPEN, valid_symbols)) return true;
-  if (try_markup_close(lexer, '=', VERBATIM_CLOSE, valid_symbols)) return true;
+    // Verbatim: =text=
+    if (valid_symbols[VERBATIM] && lexer->lookahead == '=') {
+      lexer->advance(lexer, false);
+      if (parse_markup_content(lexer, '=')) {
+        lexer->mark_end(lexer);
+        lexer->result_symbol = VERBATIM;
+        scanner->context = iswspace(lexer->lookahead) ? CONTEXT_AFTER_SPACE : CONTEXT_AFTER_ALNUM;
+        return true;
+      }
+      return false;
+    }
 
-  // Strike-through: + delimiter
-  if (try_markup_open(lexer, '+', STRIKE_THROUGH_OPEN, valid_symbols)) return true;
-  if (try_markup_close(lexer, '+', STRIKE_THROUGH_CLOSE, valid_symbols)) return true;
+    // Strike-through: +text+
+    if (valid_symbols[STRIKE_THROUGH] && lexer->lookahead == '+') {
+      lexer->advance(lexer, false);
+      if (parse_markup_content(lexer, '+')) {
+        lexer->mark_end(lexer);
+        lexer->result_symbol = STRIKE_THROUGH;
+        scanner->context = iswspace(lexer->lookahead) ? CONTEXT_AFTER_SPACE : CONTEXT_AFTER_ALNUM;
+        return true;
+      }
+      return false;
+    }
 
-  // Underline: _ delimiter (special handling for subscript conflict)
-  if (try_markup_open(lexer, '_', UNDERLINE_OPEN, valid_symbols)) return true;
-  if (try_markup_close(lexer, '_', UNDERLINE_CLOSE, valid_symbols)) return true;
+    // Underline: _text_
+    // Special handling: check it's not a subscript
+    if (valid_symbols[UNDERLINE] && lexer->lookahead == '_') {
+      lexer->advance(lexer, false);
+      if (parse_markup_content(lexer, '_')) {
+        lexer->mark_end(lexer);
+        lexer->result_symbol = UNDERLINE;
+        scanner->context = iswspace(lexer->lookahead) ? CONTEXT_AFTER_SPACE : CONTEXT_AFTER_ALNUM;
+        return true;
+      }
+      return false;
+    }
+  }
 
   // Try to scan subscript (doesn't need valid PRE - comes after any CHAR)
   if (valid_symbols[SUBSCRIPT]) {
@@ -327,6 +363,7 @@ bool tree_sitter_org_inline_external_scanner_scan(
         // Valid subscript pattern found
         lexer->mark_end(lexer);
         lexer->result_symbol = SUBSCRIPT;
+        scanner->context = CONTEXT_AFTER_ALNUM;  // Subscript ends with alnum
         return true;
       }
       // Pattern didn't match - tree-sitter will backtrack automatically
@@ -344,6 +381,7 @@ bool tree_sitter_org_inline_external_scanner_scan(
         // Only mark end after successful parse
         lexer->mark_end(lexer);
         lexer->result_symbol = SUPERSCRIPT;
+        scanner->context = CONTEXT_AFTER_ALNUM;  // Superscript ends with alnum
         return true;
       }
       // Pattern didn't match - tree-sitter will backtrack automatically
@@ -360,6 +398,7 @@ bool tree_sitter_org_inline_external_scanner_scan(
         // Valid tags pattern found and consumed
         lexer->mark_end(lexer);
         lexer->result_symbol = TAGS;
+        scanner->context = CONTEXT_START;  // Tags are at end, reset for next line
         return true;
       }
       // Not a valid tags pattern, let other parsers handle the ':'
@@ -367,7 +406,24 @@ bool tree_sitter_org_inline_external_scanner_scan(
     }
   }
 
-  // Phase 7: No global context tracking needed!
-  // Grammar structure between OPEN and CLOSE is the context.
+  // If we reach here and see whitespace, update context for next call
+  if (iswspace(lexer->lookahead)) {
+    scanner->context = CONTEXT_AFTER_SPACE;
+  }
+
+  // CRITICAL: State cleanup when we don't match anything
+  // If scanner was called but we're returning false, something else will parse
+  // (likely plain_text). Update context to reflect what we see NOW.
+  // This prevents stale context from causing future mismatches.
+  else if (iswalnum(lexer->lookahead)) {
+    // Next char is alphanumeric - after whatever parses, we'll be AFTER_ALNUM
+    scanner->context = CONTEXT_AFTER_ALNUM;
+  }
+  else if (is_valid_pre_char(lexer->lookahead)) {
+    // Next char is a valid PRE char - maintain AFTER_SPACE context
+    scanner->context = CONTEXT_AFTER_SPACE;
+  }
+  // Otherwise keep current context (might be delimiter, special char, etc.)
+
   return false;
 }

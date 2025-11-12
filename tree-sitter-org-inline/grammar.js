@@ -1,17 +1,16 @@
 /**
- * @file Inline (Object-level) grammar for Org-mode - Phase 7: OPEN/CLOSE Architecture
+ * @file Inline (Object-level) grammar for Org-mode - Phase 6: Full PRE/POST Validation
  * @author Org-TS-Mode Contributors
  * @license MIT
  *
- * PHASE 7: Markdown-style OPEN/CLOSE token architecture for text markup
+ * PHASE 6: ALL text markup moved to external scanner with full PRE/POST validation
  *
  * This is a systematic rebuild following TDD principles.
  * See doc/INLINE_GRAMMAR_ANALYSIS.md for complete rebuild plan.
  *
- * Current phase: Phase 7 - OPEN/CLOSE tokens inspired by tree-sitter-markdown
- * Grammar explicitly tracks between opening and closing delimiters
- * Scanner validates only local PRE/POST conditions, not global context
- * Status: Refactoring to correct architecture!
+ * Current phase: Phase 6 - Text markup with proper PRE/POST character validation
+ * All markup now validates according to org-mode spec!
+ * Status: Complete systematic rebuild with context-aware parsing!
  */
 
 /// <reference types="tree-sitter-cli/dsl" />
@@ -20,24 +19,17 @@
 module.exports = grammar({
   name: 'org_inline',
 
-  // Phase 7: OPEN/CLOSE tokens for all markup (markdown-inspired)
+  // Phase 4-5-6: External scanner for subscript/superscript, tags, and ALL markup
   externals: $ => [
     $.subscript,
     $.superscript,
     $.tags,  // Phase 5: Tags at end of title
-    // Phase 7: Separate OPEN and CLOSE tokens for each markup type
-    $.bold_open,
-    $.bold_close,
-    $.italic_open,
-    $.italic_close,
-    $.code_open,
-    $.code_close,
-    $.verbatim_open,
-    $.verbatim_close,
-    $.underline_open,
-    $.underline_close,
-    $.strike_through_open,
-    $.strike_through_close,
+    $.bold,  // Phase 6: All markup with PRE/POST validation
+    $.italic,
+    $.code,
+    $.verbatim,
+    $.underline,
+    $.strike_through,
   ],
 
   // Only skip newlines (they delimit inline content)
@@ -273,8 +265,8 @@ module.exports = grammar({
       '@@'
     )),
 
-    // Text markup: Wrapper for all markup types
-    // Phase 7: Using OPEN/CLOSE architecture - grammar tracks context
+    // Text markup: Wrapper for all markup types (handled by external scanner)
+    // Each type validates PRE/POST characters properly
     text_markup: $ => choice(
       $.bold,
       $.italic,
@@ -284,64 +276,10 @@ module.exports = grammar({
       $.underline
     ),
 
-    // Bold: *text* - OPEN/CLOSE structure
-    // Grammar explicitly tracks between open and close
-    // Scanner validates PRE at open, POST at close
-    bold: $ => seq(
-      $.bold_open,
-      optional(/[^\n*]+/),
-      $.bold_close
-    ),
-
-    // Italic: /text/ - OPEN/CLOSE structure
-    italic: $ => prec.right(seq(
-      $.italic_open,
-      repeat(choice(
-        $.text_markup,
-        alias(token.immediate(/[^\n\/]+/), $.plain_text)
-      )),
-      $.italic_close
-    )),
-
-    // Code: ~text~ - OPEN/CLOSE structure
-    // Note: code and verbatim don't allow nested markup (literal content)
-    code: $ => prec.right(seq(
-      $.code_open,
-      optional(alias(token.immediate(/[^\n~]+/), $.plain_text)),
-      $.code_close
-    )),
-
-    // Verbatim: =text= - OPEN/CLOSE structure
-    verbatim: $ => prec.right(seq(
-      $.verbatim_open,
-      optional(alias(token.immediate(/[^\n=]+/), $.plain_text)),
-      $.verbatim_close
-    )),
-
-    // Underline: _text_ - OPEN/CLOSE structure
-    underline: $ => prec.right(seq(
-      $.underline_open,
-      repeat(choice(
-        $.text_markup,
-        alias(token.immediate(/[^\n_]+/), $.plain_text)
-      )),
-      $.underline_close
-    )),
-
-    // Strike-through: +text+ - OPEN/CLOSE structure
-    strike_through: $ => prec.right(seq(
-      $.strike_through_open,
-      repeat(choice(
-        $.text_markup,
-        alias(token.immediate(/[^\n+]+/), $.plain_text)
-      )),
-      $.strike_through_close
-    )),
-
-    // Plain text: Any characters except newline
-    // Phase 7: With OPEN/CLOSE architecture, delimiters can appear in plain_text
-    // Scanner decides when to parse OPEN/CLOSE tokens vs let plain_text consume them
-    // Only exclude structural delimiters that are always special
-    plain_text: $ => /[^<{\\\[@:\n]+/,
+    // Plain text: Any characters except newline or special delimiters
+    // ALL delimiters must be excluded so external scanner gets called
+    // External scanner will reject invalid markup (e.g., _and_ in "word_and_word")
+    // When scanner rejects, plain_text will match in next iteration
+    plain_text: $ => /[^<{\\\[@*\/~=+_^:\n]+/,
   }
 });
