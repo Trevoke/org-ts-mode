@@ -43,6 +43,10 @@
       "required": true,
       "types": [
         {
+          "type": "angle_link",
+          "named": true
+        },
+        {
           "type": "entity",
           "named": true
         },
@@ -51,11 +55,19 @@
           "named": true
         },
         {
+          "type": "plain_link",
+          "named": true
+        },
+        {
           "type": "plain_text",
           "named": true
         },
         {
           "type": "radio_target",
+          "named": true
+        },
+        {
+          "type": "regular_link",
           "named": true
         },
         {
@@ -90,6 +102,10 @@
     "named": false
   },
   {
+    "type": "angle_link",
+    "named": true
+  },
+  {
     "type": "entity",
     "named": true
   },
@@ -102,11 +118,19 @@
     "named": true
   },
   {
+    "type": "plain_link",
+    "named": true
+  },
+  {
     "type": "plain_text",
     "named": true
   },
   {
     "type": "radio_target",
+    "named": true
+  },
+  {
+    "type": "regular_link",
     "named": true
   },
   {

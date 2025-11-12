@@ -61,6 +61,30 @@
           },
           {
             "type": "PREC",
+            "value": 4,
+            "content": {
+              "type": "SYMBOL",
+              "name": "plain_link"
+            }
+          },
+          {
+            "type": "PREC",
+            "value": 3,
+            "content": {
+              "type": "SYMBOL",
+              "name": "regular_link"
+            }
+          },
+          {
+            "type": "PREC",
+            "value": 3,
+            "content": {
+              "type": "SYMBOL",
+              "name": "angle_link"
+            }
+          },
+          {
+            "type": "PREC",
             "value": 1,
             "content": {
               "type": "SYMBOL",
@@ -190,9 +214,90 @@
         ]
       }
     },
+    "regular_link": {
+      "type": "TOKEN",
+      "content": {
+        "type": "SEQ",
+        "members": [
+          {
+            "type": "STRING",
+            "value": "[["
+          },
+          {
+            "type": "PATTERN",
+            "value": "[^\\]\\n]+"
+          },
+          {
+            "type": "CHOICE",
+            "members": [
+              {
+                "type": "SEQ",
+                "members": [
+                  {
+                    "type": "STRING",
+                    "value": "]["
+                  },
+                  {
+                    "type": "PATTERN",
+                    "value": "[^\\]\\n]+"
+                  }
+                ]
+              },
+              {
+                "type": "BLANK"
+              }
+            ]
+          },
+          {
+            "type": "STRING",
+            "value": "]]"
+          }
+        ]
+      }
+    },
+    "angle_link": {
+      "type": "TOKEN",
+      "content": {
+        "type": "SEQ",
+        "members": [
+          {
+            "type": "STRING",
+            "value": "<"
+          },
+          {
+            "type": "PATTERN",
+            "value": "[a-zA-Z][a-zA-Z0-9+.-]*:"
+          },
+          {
+            "type": "PATTERN",
+            "value": "[^>\\n]+"
+          },
+          {
+            "type": "STRING",
+            "value": ">"
+          }
+        ]
+      }
+    },
+    "plain_link": {
+      "type": "TOKEN",
+      "content": {
+        "type": "CHOICE",
+        "members": [
+          {
+            "type": "PATTERN",
+            "value": "[a-zA-Z][a-zA-Z0-9+.-]*:\\/\\/[^\\s]+"
+          },
+          {
+            "type": "PATTERN",
+            "value": "mailto:[^\\s]+"
+          }
+        ]
+      }
+    },
     "plain_text": {
       "type": "PATTERN",
-      "value": "[^<{\\\\\\n]+"
+      "value": "[^<{\\\\\\[\\n]+"
     }
   },
   "extras": [

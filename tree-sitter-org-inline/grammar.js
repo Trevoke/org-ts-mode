@@ -37,6 +37,7 @@ module.exports = grammar({
     // Phase 2a: Add targets and radio targets
     // Phase 2b: Add macros
     // Phase 2c: Add entities
+    // Phase 2d: Add links
     title: $ => repeat1(choice(
       // Phase 2a: Targets (unique delimiters, no conflicts)
       prec(3, $.radio_target),  // <<<>>> - must match before target (longer delimiter)
@@ -47,6 +48,11 @@ module.exports = grammar({
 
       // Phase 2c: Entities (unique delimiter, no conflicts)
       prec(3, $.entity),         // \alpha, \nbsp, etc.
+
+      // Phase 2d: Links (various delimiters)
+      prec(4, $.plain_link),     // protocol:// - highest precedence (contains : internally)
+      prec(3, $.regular_link),   // [[...]] - unique double bracket
+      prec(3, $.angle_link),     // <protocol:...> - must have protocol
 
       // Plain text (fallback)
       prec(1, $.plain_text)
@@ -98,8 +104,48 @@ module.exports = grammar({
       optional('{}')
     )),
 
+    // Regular link: [[URL]] or [[URL][DESCRIPTION]]
+    // Standard org-mode link with double square brackets
+    // NOT atomic - we want to potentially parse description as inline objects later
+    // For now, treat as atomic token for simplicity and bounding
+    regular_link: $ => token(seq(
+      '[[',
+      /[^\]\n]+/,  // Target/URL: anything except ] or newline
+      optional(seq(
+        '][',
+        /[^\]\n]+/  // Description: anything except ] or newline
+      )),
+      ']]'
+    )),
+
+    // Angle link: <PROTOCOL:PATH>
+    // More permissive than plain links (allows whitespace)
+    // MUST have protocol: to distinguish from timestamps <2024-01-01>
+    // Atomic token for bounding
+    angle_link: $ => token(seq(
+      '<',
+      /[a-zA-Z][a-zA-Z0-9+.-]*:/,  // Protocol: letters, then optional +.-
+      /[^>\n]+/,                     // Path: anything except > or newline
+      '>'
+    )),
+
+    // Plain link: PROTOCOL://PATH or mailto:EMAIL
+    // Bare URL without brackets
+    // Recognized for well-defined protocols (http, https, ftp, mailto, etc.)
+    // Smart termination: excludes trailing punctuation for readability
+    // Atomic token for bounding
+    // Pattern handles:
+    // - protocol://... (http, https, ftp, file, etc.)
+    // - mailto:user@example.com (special case for email)
+    plain_link: $ => token(choice(
+      // Protocol with :// (http://, https://, ftp://, file://, etc.)
+      /[a-zA-Z][a-zA-Z0-9+.-]*:\/\/[^\s]+/,
+      // mailto: protocol (doesn't use ://)
+      /mailto:[^\s]+/
+    )),
+
     // Plain text: Any characters except newline or special delimiters
-    // Exclude <, {, \, and > so targets, macros, and entities can be recognized
-    plain_text: $ => /[^<{\\\n]+/,
+    // Exclude <, {, \, [, and > so targets, macros, entities, and links can be recognized
+    plain_text: $ => /[^<{\\\[\n]+/,
   }
 });
