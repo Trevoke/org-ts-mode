@@ -411,5 +411,19 @@ bool tree_sitter_org_inline_external_scanner_scan(
     scanner->context = CONTEXT_AFTER_SPACE;
   }
 
+  // CRITICAL: State cleanup when we don't match anything
+  // If scanner was called but we're returning false, something else will parse
+  // (likely plain_text). Update context to reflect what we see NOW.
+  // This prevents stale context from causing future mismatches.
+  else if (iswalnum(lexer->lookahead)) {
+    // Next char is alphanumeric - after whatever parses, we'll be AFTER_ALNUM
+    scanner->context = CONTEXT_AFTER_ALNUM;
+  }
+  else if (is_valid_pre_char(lexer->lookahead)) {
+    // Next char is a valid PRE char - maintain AFTER_SPACE context
+    scanner->context = CONTEXT_AFTER_SPACE;
+  }
+  // Otherwise keep current context (might be delimiter, special char, etc.)
+
   return false;
 }

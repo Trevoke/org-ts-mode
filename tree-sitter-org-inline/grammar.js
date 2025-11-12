@@ -277,9 +277,9 @@ module.exports = grammar({
     ),
 
     // Plain text: Any characters except newline or special delimiters
-    // Exclude <, {, \, [, @, ^, : for objects (markup delimiters now handled by external scanner)
-    // Markup delimiters (*, /, ~, =, +, _) are NO LONGER excluded here - external scanner validates them
-    // This allows "word_and_word" to be plain_text if _ doesn't have valid PRE context
-    plain_text: $ => /[^<{\\\[@^:\n]+/,
+    // ALL delimiters must be excluded so external scanner gets called
+    // External scanner will reject invalid markup (e.g., _and_ in "word_and_word")
+    // When scanner rejects, plain_text will match in next iteration
+    plain_text: $ => /[^<{\\\[@*\/~=+_^:\n]+/,
   }
 });
