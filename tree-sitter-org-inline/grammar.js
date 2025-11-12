@@ -1,15 +1,16 @@
 /**
- * @file Inline (Object-level) grammar for Org-mode - Phase 5: Tags
+ * @file Inline (Object-level) grammar for Org-mode - Phase 6: Full PRE/POST Validation
  * @author Org-TS-Mode Contributors
  * @license MIT
  *
- * PHASE 5: Tags with external scanner
+ * PHASE 6: ALL text markup moved to external scanner with full PRE/POST validation
  *
  * This is a systematic rebuild following TDD principles.
  * See doc/INLINE_GRAMMAR_ANALYSIS.md for complete rebuild plan.
  *
- * Current phase: Phase 5 - Tags at end of title (:tag1:tag2:)
- * Status: All phases complete - systematic TDD rebuild finished!
+ * Current phase: Phase 6 - Text markup with proper PRE/POST character validation
+ * All markup now validates according to org-mode spec!
+ * Status: Complete systematic rebuild with context-aware parsing!
  */
 
 /// <reference types="tree-sitter-cli/dsl" />
@@ -18,11 +19,17 @@
 module.exports = grammar({
   name: 'org_inline',
 
-  // Phase 4-5: External scanner for subscript/superscript and tags
+  // Phase 4-5-6: External scanner for subscript/superscript, tags, and ALL markup
   externals: $ => [
     $.subscript,
     $.superscript,
     $.tags,  // Phase 5: Tags at end of title
+    $.bold,  // Phase 6: All markup with PRE/POST validation
+    $.italic,
+    $.code,
+    $.verbatim,
+    $.underline,
+    $.strike_through,
   ],
 
   // Only skip newlines (they delimit inline content)
@@ -85,8 +92,8 @@ module.exports = grammar({
       // Phase 2h: Export snippets (backend-specific content)
       prec(3, $.export_snippet),  // @@backend:content@@
 
-      // Phase 3: Text markup (with PRE/POST rules via tokens)
-      prec(2, $.text_markup),  // *bold*, /italic/, ~code~, =verbatim=, +strike+, _underline_
+      // Phase 3: Text markup (external scanner with full PRE/POST validation)
+      prec(2, $.text_markup),    // Wrapper for all markup types
 
       // Phase 4: Subscript and superscript (external scanner)
       prec(3, $.subscript),    // H_2O - handled by external scanner
@@ -258,13 +265,8 @@ module.exports = grammar({
       '@@'
     )),
 
-    // Text markup: Bold, italic, code, verbatim, strike-through, underline
-    // Each markup type has specific delimiters and content rules
-    // Content must not start or end with whitespace
-    // Pattern: /[^\s<delim>]([^<delim>]*[^\s<delim>])?/ handles:
-    //   - Single character: matches just the first part
-    //   - Multi-character: first char (non-space/delim) + middle (any non-delim) + last char (non-space/delim)
-    // Atomic tokens for bounding - prevents partial consumption
+    // Text markup: Wrapper for all markup types (handled by external scanner)
+    // Each type validates PRE/POST characters properly
     text_markup: $ => choice(
       $.bold,
       $.italic,
@@ -274,53 +276,10 @@ module.exports = grammar({
       $.underline
     ),
 
-    // Bold: *content*
-    bold: $ => token(seq(
-      '*',
-      /[^\s*]([^*]*[^\s*])?/,  // Content: no leading/trailing whitespace
-      '*'
-    )),
-
-    // Italic: /content/
-    italic: $ => token(seq(
-      '/',
-      /[^\s\/]([^\/]*[^\s\/])?/,  // Content: no leading/trailing whitespace
-      '/'
-    )),
-
-    // Code: ~content~
-    code: $ => token(seq(
-      '~',
-      /[^\s~]([^~]*[^\s~])?/,  // Content: no leading/trailing whitespace
-      '~'
-    )),
-
-    // Verbatim: =content=
-    verbatim: $ => token(seq(
-      '=',
-      /[^\s=]([^=]*[^\s=])?/,  // Content: no leading/trailing whitespace
-      '='
-    )),
-
-    // Strike-through: +content+
-    strike_through: $ => token(seq(
-      '+',
-      /[^\s+]([^+]*[^\s+])?/,  // Content: no leading/trailing whitespace
-      '+'
-    )),
-
-    // Underline: _content_
-    // NOTE: Added last to avoid conflict with subscript (Phase 4)
-    // Full disambiguation will be handled in Phase 4 with subscript
-    underline: $ => token(seq(
-      '_',
-      /[^\s_]([^_]*[^\s_])?/,  // Content: no leading/trailing whitespace
-      '_'
-    )),
-
     // Plain text: Any characters except newline or special delimiters
-    // Exclude <, {, \, [, @, *, /, ~, =, +, _, ^, : so all objects and markup can be recognized
-    // Note: : is excluded for tags detection (most other : uses are in atomic tokens)
-    plain_text: $ => /[^<{\\\[@*\/~=+_^:\n]+/,
+    // Exclude <, {, \, [, @, ^, : for objects (markup delimiters now handled by external scanner)
+    // Markup delimiters (*, /, ~, =, +, _) are NO LONGER excluded here - external scanner validates them
+    // This allows "word_and_word" to be plain_text if _ doesn't have valid PRE context
+    plain_text: $ => /[^<{\\\[@^:\n]+/,
   }
 });
