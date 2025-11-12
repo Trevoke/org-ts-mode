@@ -1,15 +1,15 @@
 /**
- * @file Inline (Object-level) grammar for Org-mode - Phase 1: Plain Text Baseline
+ * @file Inline (Object-level) grammar for Org-mode - Phase 2: Simple Objects
  * @author Org-TS-Mode Contributors
  * @license MIT
  *
- * PHASE 1: Establish baseline with plain text only
+ * PHASE 2h: All simple objects implemented
  *
  * This is a systematic rebuild following TDD principles.
  * See doc/INLINE_GRAMMAR_ANALYSIS.md for complete rebuild plan.
  *
- * Current phase: Plain text parsing only
- * Next phase: Add simple objects (targets, macros, entities)
+ * Current phase: Phase 2h complete - export snippets @@backend:content@@
+ * Next phase: Phase 3 - Text markup with PRE/POST rules
  */
 
 /// <reference types="tree-sitter-cli/dsl" />
@@ -41,6 +41,7 @@ module.exports = grammar({
     // Phase 2e: Add statistics cookies
     // Phase 2f: Add footnotes
     // Phase 2g: Add timestamps
+    // Phase 2h: Add export snippets
     title: $ => repeat1(choice(
       // Phase 2a: Targets (unique delimiters, no conflicts)
       prec(3, $.radio_target),  // <<<>>> - must match before target (longer delimiter)
@@ -65,6 +66,9 @@ module.exports = grammar({
 
       // Phase 2g: Timestamps (date patterns in < > or [ ])
       prec(3, $.timestamp),  // <2024-01-01> or [2024-01-01]
+
+      // Phase 2h: Export snippets (backend-specific content)
+      prec(3, $.export_snippet),  // @@backend:content@@
 
       // Plain text (fallback)
       prec(1, $.plain_text)
@@ -216,8 +220,21 @@ module.exports = grammar({
       seq('[', /\d[^\]]*-[^\]]*/, ']')
     )),
 
+    // Export snippet: @@backend:content@@
+    // Used for backend-specific export content (HTML, LaTeX, etc.)
+    // Backend: alphanumeric with hyphens (html, latex, my-backend, html5)
+    // Content: any characters except @ (can be empty)
+    // Atomic token for bounding - simple specific pattern
+    export_snippet: $ => token(seq(
+      '@@',
+      /[a-zA-Z0-9-]+/,  // Backend name
+      ':',
+      /[^@]*/,          // Content (zero or more non-@ characters)
+      '@@'
+    )),
+
     // Plain text: Any characters except newline or special delimiters
-    // Exclude <, {, \, [, and > so targets, macros, entities, and links can be recognized
-    plain_text: $ => /[^<{\\\[\n]+/,
+    // Exclude <, {, \, [, and @ so targets, macros, entities, links, and export snippets can be recognized
+    plain_text: $ => /[^<{\\\[@\n]+/,
   }
 });

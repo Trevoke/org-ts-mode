@@ -51,6 +51,10 @@
           "named": true
         },
         {
+          "type": "export_snippet",
+          "named": true
+        },
+        {
           "type": "footnote_reference",
           "named": true
         },
@@ -119,6 +123,10 @@
   },
   {
     "type": "entity",
+    "named": true
+  },
+  {
+    "type": "export_snippet",
     "named": true
   },
   {
