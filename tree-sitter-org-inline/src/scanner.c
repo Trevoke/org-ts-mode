@@ -148,15 +148,19 @@ bool tree_sitter_org_inline_external_scanner_scan(
   // Try to scan subscript
   if (valid_symbols[SUBSCRIPT]) {
     if (lexer->lookahead == '_') {
-      // TODO: Distinguish between subscript H_2O and underline _text_
-      // Currently subscript takes precedence
-      // Full disambiguation requires more sophisticated heuristics
-
       lexer->advance(lexer, false); // Consume '_'
 
       // Try to parse SCRIPT
       if (parse_script(lexer)) {
-        // Only mark end after successful parse
+        // Check if SCRIPT is followed by another '_' (closing underline delimiter)
+        // If so, this is underline markup like _text_, not subscript like H_2O
+        if (lexer->lookahead == '_') {
+          // This is paired underline markup, not subscript
+          // Don't mark end, return false to let underline matcher handle it
+          return false;
+        }
+
+        // Valid subscript pattern found
         lexer->mark_end(lexer);
         lexer->result_symbol = SUBSCRIPT;
         return true;
