@@ -1,15 +1,15 @@
 /**
- * @file Inline (Object-level) grammar for Org-mode - Phase 2: Simple Objects
+ * @file Inline (Object-level) grammar for Org-mode - Phase 3: Text Markup
  * @author Org-TS-Mode Contributors
  * @license MIT
  *
- * PHASE 2h: All simple objects implemented
+ * PHASE 3: Text markup with token-based content validation
  *
  * This is a systematic rebuild following TDD principles.
  * See doc/INLINE_GRAMMAR_ANALYSIS.md for complete rebuild plan.
  *
- * Current phase: Phase 2h complete - export snippets @@backend:content@@
- * Next phase: Phase 3 - Text markup with PRE/POST rules
+ * Current phase: Phase 3 - Text markup (bold, italic, code, verbatim, strike, underline)
+ * Next phase: Phase 4 - Subscript/superscript with external scanner
  */
 
 /// <reference types="tree-sitter-cli/dsl" />
@@ -42,6 +42,7 @@ module.exports = grammar({
     // Phase 2f: Add footnotes
     // Phase 2g: Add timestamps
     // Phase 2h: Add export snippets
+    // Phase 3: Add text markup (bold, italic, code, verbatim, strike-through, underline)
     title: $ => repeat1(choice(
       // Phase 2a: Targets (unique delimiters, no conflicts)
       prec(3, $.radio_target),  // <<<>>> - must match before target (longer delimiter)
@@ -69,6 +70,9 @@ module.exports = grammar({
 
       // Phase 2h: Export snippets (backend-specific content)
       prec(3, $.export_snippet),  // @@backend:content@@
+
+      // Phase 3: Text markup (with PRE/POST rules via tokens)
+      prec(2, $.text_markup),  // *bold*, /italic/, ~code~, =verbatim=, +strike+, _underline_
 
       // Plain text (fallback)
       prec(1, $.plain_text)
@@ -233,8 +237,68 @@ module.exports = grammar({
       '@@'
     )),
 
+    // Text markup: Bold, italic, code, verbatim, strike-through, underline
+    // Each markup type has specific delimiters and content rules
+    // Content must not start or end with whitespace
+    // Pattern: /[^\s<delim>]([^<delim>]*[^\s<delim>])?/ handles:
+    //   - Single character: matches just the first part
+    //   - Multi-character: first char (non-space/delim) + middle (any non-delim) + last char (non-space/delim)
+    // Atomic tokens for bounding - prevents partial consumption
+    text_markup: $ => choice(
+      $.bold,
+      $.italic,
+      $.code,
+      $.verbatim,
+      $.strike_through,
+      $.underline
+    ),
+
+    // Bold: *content*
+    bold: $ => token(seq(
+      '*',
+      /[^\s*]([^*]*[^\s*])?/,  // Content: no leading/trailing whitespace
+      '*'
+    )),
+
+    // Italic: /content/
+    italic: $ => token(seq(
+      '/',
+      /[^\s\/]([^\/]*[^\s\/])?/,  // Content: no leading/trailing whitespace
+      '/'
+    )),
+
+    // Code: ~content~
+    code: $ => token(seq(
+      '~',
+      /[^\s~]([^~]*[^\s~])?/,  // Content: no leading/trailing whitespace
+      '~'
+    )),
+
+    // Verbatim: =content=
+    verbatim: $ => token(seq(
+      '=',
+      /[^\s=]([^=]*[^\s=])?/,  // Content: no leading/trailing whitespace
+      '='
+    )),
+
+    // Strike-through: +content+
+    strike_through: $ => token(seq(
+      '+',
+      /[^\s+]([^+]*[^\s+])?/,  // Content: no leading/trailing whitespace
+      '+'
+    )),
+
+    // Underline: _content_
+    // NOTE: Added last to avoid conflict with subscript (Phase 4)
+    // Full disambiguation will be handled in Phase 4 with subscript
+    underline: $ => token(seq(
+      '_',
+      /[^\s_]([^_]*[^\s_])?/,  // Content: no leading/trailing whitespace
+      '_'
+    )),
+
     // Plain text: Any characters except newline or special delimiters
-    // Exclude <, {, \, [, and @ so targets, macros, entities, links, and export snippets can be recognized
-    plain_text: $ => /[^<{\\\[@\n]+/,
+    // Exclude <, {, \, [, @, *, /, ~, =, +, _ so all objects and markup can be recognized
+    plain_text: $ => /[^<{\\\[@*\/~=+_\n]+/,
   }
 });

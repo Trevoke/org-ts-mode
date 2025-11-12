@@ -117,6 +117,14 @@
           },
           {
             "type": "PREC",
+            "value": 2,
+            "content": {
+              "type": "SYMBOL",
+              "name": "text_markup"
+            }
+          },
+          {
+            "type": "PREC",
             "value": 1,
             "content": {
               "type": "SYMBOL",
@@ -506,9 +514,158 @@
         ]
       }
     },
+    "text_markup": {
+      "type": "CHOICE",
+      "members": [
+        {
+          "type": "SYMBOL",
+          "name": "bold"
+        },
+        {
+          "type": "SYMBOL",
+          "name": "italic"
+        },
+        {
+          "type": "SYMBOL",
+          "name": "code"
+        },
+        {
+          "type": "SYMBOL",
+          "name": "verbatim"
+        },
+        {
+          "type": "SYMBOL",
+          "name": "strike_through"
+        },
+        {
+          "type": "SYMBOL",
+          "name": "underline"
+        }
+      ]
+    },
+    "bold": {
+      "type": "TOKEN",
+      "content": {
+        "type": "SEQ",
+        "members": [
+          {
+            "type": "STRING",
+            "value": "*"
+          },
+          {
+            "type": "PATTERN",
+            "value": "[^\\s*]([^*]*[^\\s*])?"
+          },
+          {
+            "type": "STRING",
+            "value": "*"
+          }
+        ]
+      }
+    },
+    "italic": {
+      "type": "TOKEN",
+      "content": {
+        "type": "SEQ",
+        "members": [
+          {
+            "type": "STRING",
+            "value": "/"
+          },
+          {
+            "type": "PATTERN",
+            "value": "[^\\s\\/]([^\\/]*[^\\s\\/])?"
+          },
+          {
+            "type": "STRING",
+            "value": "/"
+          }
+        ]
+      }
+    },
+    "code": {
+      "type": "TOKEN",
+      "content": {
+        "type": "SEQ",
+        "members": [
+          {
+            "type": "STRING",
+            "value": "~"
+          },
+          {
+            "type": "PATTERN",
+            "value": "[^\\s~]([^~]*[^\\s~])?"
+          },
+          {
+            "type": "STRING",
+            "value": "~"
+          }
+        ]
+      }
+    },
+    "verbatim": {
+      "type": "TOKEN",
+      "content": {
+        "type": "SEQ",
+        "members": [
+          {
+            "type": "STRING",
+            "value": "="
+          },
+          {
+            "type": "PATTERN",
+            "value": "[^\\s=]([^=]*[^\\s=])?"
+          },
+          {
+            "type": "STRING",
+            "value": "="
+          }
+        ]
+      }
+    },
+    "strike_through": {
+      "type": "TOKEN",
+      "content": {
+        "type": "SEQ",
+        "members": [
+          {
+            "type": "STRING",
+            "value": "+"
+          },
+          {
+            "type": "PATTERN",
+            "value": "[^\\s+]([^+]*[^\\s+])?"
+          },
+          {
+            "type": "STRING",
+            "value": "+"
+          }
+        ]
+      }
+    },
+    "underline": {
+      "type": "TOKEN",
+      "content": {
+        "type": "SEQ",
+        "members": [
+          {
+            "type": "STRING",
+            "value": "_"
+          },
+          {
+            "type": "PATTERN",
+            "value": "[^\\s_]([^_]*[^\\s_])?"
+          },
+          {
+            "type": "STRING",
+            "value": "_"
+          }
+        ]
+      }
+    },
     "plain_text": {
       "type": "PATTERN",
-      "value": "[^<{\\\\\\[@\\n]+"
+      "value": "[^<{\\\\\\[@*\\/~=+_\\n]+"
     }
   },
   "extras": [
