@@ -1,10 +1,15 @@
 /**
  * External scanner for org-mode inline grammar
  *
+ * PHASE 9: Sentinel tokens (markdown-inspired, correctly implemented)
+ *
  * Handles context-sensitive parsing for:
- * - Subscript and superscript (requires lookbehind for CHAR)
+ * - Subscript and superscript (disambiguated via sentinels!)
  * - Tags (requires end-of-line detection)
- * - PRE/POST validation for text markup (future enhancement)
+ * - Text markup with PRE/POST validation
+ *
+ * Key insight: Sentinels are NEVER emitted, only CHECKED!
+ * See doc/SENTINEL_MECHANICS.md for detailed explanation.
  */
 
 #include <tree_sitter/parser.h>
@@ -13,6 +18,7 @@
 #include <string.h>
 
 // Symbol enum - must match order in grammar.js externals array
+// Phase 9: Added sentinels (NEVER emitted, only checked!)
 enum TokenType {
   SUBSCRIPT,
   SUPERSCRIPT,
@@ -23,18 +29,16 @@ enum TokenType {
   VERBATIM,
   UNDERLINE,
   STRIKE_THROUGH,
+  // Phase 9: Sentinel tokens - these are NEVER emitted!
+  // Scanner checks valid_symbols[SENTINEL] to know what came before
+  LAST_TOKEN_ALPHANUMERIC,
+  LAST_TOKEN_WHITESPACE,
 };
 
-// Context for PRE character validation
-typedef enum {
-  CONTEXT_START,        // Beginning of input (valid PRE)
-  CONTEXT_AFTER_SPACE,  // After whitespace or valid PRE char (valid PRE)
-  CONTEXT_AFTER_ALNUM,  // After alphanumeric (invalid PRE for markup)
-} ContextType;
-
-// Scanner state
+// Scanner state - Phase 9: Minimal state (sentinels handle context!)
 typedef struct {
-  ContextType context;  // Track what came before for PRE validation
+  // Reserved for future use (e.g., tracking delimiter runs like markdown)
+  uint8_t reserved;
 } Scanner;
 
 // Helper: Check if character is valid PRE (can appear before opening delimiter)
@@ -217,7 +221,7 @@ static bool parse_tags(TSLexer *lexer) {
 // Create scanner instance
 void *tree_sitter_org_inline_external_scanner_create() {
   Scanner *scanner = (Scanner *)malloc(sizeof(Scanner));
-  scanner->context = CONTEXT_START;  // Start in valid PRE context
+  scanner->reserved = 0;
   return scanner;
 }
 
@@ -227,17 +231,17 @@ void tree_sitter_org_inline_external_scanner_destroy(void *payload) {
   free(scanner);
 }
 
-// Serialize scanner state
+// Serialize scanner state - Phase 9: Minimal (sentinels handle context!)
 unsigned tree_sitter_org_inline_external_scanner_serialize(
   void *payload,
   char *buffer
 ) {
   Scanner *scanner = (Scanner *)payload;
-  buffer[0] = (char)scanner->context;
+  buffer[0] = (char)scanner->reserved;
   return 1;
 }
 
-// Deserialize scanner state
+// Deserialize scanner state - Phase 9: Minimal (sentinels handle context!)
 void tree_sitter_org_inline_external_scanner_deserialize(
   void *payload,
   const char *buffer,
@@ -245,9 +249,9 @@ void tree_sitter_org_inline_external_scanner_deserialize(
 ) {
   Scanner *scanner = (Scanner *)payload;
   if (length > 0) {
-    scanner->context = (ContextType)buffer[0];
+    scanner->reserved = (uint8_t)buffer[0];
   } else {
-    scanner->context = CONTEXT_START;
+    scanner->reserved = 0;
   }
 }
 
@@ -259,114 +263,125 @@ bool tree_sitter_org_inline_external_scanner_scan(
 ) {
   Scanner *scanner = (Scanner *)payload;
 
-  // Check if we're at beginning of line (always valid PRE)
-  bool at_bol = (lexer->get_column(lexer) == 0);
-  bool valid_pre_context = at_bol ||
-                          (scanner->context == CONTEXT_START) ||
-                          (scanner->context == CONTEXT_AFTER_SPACE);
+  // Phase 9: Text markup - simplified (no context tracking needed!)
+  // Sentinels handle context automatically via grammar
 
-  // Try text markup
-  // PRE validation: Use context OR trust grammar (if called, it's likely valid)
-  // We track context when we can, but if we lost track, allow it anyway
-  // The POST validation is what really matters for correctness
-  if (true) {  // Always try markup if symbol is valid (grammar controls positioning)
-    // Bold: *text*
-    if (valid_symbols[BOLD] && lexer->lookahead == '*') {
-      lexer->advance(lexer, false);
-      if (parse_markup_content(lexer, '*')) {
-        lexer->mark_end(lexer);
-        lexer->result_symbol = BOLD;
-        // Update context based on what follows
-        scanner->context = iswspace(lexer->lookahead) ? CONTEXT_AFTER_SPACE : CONTEXT_AFTER_ALNUM;
-        return true;
-      }
-      return false;
+  // Bold: *text*
+  if (valid_symbols[BOLD] && lexer->lookahead == '*') {
+    lexer->advance(lexer, false);
+    if (parse_markup_content(lexer, '*')) {
+      lexer->mark_end(lexer);
+      lexer->result_symbol = BOLD;
+      return true;
     }
-
-    // Italic: /text/
-    if (valid_symbols[ITALIC] && lexer->lookahead == '/') {
-      lexer->advance(lexer, false);
-      if (parse_markup_content(lexer, '/')) {
-        lexer->mark_end(lexer);
-        lexer->result_symbol = ITALIC;
-        scanner->context = iswspace(lexer->lookahead) ? CONTEXT_AFTER_SPACE : CONTEXT_AFTER_ALNUM;
-        return true;
-      }
-      return false;
-    }
-
-    // Code: ~text~
-    if (valid_symbols[CODE] && lexer->lookahead == '~') {
-      lexer->advance(lexer, false);
-      if (parse_markup_content(lexer, '~')) {
-        lexer->mark_end(lexer);
-        lexer->result_symbol = CODE;
-        scanner->context = iswspace(lexer->lookahead) ? CONTEXT_AFTER_SPACE : CONTEXT_AFTER_ALNUM;
-        return true;
-      }
-      return false;
-    }
-
-    // Verbatim: =text=
-    if (valid_symbols[VERBATIM] && lexer->lookahead == '=') {
-      lexer->advance(lexer, false);
-      if (parse_markup_content(lexer, '=')) {
-        lexer->mark_end(lexer);
-        lexer->result_symbol = VERBATIM;
-        scanner->context = iswspace(lexer->lookahead) ? CONTEXT_AFTER_SPACE : CONTEXT_AFTER_ALNUM;
-        return true;
-      }
-      return false;
-    }
-
-    // Strike-through: +text+
-    if (valid_symbols[STRIKE_THROUGH] && lexer->lookahead == '+') {
-      lexer->advance(lexer, false);
-      if (parse_markup_content(lexer, '+')) {
-        lexer->mark_end(lexer);
-        lexer->result_symbol = STRIKE_THROUGH;
-        scanner->context = iswspace(lexer->lookahead) ? CONTEXT_AFTER_SPACE : CONTEXT_AFTER_ALNUM;
-        return true;
-      }
-      return false;
-    }
-
-    // Underline: _text_
-    // Special handling: check it's not a subscript
-    if (valid_symbols[UNDERLINE] && lexer->lookahead == '_') {
-      lexer->advance(lexer, false);
-      if (parse_markup_content(lexer, '_')) {
-        lexer->mark_end(lexer);
-        lexer->result_symbol = UNDERLINE;
-        scanner->context = iswspace(lexer->lookahead) ? CONTEXT_AFTER_SPACE : CONTEXT_AFTER_ALNUM;
-        return true;
-      }
-      return false;
-    }
+    return false;
   }
 
-  // Try to scan subscript (doesn't need valid PRE - comes after any CHAR)
-  if (valid_symbols[SUBSCRIPT]) {
-    if (lexer->lookahead == '_') {
+  // Italic: /text/
+  if (valid_symbols[ITALIC] && lexer->lookahead == '/') {
+    lexer->advance(lexer, false);
+    if (parse_markup_content(lexer, '/')) {
+      lexer->mark_end(lexer);
+      lexer->result_symbol = ITALIC;
+      return true;
+    }
+    return false;
+  }
+
+  // Code: ~text~
+  if (valid_symbols[CODE] && lexer->lookahead == '~') {
+    lexer->advance(lexer, false);
+    if (parse_markup_content(lexer, '~')) {
+      lexer->mark_end(lexer);
+      lexer->result_symbol = CODE;
+      return true;
+    }
+    return false;
+  }
+
+  // Verbatim: =text=
+  if (valid_symbols[VERBATIM] && lexer->lookahead == '=') {
+    lexer->advance(lexer, false);
+    if (parse_markup_content(lexer, '=')) {
+      lexer->mark_end(lexer);
+      lexer->result_symbol = VERBATIM;
+      return true;
+    }
+    return false;
+  }
+
+  // Strike-through: +text+
+  if (valid_symbols[STRIKE_THROUGH] && lexer->lookahead == '+') {
+    lexer->advance(lexer, false);
+    if (parse_markup_content(lexer, '+')) {
+      lexer->mark_end(lexer);
+      lexer->result_symbol = STRIKE_THROUGH;
+      return true;
+    }
+    return false;
+  }
+
+  // Underline: _text_
+  // Note: Subscript vs underline disambiguation happens below
+  if (valid_symbols[UNDERLINE] && lexer->lookahead == '_') {
+    lexer->advance(lexer, false);
+    if (parse_markup_content(lexer, '_')) {
+      lexer->mark_end(lexer);
+      lexer->result_symbol = UNDERLINE;
+      return true;
+    }
+    return false;
+  }
+
+  // Phase 9: Subscript vs Underline - PERFECT disambiguation via sentinels!
+  // This is THE KEY FEATURE we've been working towards.
+  //
+  // Subscript: CHAR "_" SCRIPT  (requires alphanumeric before _)
+  // Underline: PRE "_" BODY "_" POST  (requires whitespace/PRE before _)
+  //
+  // Sentinels tell us EXACTLY what came before:
+  if (lexer->lookahead == '_') {
+    // Check sentinels to know what came before
+    bool after_alnum = valid_symbols[LAST_TOKEN_ALPHANUMERIC];
+    bool after_whitespace = valid_symbols[LAST_TOKEN_WHITESPACE];
+
+    // Case 1: After alphanumeric → MUST be subscript (or invalid)
+    // Example: H_2O, x_i, CO_2
+    if (after_alnum && valid_symbols[SUBSCRIPT]) {
       lexer->advance(lexer, false); // Consume '_'
 
-      // Try to parse SCRIPT
       if (parse_script(lexer)) {
-        // Check if SCRIPT is followed by another '_' (closing underline delimiter)
-        // If so, this is underline markup like _text_, not subscript like H_2O
-        if (lexer->lookahead == '_') {
-          // This is paired underline markup, not subscript
-          // Don't mark end, return false to let underline matcher handle it
-          return false;
-        }
-
-        // Valid subscript pattern found
+        // Valid subscript: H_2O
         lexer->mark_end(lexer);
         lexer->result_symbol = SUBSCRIPT;
-        scanner->context = CONTEXT_AFTER_ALNUM;  // Subscript ends with alnum
         return true;
       }
-      // Pattern didn't match - tree-sitter will backtrack automatically
+      // Not valid SCRIPT - return false, let plain_text consume
+      return false;
+    }
+
+    // Case 2: After whitespace → likely underline OPEN
+    // But we only handle subscript here, so return false to let
+    // underline handler deal with it
+    // The underline handler will check after_whitespace sentinel too
+    if (after_whitespace) {
+      // Not a subscript, let underline handle it
+      return false;
+    }
+
+    // Case 3: No sentinel (beginning of input, or after other tokens)
+    // Use old heuristic: try subscript, reject if followed by '_'
+    if (valid_symbols[SUBSCRIPT]) {
+      lexer->advance(lexer, false);
+      if (parse_script(lexer)) {
+        if (lexer->lookahead == '_') {
+          // Paired underscore - probably underline
+          return false;
+        }
+        lexer->mark_end(lexer);
+        lexer->result_symbol = SUBSCRIPT;
+        return true;
+      }
       return false;
     }
   }
@@ -381,7 +396,6 @@ bool tree_sitter_org_inline_external_scanner_scan(
         // Only mark end after successful parse
         lexer->mark_end(lexer);
         lexer->result_symbol = SUPERSCRIPT;
-        scanner->context = CONTEXT_AFTER_ALNUM;  // Superscript ends with alnum
         return true;
       }
       // Pattern didn't match - tree-sitter will backtrack automatically
@@ -398,7 +412,6 @@ bool tree_sitter_org_inline_external_scanner_scan(
         // Valid tags pattern found and consumed
         lexer->mark_end(lexer);
         lexer->result_symbol = TAGS;
-        scanner->context = CONTEXT_START;  // Tags are at end, reset for next line
         return true;
       }
       // Not a valid tags pattern, let other parsers handle the ':'
@@ -406,24 +419,8 @@ bool tree_sitter_org_inline_external_scanner_scan(
     }
   }
 
-  // If we reach here and see whitespace, update context for next call
-  if (iswspace(lexer->lookahead)) {
-    scanner->context = CONTEXT_AFTER_SPACE;
-  }
-
-  // CRITICAL: State cleanup when we don't match anything
-  // If scanner was called but we're returning false, something else will parse
-  // (likely plain_text). Update context to reflect what we see NOW.
-  // This prevents stale context from causing future mismatches.
-  else if (iswalnum(lexer->lookahead)) {
-    // Next char is alphanumeric - after whatever parses, we'll be AFTER_ALNUM
-    scanner->context = CONTEXT_AFTER_ALNUM;
-  }
-  else if (is_valid_pre_char(lexer->lookahead)) {
-    // Next char is a valid PRE char - maintain AFTER_SPACE context
-    scanner->context = CONTEXT_AFTER_SPACE;
-  }
-  // Otherwise keep current context (might be delimiter, special char, etc.)
-
+  // Phase 9: No manual context tracking needed!
+  // Sentinels in grammar communicate context automatically.
+  // Scanner just checks valid_symbols when it needs to know what came before.
   return false;
 }

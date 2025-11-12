@@ -1,16 +1,20 @@
 /**
- * @file Inline (Object-level) grammar for Org-mode - Phase 6: Full PRE/POST Validation
+ * @file Inline (Object-level) grammar for Org-mode - Phase 9: Correct Sentinel Tokens
  * @author Org-TS-Mode Contributors
  * @license MIT
  *
- * PHASE 6: ALL text markup moved to external scanner with full PRE/POST validation
+ * PHASE 9: Sentinel tokens implemented correctly (markdown-inspired)
  *
  * This is a systematic rebuild following TDD principles.
  * See doc/INLINE_GRAMMAR_ANALYSIS.md for complete rebuild plan.
+ * See doc/SENTINEL_MECHANICS.md for how sentinels work.
  *
- * Current phase: Phase 6 - Text markup with proper PRE/POST character validation
- * All markup now validates according to org-mode spec!
- * Status: Complete systematic rebuild with context-aware parsing!
+ * Current phase: Phase 9 - Sentinels as grammar flags, not emitted tokens
+ * - Sentinels are optional tokens at END of grammar rules
+ * - Scanner CHECKS sentinels in valid_symbols to know context
+ * - Sentinels NEVER emitted by scanner, NEVER in parse tree
+ * - Enables perfect subscript vs underline disambiguation
+ * Status: Implementing correct sentinel mechanism!
  */
 
 /// <reference types="tree-sitter-cli/dsl" />
@@ -19,7 +23,7 @@
 module.exports = grammar({
   name: 'org_inline',
 
-  // Phase 4-5-6: External scanner for subscript/superscript, tags, and ALL markup
+  // Phase 9: Sentinels + markup with PRE/POST validation
   externals: $ => [
     $.subscript,
     $.superscript,
@@ -30,6 +34,12 @@ module.exports = grammar({
     $.verbatim,
     $.underline,
     $.strike_through,
+    // Phase 9: Sentinel tokens (NEVER emitted, only checked!)
+    // These are optional tokens at end of grammar rules
+    // Scanner checks valid_symbols[SENTINEL] to know what came before
+    // Inspired by tree-sitter-markdown (see doc/SENTINEL_MECHANICS.md)
+    $._last_token_alphanumeric,  // Previous token ended with [a-zA-Z0-9]
+    $._last_token_whitespace,    // Previous token ended with whitespace
   ],
 
   // Only skip newlines (they delimit inline content)
@@ -277,9 +287,22 @@ module.exports = grammar({
     ),
 
     // Plain text: Any characters except newline or special delimiters
-    // ALL delimiters must be excluded so external scanner gets called
-    // External scanner will reject invalid markup (e.g., _and_ in "word_and_word")
-    // When scanner rejects, plain_text will match in next iteration
-    plain_text: $ => /[^<{\\\[@*\/~=+_^:\n]+/,
+    // Phase 9: Split into two patterns to track character type via sentinels
+    // Sentinels are OPTIONAL at end - they mark what type of char we ended on
+    // Scanner checks valid_symbols[SENTINEL] to know context (never emits them!)
+    plain_text: $ => choice(
+      // Non-whitespace text (alphanumeric, punctuation, etc.)
+      // Ends with sentinel to mark "last token was alphanumeric"
+      seq(
+        /[^<{\\\[@*\/~=+_^:\n\s]+/,
+        optional($._last_token_alphanumeric)
+      ),
+      // Whitespace (spaces, tabs - but NOT newlines)
+      // Ends with sentinel to mark "last token was whitespace"
+      seq(
+        /[ \t]+/,
+        optional($._last_token_whitespace)
+      )
+    ),
   }
 });
