@@ -71,6 +71,10 @@
           "named": true
         },
         {
+          "type": "statistics_cookie",
+          "named": true
+        },
+        {
           "type": "target",
           "named": true
         }
@@ -131,6 +135,10 @@
   },
   {
     "type": "regular_link",
+    "named": true
+  },
+  {
+    "type": "statistics_cookie",
     "named": true
   },
   {

@@ -38,6 +38,7 @@ module.exports = grammar({
     // Phase 2b: Add macros
     // Phase 2c: Add entities
     // Phase 2d: Add links
+    // Phase 2e: Add statistics cookies
     title: $ => repeat1(choice(
       // Phase 2a: Targets (unique delimiters, no conflicts)
       prec(3, $.radio_target),  // <<<>>> - must match before target (longer delimiter)
@@ -53,6 +54,9 @@ module.exports = grammar({
       prec(4, $.plain_link),     // protocol:// - highest precedence (contains : internally)
       prec(3, $.regular_link),   // [[...]] - unique double bracket
       prec(3, $.angle_link),     // <protocol:...> - must have protocol
+
+      // Phase 2e: Statistics cookies (specific [ patterns)
+      prec(3, $.statistics_cookie),  // [N%] or [N/M]
 
       // Plain text (fallback)
       prec(1, $.plain_text)
@@ -142,6 +146,17 @@ module.exports = grammar({
       /[a-zA-Z][a-zA-Z0-9+.-]*:\/\/[^\s]+/,
       // mailto: protocol (doesn't use ://)
       /mailto:[^\s]+/
+    )),
+
+    // Statistics cookie: [N%] or [N/M]
+    // Used for progress tracking in headlines and lists
+    // N and M are optional digits
+    // Atomic token for bounding - simple specific pattern
+    statistics_cookie: $ => token(choice(
+      // Percentage format: [N%] where N is zero or more digits
+      seq('[', /\d*/, '%', ']'),
+      // Fraction format: [N/M] where N and M are zero or more digits
+      seq('[', /\d*/, '/', /\d*/, ']')
     )),
 
     // Plain text: Any characters except newline or special delimiters
