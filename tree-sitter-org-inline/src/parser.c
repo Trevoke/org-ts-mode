@@ -9,10 +9,10 @@
 #define LANGUAGE_VERSION 14
 #define STATE_COUNT 15
 #define LARGE_STATE_COUNT 7
-#define SYMBOL_COUNT 30
+#define SYMBOL_COUNT 32
 #define ALIAS_COUNT 0
-#define TOKEN_COUNT 24
-#define EXTERNAL_TOKEN_COUNT 0
+#define TOKEN_COUNT 26
+#define EXTERNAL_TOKEN_COUNT 2
 #define FIELD_COUNT 1
 #define MAX_ALIAS_SEQUENCE_LENGTH 6
 #define MAX_RESERVED_WORD_SET_SIZE 0
@@ -43,12 +43,14 @@ enum ts_symbol_identifiers {
   sym_strike_through = 21,
   sym_underline = 22,
   sym_plain_text = 23,
-  sym_inline = 24,
-  sym_title_only = 25,
-  sym_title = 26,
-  sym_macro = 27,
-  sym_text_markup = 28,
-  aux_sym_title_repeat1 = 29,
+  sym_subscript = 24,
+  sym_superscript = 25,
+  sym_inline = 26,
+  sym_title_only = 27,
+  sym_title = 28,
+  sym_macro = 29,
+  sym_text_markup = 30,
+  aux_sym_title_repeat1 = 31,
 };
 
 static const char * const ts_symbol_names[] = {
@@ -76,6 +78,8 @@ static const char * const ts_symbol_names[] = {
   [sym_strike_through] = "strike_through",
   [sym_underline] = "underline",
   [sym_plain_text] = "plain_text",
+  [sym_subscript] = "subscript",
+  [sym_superscript] = "superscript",
   [sym_inline] = "inline",
   [sym_title_only] = "title_only",
   [sym_title] = "title",
@@ -109,6 +113,8 @@ static const TSSymbol ts_symbol_map[] = {
   [sym_strike_through] = sym_strike_through,
   [sym_underline] = sym_underline,
   [sym_plain_text] = sym_plain_text,
+  [sym_subscript] = sym_subscript,
+  [sym_superscript] = sym_superscript,
   [sym_inline] = sym_inline,
   [sym_title_only] = sym_title_only,
   [sym_title] = sym_title,
@@ -214,6 +220,14 @@ static const TSSymbolMetadata ts_symbol_metadata[] = {
     .visible = true,
     .named = true,
   },
+  [sym_subscript] = {
+    .visible = true,
+    .named = true,
+  },
+  [sym_superscript] = {
+    .visible = true,
+    .named = true,
+  },
   [sym_inline] = {
     .visible = true,
     .named = true,
@@ -285,7 +299,7 @@ static const TSStateId ts_primary_state_ids[STATE_COUNT] = {
 };
 
 static const TSCharacterRange sym_plain_text_character_set_1[] = {
-  {0, '\t'}, {0x0b, ')'}, {',', '.'}, {'0', ';'}, {'>', '?'}, {'A', 'Z'}, {']', '^'}, {'`', 'z'},
+  {0, '\t'}, {0x0b, ')'}, {',', '.'}, {'0', ';'}, {'>', '?'}, {'A', 'Z'}, {']', ']'}, {'`', 'z'},
   {'|', '}'}, {0x7f, 0x10ffff},
 };
 
@@ -687,7 +701,9 @@ static bool ts_lex(TSLexer *lexer, TSStateId state) {
       if (lookahead == '~') ADVANCE(63);
       if (('A' <= lookahead && lookahead <= 'Z') ||
           ('a' <= lookahead && lookahead <= 'z')) ADVANCE(110);
-      if (lookahead != 0) ADVANCE(114);
+      if (lookahead != 0 &&
+          lookahead != '^' &&
+          lookahead != '_') ADVANCE(114);
       END_STATE();
     case 71:
       ACCEPT_TOKEN(ts_builtin_sym_end);
@@ -848,6 +864,7 @@ static bool ts_lex(TSLexer *lexer, TSStateId state) {
           lookahead == '@' ||
           lookahead == '[' ||
           lookahead == '\\' ||
+          lookahead == '^' ||
           lookahead == '_' ||
           lookahead == '{' ||
           lookahead == '~') ADVANCE(94);
@@ -985,6 +1002,7 @@ static bool ts_lex(TSLexer *lexer, TSStateId state) {
           lookahead == '@' ||
           lookahead == '[' ||
           lookahead == '\\' ||
+          lookahead == '^' ||
           lookahead == '_' ||
           lookahead == '{' ||
           lookahead == '~') ADVANCE(94);
@@ -1006,13 +1024,13 @@ static bool ts_lex(TSLexer *lexer, TSStateId state) {
 }
 
 static const TSLexMode ts_lex_modes[STATE_COUNT] = {
-  [0] = {.lex_state = 0},
-  [1] = {.lex_state = 70},
-  [2] = {.lex_state = 70},
-  [3] = {.lex_state = 70},
-  [4] = {.lex_state = 70},
-  [5] = {.lex_state = 70},
-  [6] = {.lex_state = 70},
+  [0] = {.lex_state = 0, .external_lex_state = 1},
+  [1] = {.lex_state = 70, .external_lex_state = 1},
+  [2] = {.lex_state = 70, .external_lex_state = 1},
+  [3] = {.lex_state = 70, .external_lex_state = 1},
+  [4] = {.lex_state = 70, .external_lex_state = 1},
+  [5] = {.lex_state = 70, .external_lex_state = 1},
+  [6] = {.lex_state = 70, .external_lex_state = 1},
   [7] = {.lex_state = 0},
   [8] = {.lex_state = 1},
   [9] = {.lex_state = 0},
@@ -1047,6 +1065,8 @@ static const uint16_t ts_parse_table[LARGE_STATE_COUNT][SYMBOL_COUNT] = {
     [sym_verbatim] = ACTIONS(1),
     [sym_strike_through] = ACTIONS(1),
     [sym_underline] = ACTIONS(1),
+    [sym_subscript] = ACTIONS(1),
+    [sym_superscript] = ACTIONS(1),
   },
   [STATE(1)] = {
     [sym_inline] = STATE(9),
@@ -1074,6 +1094,8 @@ static const uint16_t ts_parse_table[LARGE_STATE_COUNT][SYMBOL_COUNT] = {
     [sym_strike_through] = ACTIONS(11),
     [sym_underline] = ACTIONS(11),
     [sym_plain_text] = ACTIONS(9),
+    [sym_subscript] = ACTIONS(5),
+    [sym_superscript] = ACTIONS(5),
   },
   [STATE(2)] = {
     [sym_macro] = STATE(3),
@@ -1098,6 +1120,8 @@ static const uint16_t ts_parse_table[LARGE_STATE_COUNT][SYMBOL_COUNT] = {
     [sym_strike_through] = ACTIONS(11),
     [sym_underline] = ACTIONS(11),
     [sym_plain_text] = ACTIONS(17),
+    [sym_subscript] = ACTIONS(15),
+    [sym_superscript] = ACTIONS(15),
   },
   [STATE(3)] = {
     [sym_macro] = STATE(3),
@@ -1122,6 +1146,8 @@ static const uint16_t ts_parse_table[LARGE_STATE_COUNT][SYMBOL_COUNT] = {
     [sym_strike_through] = ACTIONS(30),
     [sym_underline] = ACTIONS(30),
     [sym_plain_text] = ACTIONS(27),
+    [sym_subscript] = ACTIONS(21),
+    [sym_superscript] = ACTIONS(21),
   },
   [STATE(4)] = {
     [ts_builtin_sym_end] = ACTIONS(33),
@@ -1143,6 +1169,8 @@ static const uint16_t ts_parse_table[LARGE_STATE_COUNT][SYMBOL_COUNT] = {
     [sym_strike_through] = ACTIONS(33),
     [sym_underline] = ACTIONS(33),
     [sym_plain_text] = ACTIONS(35),
+    [sym_subscript] = ACTIONS(33),
+    [sym_superscript] = ACTIONS(33),
   },
   [STATE(5)] = {
     [ts_builtin_sym_end] = ACTIONS(37),
@@ -1164,6 +1192,8 @@ static const uint16_t ts_parse_table[LARGE_STATE_COUNT][SYMBOL_COUNT] = {
     [sym_strike_through] = ACTIONS(37),
     [sym_underline] = ACTIONS(37),
     [sym_plain_text] = ACTIONS(39),
+    [sym_subscript] = ACTIONS(37),
+    [sym_superscript] = ACTIONS(37),
   },
   [STATE(6)] = {
     [ts_builtin_sym_end] = ACTIONS(41),
@@ -1185,6 +1215,8 @@ static const uint16_t ts_parse_table[LARGE_STATE_COUNT][SYMBOL_COUNT] = {
     [sym_strike_through] = ACTIONS(41),
     [sym_underline] = ACTIONS(41),
     [sym_plain_text] = ACTIONS(43),
+    [sym_subscript] = ACTIONS(41),
+    [sym_superscript] = ACTIONS(41),
   },
 };
 
@@ -1261,9 +1293,32 @@ static const TSParseActionEntry ts_parse_actions[] = {
   [61] = {.entry = {.count = 1, .reusable = true}}, SHIFT(6),
 };
 
+enum ts_external_scanner_symbol_identifiers {
+  ts_external_token_subscript = 0,
+  ts_external_token_superscript = 1,
+};
+
+static const TSSymbol ts_external_scanner_symbol_map[EXTERNAL_TOKEN_COUNT] = {
+  [ts_external_token_subscript] = sym_subscript,
+  [ts_external_token_superscript] = sym_superscript,
+};
+
+static const bool ts_external_scanner_states[2][EXTERNAL_TOKEN_COUNT] = {
+  [1] = {
+    [ts_external_token_subscript] = true,
+    [ts_external_token_superscript] = true,
+  },
+};
+
 #ifdef __cplusplus
 extern "C" {
 #endif
+void *tree_sitter_org_inline_external_scanner_create(void);
+void tree_sitter_org_inline_external_scanner_destroy(void *);
+bool tree_sitter_org_inline_external_scanner_scan(void *, TSLexer *, const bool *);
+unsigned tree_sitter_org_inline_external_scanner_serialize(void *, char *);
+void tree_sitter_org_inline_external_scanner_deserialize(void *, const char *, unsigned);
+
 #ifdef TREE_SITTER_HIDE_SYMBOLS
 #define TS_PUBLIC
 #elif defined(_WIN32)
@@ -1298,6 +1353,15 @@ TS_PUBLIC const TSLanguage *tree_sitter_org_inline(void) {
     .alias_sequences = &ts_alias_sequences[0][0],
     .lex_modes = (const void*)ts_lex_modes,
     .lex_fn = ts_lex,
+    .external_scanner = {
+      &ts_external_scanner_states[0][0],
+      ts_external_scanner_symbol_map,
+      tree_sitter_org_inline_external_scanner_create,
+      tree_sitter_org_inline_external_scanner_destroy,
+      tree_sitter_org_inline_external_scanner_scan,
+      tree_sitter_org_inline_external_scanner_serialize,
+      tree_sitter_org_inline_external_scanner_deserialize,
+    },
     .primary_state_ids = ts_primary_state_ids,
   };
   return &language;

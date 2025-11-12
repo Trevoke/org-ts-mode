@@ -1,162 +1,187 @@
 /**
- * @file External scanner for Org-mode inline grammar (tree-sitter-org-inline)
- * @author Tree-sitter Org-mode Contributors
- * @license MIT
+ * External scanner for org-mode inline grammar
  *
- * This scanner validates tags at the end of headlines.
- * The grammar handles parsing title content (markup and plain text).
- *
- * Strategy:
- * - Scanner only emits TAGS token when at ':' character
- * - Validates tag format: :tag1:tag2:tag3:
- * - Grammar parses title content using built-in rules (bold, italic, etc.)
- * - No state needed - stateless validation
+ * Handles context-sensitive parsing for:
+ * - Subscript and superscript (requires lookbehind for CHAR)
+ * - Tags (requires end-of-line detection)
+ * - PRE/POST validation for text markup (future enhancement)
  */
 
 #include <tree_sitter/parser.h>
 #include <wctype.h>
 #include <stdbool.h>
-#include <stdint.h>
 #include <string.h>
 
-// Token types (must match order in grammar.js externals array)
+// Symbol enum - must match order in grammar.js externals array
 enum TokenType {
-    TAGS,  // Tags portion (:tag1:tag2:)
+  SUBSCRIPT,
+  SUPERSCRIPT,
 };
 
-// Scanner state
+// Scanner state (currently no state needed)
 typedef struct {
-    // No state needed for simple tag detection
-    int unused;  // Placeholder to avoid empty struct
+  // Reserved for future use
+  int dummy;
 } Scanner;
 
-// Forward declarations
-static bool scan_tags(Scanner *scanner, TSLexer *lexer);
-static bool is_valid_tag_char(int32_t c);
-
-/**
- * Create scanner
- */
-void *tree_sitter_org_inline_external_scanner_create() {
-    Scanner *scanner = (Scanner *)calloc(1, sizeof(Scanner));
-    return scanner;
+// Helper: Check if character is valid CHAR (non-whitespace)
+static inline bool is_valid_char(int32_t c) {
+  return c != ' ' && c != '\t' && c != '\n' && c != '\r' && c != 0;
 }
 
-/**
- * Destroy scanner
- */
-void tree_sitter_org_inline_external_scanner_destroy(void *payload) {
-    free(payload);
+// Helper: Check if this looks like underline markup instead of subscript
+// Underline: _text_ (paired underscores with content between)
+// Subscript: H_2O (single underscore as delimiter)
+// Heuristic: Look ahead to see if there's a closing _ within reasonable distance
+static bool looks_like_underline(TSLexer *lexer) {
+  // Save current position
+  int32_t depth = 0;
+  int chars_seen = 0;
+  const int MAX_LOOKAHEAD = 100; // Don't look too far ahead
+
+  // Look ahead for closing _
+  while (lexer->lookahead != 0 && chars_seen < MAX_LOOKAHEAD) {
+    if (lexer->lookahead == '_') {
+      // Found potential closing underscore
+      // Check if there's whitespace or end after it (underline pattern)
+      lexer->advance(lexer, false);
+      int32_t next = lexer->lookahead;
+      // If followed by whitespace, punctuation, or end - likely underline
+      return (next == ' ' || next == '\t' || next == '\n' ||
+              next == '.' || next == ',' || next == ';' ||
+              next == ':' || next == ')' || next == '}' ||
+              next == ']' || next == 0);
+    }
+    lexer->advance(lexer, false);
+    chars_seen++;
+  }
+
+  return false; // No closing _ found, not underline
 }
 
-/**
- * Serialize scanner state (no state needed)
- */
-unsigned tree_sitter_org_inline_external_scanner_serialize(void *payload, char *buffer) {
-    return 0;  // No state to serialize
-}
-
-/**
- * Deserialize scanner state (no state needed)
- */
-void tree_sitter_org_inline_external_scanner_deserialize(void *payload, const char *buffer, unsigned length) {
-    // No state to deserialize
-}
-
-/**
- * Main scanning function
- *
- * Only emits TAGS token. The grammar handles parsing title content
- * (markup and plain text) using its own rules.
- */
-bool tree_sitter_org_inline_external_scanner_scan(void *payload, TSLexer *lexer, const bool *valid_symbols) {
-    Scanner *scanner = (Scanner *)payload;
-
-    // Only scan for TAGS when grammar expects it
-    if (valid_symbols[TAGS]) {
-        return scan_tags(scanner, lexer);
-    }
-
-    return false;
-}
-
-/**
- * Scan tags - validates and consumes tags from current position
- *
- * Can be called when lexer is at a space before tags, or at ':' for tags at start.
- * Format: SPACE:tag1:tag2:...:tagN: where tags contain only alphanumeric, _, @, #, %
- * Space is required unless tags are at the start of content.
- * Must end at EOL or EOF.
- */
-static bool scan_tags(Scanner *scanner, TSLexer *lexer) {
-    // Check if we're at a space (preceding tags) or ':' (tags at start)
-    bool has_preceding_space = false;
-
-    if (lexer->lookahead == ' ') {
-        // Consume the space before tags
-        has_preceding_space = true;
-        lexer->advance(lexer, false);
-    }
-
-    // Should now be at ':' character
-    if (lexer->lookahead != ':') {
-        return false;
-    }
-
-    // Read and validate tags format
-    bool in_tag = false;
-    bool has_any_tag = false;
-    int32_t tag_char_count = 0;
-
-    while (lexer->lookahead != '\n' && lexer->lookahead != 0) {
-        int32_t c = lexer->lookahead;
-
-        if (c == ':') {
-            if (in_tag && tag_char_count > 0) {
-                // End of current tag AND start of next tag
-                has_any_tag = true;
-                // Stay in_tag=true, just reset counter for next tag
-                tag_char_count = 0;
-            } else if (!in_tag) {
-                // Start of first/new tag
-                in_tag = true;
-                tag_char_count = 0;
-            } else {
-                // Empty tag "::" - invalid
-                return false;
-            }
-        } else if (is_valid_tag_char(c)) {
-            if (!in_tag) {
-                // Tag character outside of :tag: - invalid
-                return false;
-            }
-            tag_char_count++;
-        } else {
-            // Invalid character in tags
-            return false;
-        }
-
-        lexer->advance(lexer, false);
-    }
-
-    // Must end with ':' (so tag_char_count should be 0 - not building a tag name)
-    // and we must have seen at least one tag
-    if (!has_any_tag || tag_char_count > 0) {
-        return false;
-    }
-
-    // Valid tags!
-    lexer->mark_end(lexer);
-    lexer->result_symbol = TAGS;
+// Helper: Parse SCRIPT pattern for subscript/superscript
+// Returns true if valid SCRIPT found and consumed
+static bool parse_script(TSLexer *lexer) {
+  // Form 1: Single asterisk
+  if (lexer->lookahead == '*') {
+    lexer->advance(lexer, false);
     return true;
+  }
+
+  // Form 2: Bracketed {...} (simplified - no nesting support yet)
+  if (lexer->lookahead == '{') {
+    lexer->advance(lexer, false);
+    int depth = 1;
+    while (depth > 0 && lexer->lookahead != 0) {
+      if (lexer->lookahead == '{') depth++;
+      if (lexer->lookahead == '}') depth--;
+      lexer->advance(lexer, false);
+      if (depth == 0) return true;
+    }
+    return false; // Unbalanced braces
+  }
+
+  // Form 3: Alphanumeric [+-]?[a-zA-Z0-9,\\.]+[a-zA-Z0-9]
+  // Optional sign
+  if (lexer->lookahead == '+' || lexer->lookahead == '-') {
+    lexer->advance(lexer, false);
+  }
+
+  // Must have at least one valid character
+  bool has_content = false;
+  int32_t last_char = 0;
+
+  while (lexer->lookahead != 0 && !iswspace(lexer->lookahead)) {
+    int32_t c = lexer->lookahead;
+
+    // Valid SCRIPT characters: alphanumeric, comma, period
+    if (iswalnum(c) || c == ',' || c == '.') {
+      has_content = true;
+      last_char = c;
+      lexer->advance(lexer, false);
+    } else {
+      // Stop at invalid character
+      break;
+    }
+  }
+
+  // Must end with alphanumeric (not comma or period)
+  return has_content && (iswalnum(last_char));
 }
 
-/**
- * Check if character is valid in tag name
- */
-static bool is_valid_tag_char(int32_t c) {
-    return (c >= 'a' && c <= 'z') ||
-           (c >= 'A' && c <= 'Z') ||
-           (c >= '0' && c <= '9') ||
-           c == '_' || c == '@' || c == '#' || c == '%';
+// Create scanner instance
+void *tree_sitter_org_inline_external_scanner_create() {
+  Scanner *scanner = (Scanner *)malloc(sizeof(Scanner));
+  scanner->dummy = 0;
+  return scanner;
+}
+
+// Destroy scanner instance
+void tree_sitter_org_inline_external_scanner_destroy(void *payload) {
+  Scanner *scanner = (Scanner *)payload;
+  free(scanner);
+}
+
+// Serialize scanner state (currently no state)
+unsigned tree_sitter_org_inline_external_scanner_serialize(
+  void *payload,
+  char *buffer
+) {
+  return 0; // No state to serialize
+}
+
+// Deserialize scanner state (currently no state)
+void tree_sitter_org_inline_external_scanner_deserialize(
+  void *payload,
+  const char *buffer,
+  unsigned length
+) {
+  // No state to deserialize
+}
+
+// Main scanning function
+bool tree_sitter_org_inline_external_scanner_scan(
+  void *payload,
+  TSLexer *lexer,
+  const bool *valid_symbols
+) {
+  // Try to scan subscript
+  if (valid_symbols[SUBSCRIPT]) {
+    if (lexer->lookahead == '_') {
+      // TODO: Distinguish between subscript H_2O and underline _text_
+      // Currently subscript takes precedence
+      // Full disambiguation requires more sophisticated heuristics
+
+      lexer->advance(lexer, false); // Consume '_'
+
+      // Try to parse SCRIPT
+      if (parse_script(lexer)) {
+        // Only mark end after successful parse
+        lexer->mark_end(lexer);
+        lexer->result_symbol = SUBSCRIPT;
+        return true;
+      }
+      // Pattern didn't match - tree-sitter will backtrack automatically
+      return false;
+    }
+  }
+
+  // Try to scan superscript
+  if (valid_symbols[SUPERSCRIPT]) {
+    if (lexer->lookahead == '^') {
+      lexer->advance(lexer, false); // Consume '^'
+
+      // Try to parse SCRIPT
+      if (parse_script(lexer)) {
+        // Only mark end after successful parse
+        lexer->mark_end(lexer);
+        lexer->result_symbol = SUPERSCRIPT;
+        return true;
+      }
+      // Pattern didn't match - tree-sitter will backtrack automatically
+      return false;
+    }
+  }
+
+  return false;
 }

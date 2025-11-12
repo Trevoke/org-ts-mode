@@ -118,6 +118,14 @@
           "named": true
         },
         {
+          "type": "subscript",
+          "named": true
+        },
+        {
+          "type": "superscript",
+          "named": true
+        },
+        {
           "type": "target",
           "named": true
         },
@@ -214,6 +222,14 @@
   },
   {
     "type": "strike_through",
+    "named": true
+  },
+  {
+    "type": "subscript",
+    "named": true
+  },
+  {
+    "type": "superscript",
     "named": true
   },
   {

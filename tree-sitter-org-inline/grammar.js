@@ -1,15 +1,15 @@
 /**
- * @file Inline (Object-level) grammar for Org-mode - Phase 3: Text Markup
+ * @file Inline (Object-level) grammar for Org-mode - Phase 4: Subscript/Superscript
  * @author Org-TS-Mode Contributors
  * @license MIT
  *
- * PHASE 3: Text markup with token-based content validation
+ * PHASE 4: Subscript and superscript with external scanner
  *
  * This is a systematic rebuild following TDD principles.
  * See doc/INLINE_GRAMMAR_ANALYSIS.md for complete rebuild plan.
  *
- * Current phase: Phase 3 - Text markup (bold, italic, code, verbatim, strike, underline)
- * Next phase: Phase 4 - Subscript/superscript with external scanner
+ * Current phase: Phase 4 - Subscript/superscript via C external scanner
+ * Next phase: Phase 5 - Tags with external scanner
  */
 
 /// <reference types="tree-sitter-cli/dsl" />
@@ -18,8 +18,11 @@
 module.exports = grammar({
   name: 'org_inline',
 
-  // Phase 1: No externals yet
-  // externals: $ => [],
+  // Phase 4: External scanner for subscript/superscript
+  externals: $ => [
+    $.subscript,
+    $.superscript,
+  ],
 
   // Only skip newlines (they delimit inline content)
   extras: $ => ['\n'],
@@ -43,6 +46,7 @@ module.exports = grammar({
     // Phase 2g: Add timestamps
     // Phase 2h: Add export snippets
     // Phase 3: Add text markup (bold, italic, code, verbatim, strike-through, underline)
+    // Phase 4: Add subscript and superscript (external scanner)
     title: $ => repeat1(choice(
       // Phase 2a: Targets (unique delimiters, no conflicts)
       prec(3, $.radio_target),  // <<<>>> - must match before target (longer delimiter)
@@ -73,6 +77,10 @@ module.exports = grammar({
 
       // Phase 3: Text markup (with PRE/POST rules via tokens)
       prec(2, $.text_markup),  // *bold*, /italic/, ~code~, =verbatim=, +strike+, _underline_
+
+      // Phase 4: Subscript and superscript (external scanner)
+      prec(3, $.subscript),    // H_2O - handled by external scanner
+      prec(3, $.superscript),  // x^2 - handled by external scanner
 
       // Plain text (fallback)
       prec(1, $.plain_text)
@@ -298,7 +306,7 @@ module.exports = grammar({
     )),
 
     // Plain text: Any characters except newline or special delimiters
-    // Exclude <, {, \, [, @, *, /, ~, =, +, _ so all objects and markup can be recognized
-    plain_text: $ => /[^<{\\\[@*\/~=+_\n]+/,
+    // Exclude <, {, \, [, @, *, /, ~, =, +, _, ^ so all objects and markup can be recognized
+    plain_text: $ => /[^<{\\\[@*\/~=+_^\n]+/,
   }
 });

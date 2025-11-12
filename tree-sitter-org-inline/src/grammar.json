@@ -125,6 +125,22 @@
           },
           {
             "type": "PREC",
+            "value": 3,
+            "content": {
+              "type": "SYMBOL",
+              "name": "subscript"
+            }
+          },
+          {
+            "type": "PREC",
+            "value": 3,
+            "content": {
+              "type": "SYMBOL",
+              "name": "superscript"
+            }
+          },
+          {
+            "type": "PREC",
             "value": 1,
             "content": {
               "type": "SYMBOL",
@@ -665,7 +681,7 @@
     },
     "plain_text": {
       "type": "PATTERN",
-      "value": "[^<{\\\\\\[@*\\/~=+_\\n]+"
+      "value": "[^<{\\\\\\[@*\\/~=+_^\\n]+"
     }
   },
   "extras": [
@@ -676,7 +692,16 @@
   ],
   "conflicts": [],
   "precedences": [],
-  "externals": [],
+  "externals": [
+    {
+      "type": "SYMBOL",
+      "name": "subscript"
+    },
+    {
+      "type": "SYMBOL",
+      "name": "superscript"
+    }
+  ],
   "inline": [],
   "supertypes": [],
   "reserved": {}
