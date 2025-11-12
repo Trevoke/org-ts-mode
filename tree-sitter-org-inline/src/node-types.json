@@ -51,6 +51,10 @@
           "named": true
         },
         {
+          "type": "footnote_reference",
+          "named": true
+        },
+        {
           "type": "macro",
           "named": true
         },
@@ -111,6 +115,10 @@
   },
   {
     "type": "entity",
+    "named": true
+  },
+  {
+    "type": "footnote_reference",
     "named": true
   },
   {

@@ -39,6 +39,7 @@ module.exports = grammar({
     // Phase 2c: Add entities
     // Phase 2d: Add links
     // Phase 2e: Add statistics cookies
+    // Phase 2f: Add footnotes
     title: $ => repeat1(choice(
       // Phase 2a: Targets (unique delimiters, no conflicts)
       prec(3, $.radio_target),  // <<<>>> - must match before target (longer delimiter)
@@ -57,6 +58,9 @@ module.exports = grammar({
 
       // Phase 2e: Statistics cookies (specific [ patterns)
       prec(3, $.statistics_cookie),  // [N%] or [N/M]
+
+      // Phase 2f: Footnotes (specific [fn: pattern)
+      prec(3, $.footnote_reference),  // [fn:label] or [fn:label:def] or [fn::def]
 
       // Plain text (fallback)
       prec(1, $.plain_text)
@@ -157,6 +161,34 @@ module.exports = grammar({
       seq('[', /\d*/, '%', ']'),
       // Fraction format: [N/M] where N and M are zero or more digits
       seq('[', /\d*/, '/', /\d*/, ']')
+    )),
+
+    // Footnote reference: [fn:label], [fn:label:def], or [fn::def]
+    // Three formats:
+    //   1. Named reference: [fn:label] - references a footnote defined elsewhere
+    //   2. Inline with definition: [fn:label:definition text] - defines footnote inline
+    //   3. Anonymous: [fn::definition text] - anonymous inline footnote
+    // Label: alphanumeric, hyphens, underscores (no spaces)
+    // Definition: any text except ] and newline
+    // Atomic token for bounding - prevents internal components from leaking
+    footnote_reference: $ => token(seq(
+      '[fn:',
+      choice(
+        // Named with definition: [fn:label:definition]
+        seq(
+          /[a-zA-Z0-9_-]+/,  // Label
+          ':',
+          /[^\]]+/           // Definition (excludes ] to prevent greedy matching)
+        ),
+        // Named without definition: [fn:label]
+        /[a-zA-Z0-9_-]+/,    // Label only
+        // Anonymous: [fn::definition]
+        seq(
+          ':',
+          /[^\]]+/           // Definition (excludes ] to prevent greedy matching)
+        )
+      ),
+      ']'
     )),
 
     // Plain text: Any characters except newline or special delimiters
