@@ -81,6 +81,10 @@
         {
           "type": "target",
           "named": true
+        },
+        {
+          "type": "timestamp",
+          "named": true
         }
       ]
     }
@@ -151,6 +155,10 @@
   },
   {
     "type": "target",
+    "named": true
+  },
+  {
+    "type": "timestamp",
     "named": true
   },
   {

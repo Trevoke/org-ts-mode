@@ -40,6 +40,7 @@ module.exports = grammar({
     // Phase 2d: Add links
     // Phase 2e: Add statistics cookies
     // Phase 2f: Add footnotes
+    // Phase 2g: Add timestamps
     title: $ => repeat1(choice(
       // Phase 2a: Targets (unique delimiters, no conflicts)
       prec(3, $.radio_target),  // <<<>>> - must match before target (longer delimiter)
@@ -61,6 +62,9 @@ module.exports = grammar({
 
       // Phase 2f: Footnotes (specific [fn: pattern)
       prec(3, $.footnote_reference),  // [fn:label] or [fn:label:def] or [fn::def]
+
+      // Phase 2g: Timestamps (date patterns in < > or [ ])
+      prec(3, $.timestamp),  // <2024-01-01> or [2024-01-01]
 
       // Plain text (fallback)
       prec(1, $.plain_text)
@@ -189,6 +193,27 @@ module.exports = grammar({
         )
       ),
       ']'
+    )),
+
+    // Timestamp: <2024-01-15 Mon> or [2024-01-15 Mon]
+    // Active timestamps (<>) appear in agenda, inactive ([]) are for reference
+    // Can include time (14:30), ranges (09:00-17:00), repeaters (+1w), delays (-2d)
+    // Pattern specificity for bounding:
+    // - Active: Must start with digit and contain '-' (to avoid matching <protocol://url>)
+    // - Inactive: Must start with digit and contain '-' (to avoid matching [50%] or [fn:...])
+    // Atomic token for bounding - prevents internal components from leaking
+    timestamp: $ => token(choice(
+      // Active timestamp: <2024-01-15 Mon 14:30>
+      // Must start with digit and contain dash (date separator)
+      // This distinguishes from angle links which have protocol:// early on
+      seq('<', /[0-9][^>]*-[^>]*/, '>'),
+      // Inactive timestamp: [2024-01-15 Mon 14:30]
+      // Must start with digit and contain dash (date separator)
+      // This distinguishes from:
+      // - [fn:...] (starts with 'f', not digit)
+      // - [50%] (no dash)
+      // - [1/2] (no dash)
+      seq('[', /\d[^\]]*-[^\]]*/, ']')
     )),
 
     // Plain text: Any characters except newline or special delimiters
