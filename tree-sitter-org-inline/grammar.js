@@ -167,18 +167,18 @@ module.exports = grammar({
     $.TAGS,  // Tags portion (:tag1:tag2:) - detected by scanner
 
     // Emphasis markers - scanner validates PRE/POST/CONTENTS boundaries
-    $.BOLD_OPEN,
-    $.BOLD_CLOSE,
-    $.ITALIC_OPEN,
-    $.ITALIC_CLOSE,
-    $.UNDERLINE_OPEN,
-    $.UNDERLINE_CLOSE,
-    $.CODE_OPEN,
-    $.CODE_CLOSE,
-    $.VERBATIM_OPEN,
-    $.VERBATIM_CLOSE,
-    $.STRIKE_OPEN,
-    $.STRIKE_CLOSE,
+    $._bold_open,
+    $._bold_close,
+    $._italic_open,
+    $._italic_close,
+    $._underline_open,
+    $._underline_close,
+    $._code_open,
+    $._code_close,
+    $._verbatim_open,
+    $._verbatim_close,
+    $._strike_open,
+    $._strike_close,
   ],
 
   extras: $ => ['\n'],
@@ -251,51 +251,51 @@ module.exports = grammar({
     // Bold: *text*
     // Scanner validates PRE/POST/CONTENTS boundaries
     bold: $ => prec.dynamic(PRECEDENCE.EMPHASIS, seq(
-      $.BOLD_OPEN,
+      $._bold_open,
       repeat1($._inline_element_no_bold),
-      $.BOLD_CLOSE
+      $._bold_close
     )),
 
     // Italic: /text/
     // Scanner validates PRE/POST/CONTENTS boundaries
     italic: $ => prec.dynamic(PRECEDENCE.EMPHASIS, seq(
-      $.ITALIC_OPEN,
+      $._italic_open,
       repeat1($._inline_element_no_italic),
-      $.ITALIC_CLOSE
+      $._italic_close
     )),
 
     // Underline: _text_
     // Scanner validates PRE/POST/CONTENTS boundaries
     underline: $ => prec.dynamic(PRECEDENCE.EMPHASIS, seq(
-      $.UNDERLINE_OPEN,
+      $._underline_open,
       repeat1($._inline_element_no_underline),
-      $.UNDERLINE_CLOSE
+      $._underline_close
     )),
 
     // Code: ~text~
     // Content is opaque - no parsing inside
     // Scanner validates PRE/POST/CONTENTS boundaries
     code: $ => prec.dynamic(PRECEDENCE.CODE, seq(
-      $.CODE_OPEN,
+      $._code_open,
       /[^\s~][^~\n]*[^\s~]|[^\s~\n]/,  // Scanner validates, but regex ensures no leading/trailing ws
-      $.CODE_CLOSE
+      $._code_close
     )),
 
     // Verbatim: =text=
     // Content is opaque - no parsing inside
     // Scanner validates PRE/POST/CONTENTS boundaries
     verbatim: $ => prec.dynamic(PRECEDENCE.CODE, seq(
-      $.VERBATIM_OPEN,
+      $._verbatim_open,
       /[^\s=][^=\n]*[^\s=]|[^\s=\n]/,  // Scanner validates, but regex ensures no leading/trailing ws
-      $.VERBATIM_CLOSE
+      $._verbatim_close
     )),
 
     // Strike-through: +text+
     // Scanner validates PRE/POST/CONTENTS boundaries
     strike_through: $ => prec.dynamic(PRECEDENCE.EMPHASIS, seq(
-      $.STRIKE_OPEN,
+      $._strike_open,
       repeat1($._inline_element_no_strike),
-      $.STRIKE_CLOSE
+      $._strike_close
     )),
 
     // ========================================================================

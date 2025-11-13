@@ -11,7 +11,7 @@
       "sources": [
         "bindings/node/binding.cc",
         "src/parser.c",
-        # NOTE: if your language has an external scanner, add it here.
+        "src/scanner.c",  # External scanner for emphasis boundary validation
       ],
       "conditions": [
         ["OS!='win'", {

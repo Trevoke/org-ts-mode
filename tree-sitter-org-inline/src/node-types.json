@@ -13,14 +13,6 @@
       "required": true,
       "types": [
         {
-          "type": "BOLD_CLOSE",
-          "named": true
-        },
-        {
-          "type": "BOLD_OPEN",
-          "named": true
-        },
-        {
           "type": "angle_link",
           "named": true
         },
@@ -94,21 +86,7 @@
   {
     "type": "code",
     "named": true,
-    "fields": {},
-    "children": {
-      "multiple": true,
-      "required": true,
-      "types": [
-        {
-          "type": "CODE_CLOSE",
-          "named": true
-        },
-        {
-          "type": "CODE_OPEN",
-          "named": true
-        }
-      ]
-    }
+    "fields": {}
   },
   {
     "type": "entity",
@@ -153,14 +131,6 @@
       "multiple": true,
       "required": true,
       "types": [
-        {
-          "type": "ITALIC_CLOSE",
-          "named": true
-        },
-        {
-          "type": "ITALIC_OPEN",
-          "named": true
-        },
         {
           "type": "angle_link",
           "named": true
@@ -284,14 +254,6 @@
       "multiple": true,
       "required": true,
       "types": [
-        {
-          "type": "STRIKE_CLOSE",
-          "named": true
-        },
-        {
-          "type": "STRIKE_OPEN",
-          "named": true
-        },
         {
           "type": "angle_link",
           "named": true
@@ -522,14 +484,6 @@
       "required": true,
       "types": [
         {
-          "type": "UNDERLINE_CLOSE",
-          "named": true
-        },
-        {
-          "type": "UNDERLINE_OPEN",
-          "named": true
-        },
-        {
           "type": "angle_link",
           "named": true
         },
@@ -603,21 +557,7 @@
   {
     "type": "verbatim",
     "named": true,
-    "fields": {},
-    "children": {
-      "multiple": true,
-      "required": true,
-      "types": [
-        {
-          "type": "VERBATIM_CLOSE",
-          "named": true
-        },
-        {
-          "type": "VERBATIM_OPEN",
-          "named": true
-        }
-      ]
-    }
+    "fields": {}
   },
   {
     "type": "%",
@@ -666,54 +606,6 @@
   {
     "type": "@@",
     "named": false
-  },
-  {
-    "type": "BOLD_CLOSE",
-    "named": true
-  },
-  {
-    "type": "BOLD_OPEN",
-    "named": true
-  },
-  {
-    "type": "CODE_CLOSE",
-    "named": true
-  },
-  {
-    "type": "CODE_OPEN",
-    "named": true
-  },
-  {
-    "type": "ITALIC_CLOSE",
-    "named": true
-  },
-  {
-    "type": "ITALIC_OPEN",
-    "named": true
-  },
-  {
-    "type": "STRIKE_CLOSE",
-    "named": true
-  },
-  {
-    "type": "STRIKE_OPEN",
-    "named": true
-  },
-  {
-    "type": "UNDERLINE_CLOSE",
-    "named": true
-  },
-  {
-    "type": "UNDERLINE_OPEN",
-    "named": true
-  },
-  {
-    "type": "VERBATIM_CLOSE",
-    "named": true
-  },
-  {
-    "type": "VERBATIM_OPEN",
-    "named": true
   },
   {
     "type": "[",

@@ -924,20 +924,14 @@ bool tree_sitter_org_inline_external_scanner_scan(
     }
 
     // Priority 2: Emphasis scanning
-    // DEBUG: Try to call scan_emphasis
-    bool should_scan_emphasis =
-        valid_symbols[BOLD_OPEN] || valid_symbols[BOLD_CLOSE] ||
+    // Try any valid emphasis token
+    if (valid_symbols[BOLD_OPEN] || valid_symbols[BOLD_CLOSE] ||
         valid_symbols[ITALIC_OPEN] || valid_symbols[ITALIC_CLOSE] ||
         valid_symbols[UNDERLINE_OPEN] || valid_symbols[UNDERLINE_CLOSE] ||
         valid_symbols[CODE_OPEN] || valid_symbols[CODE_CLOSE] ||
         valid_symbols[VERBATIM_OPEN] || valid_symbols[VERBATIM_CLOSE] ||
-        valid_symbols[STRIKE_OPEN] || valid_symbols[STRIKE_CLOSE];
-
-    if (should_scan_emphasis) {
-        // Check if lookahead is an emphasis marker
-        if (is_emphasis_marker(lexer->lookahead)) {
-            return scan_emphasis(&ctx);
-        }
+        valid_symbols[STRIKE_OPEN] || valid_symbols[STRIKE_CLOSE]) {
+        return scan_emphasis(&ctx);
     }
 
     return false;
