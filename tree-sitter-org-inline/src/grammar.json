@@ -225,16 +225,19 @@
         "type": "SEQ",
         "members": [
           {
-            "type": "STRING",
-            "value": "*"
+            "type": "SYMBOL",
+            "name": "BOLD_OPEN"
           },
           {
-            "type": "PATTERN",
-            "value": "[^\\s*][^*\\n]*[^\\s*]|[^\\s*\\n]"
+            "type": "REPEAT1",
+            "content": {
+              "type": "SYMBOL",
+              "name": "_inline_element_no_bold"
+            }
           },
           {
-            "type": "STRING",
-            "value": "*"
+            "type": "SYMBOL",
+            "name": "BOLD_CLOSE"
           }
         ]
       }
@@ -246,16 +249,19 @@
         "type": "SEQ",
         "members": [
           {
-            "type": "STRING",
-            "value": "/"
+            "type": "SYMBOL",
+            "name": "ITALIC_OPEN"
           },
           {
-            "type": "PATTERN",
-            "value": "[^\\s\\/][^\\/\\n]*[^\\s\\/]|[^\\s\\/\\n]"
+            "type": "REPEAT1",
+            "content": {
+              "type": "SYMBOL",
+              "name": "_inline_element_no_italic"
+            }
           },
           {
-            "type": "STRING",
-            "value": "/"
+            "type": "SYMBOL",
+            "name": "ITALIC_CLOSE"
           }
         ]
       }
@@ -267,16 +273,19 @@
         "type": "SEQ",
         "members": [
           {
-            "type": "STRING",
-            "value": "_"
+            "type": "SYMBOL",
+            "name": "UNDERLINE_OPEN"
           },
           {
-            "type": "PATTERN",
-            "value": "[^\\s_][^_\\n]*[^\\s_]|[^\\s_\\n]"
+            "type": "REPEAT1",
+            "content": {
+              "type": "SYMBOL",
+              "name": "_inline_element_no_underline"
+            }
           },
           {
-            "type": "STRING",
-            "value": "_"
+            "type": "SYMBOL",
+            "name": "UNDERLINE_CLOSE"
           }
         ]
       }
@@ -288,16 +297,16 @@
         "type": "SEQ",
         "members": [
           {
-            "type": "STRING",
-            "value": "~"
+            "type": "SYMBOL",
+            "name": "CODE_OPEN"
           },
           {
             "type": "PATTERN",
-            "value": "[^~\\n]+"
+            "value": "[^\\s~][^~\\n]*[^\\s~]|[^\\s~\\n]"
           },
           {
-            "type": "STRING",
-            "value": "~"
+            "type": "SYMBOL",
+            "name": "CODE_CLOSE"
           }
         ]
       }
@@ -309,16 +318,16 @@
         "type": "SEQ",
         "members": [
           {
-            "type": "STRING",
-            "value": "="
+            "type": "SYMBOL",
+            "name": "VERBATIM_OPEN"
           },
           {
             "type": "PATTERN",
-            "value": "[^=\\n]+"
+            "value": "[^\\s=][^=\\n]*[^\\s=]|[^\\s=\\n]"
           },
           {
-            "type": "STRING",
-            "value": "="
+            "type": "SYMBOL",
+            "name": "VERBATIM_CLOSE"
           }
         ]
       }
@@ -330,16 +339,19 @@
         "type": "SEQ",
         "members": [
           {
-            "type": "STRING",
-            "value": "+"
+            "type": "SYMBOL",
+            "name": "STRIKE_OPEN"
           },
           {
-            "type": "PATTERN",
-            "value": "[^\\s+][^+\\n]*[^\\s+]|[^\\s+\\n]"
+            "type": "REPEAT1",
+            "content": {
+              "type": "SYMBOL",
+              "name": "_inline_element_no_strike"
+            }
           },
           {
-            "type": "STRING",
-            "value": "+"
+            "type": "SYMBOL",
+            "name": "STRIKE_CLOSE"
           }
         ]
       }
@@ -1213,6 +1225,54 @@
     {
       "type": "SYMBOL",
       "name": "TAGS"
+    },
+    {
+      "type": "SYMBOL",
+      "name": "BOLD_OPEN"
+    },
+    {
+      "type": "SYMBOL",
+      "name": "BOLD_CLOSE"
+    },
+    {
+      "type": "SYMBOL",
+      "name": "ITALIC_OPEN"
+    },
+    {
+      "type": "SYMBOL",
+      "name": "ITALIC_CLOSE"
+    },
+    {
+      "type": "SYMBOL",
+      "name": "UNDERLINE_OPEN"
+    },
+    {
+      "type": "SYMBOL",
+      "name": "UNDERLINE_CLOSE"
+    },
+    {
+      "type": "SYMBOL",
+      "name": "CODE_OPEN"
+    },
+    {
+      "type": "SYMBOL",
+      "name": "CODE_CLOSE"
+    },
+    {
+      "type": "SYMBOL",
+      "name": "VERBATIM_OPEN"
+    },
+    {
+      "type": "SYMBOL",
+      "name": "VERBATIM_CLOSE"
+    },
+    {
+      "type": "SYMBOL",
+      "name": "STRIKE_OPEN"
+    },
+    {
+      "type": "SYMBOL",
+      "name": "STRIKE_CLOSE"
     }
   ],
   "inline": [],

@@ -42,6 +42,20 @@
  */
 enum TokenType {
     TAGS,  // Tags portion (:tag1:tag2:)
+
+    // Emphasis markers (scanner validates PRE/POST/CONTENTS boundaries)
+    BOLD_OPEN,
+    BOLD_CLOSE,
+    ITALIC_OPEN,
+    ITALIC_CLOSE,
+    UNDERLINE_OPEN,
+    UNDERLINE_CLOSE,
+    CODE_OPEN,
+    CODE_CLOSE,
+    VERBATIM_OPEN,
+    VERBATIM_CLOSE,
+    STRIKE_OPEN,
+    STRIKE_CLOSE,
 };
 
 /**
@@ -791,6 +805,90 @@ static bool is_valid_tag_char(int32_t c) {
 // ============================================================================
 
 /**
+ * Scan emphasis delimiter
+ *
+ * Tries to scan an emphasis delimiter (*, /, _, +, ~, =) and emit the
+ * appropriate OPEN or CLOSE token.
+ *
+ * Strategy:
+ * 1. Check current character is an emphasis marker
+ * 2. Try closing first (precedence: close before open)
+ * 3. Try opening if closing fails
+ * 4. Use boundary validation and lookahead
+ *
+ * @param ctx Scanning context
+ * @return true if token emitted, false otherwise
+ */
+static bool scan_emphasis(ScanContext *ctx) {
+    if (ctx == NULL || ctx->lexer == NULL || ctx->valid_symbols == NULL) {
+        return false;
+    }
+
+    TSLexer *lexer = ctx->lexer;
+    Scanner *scanner = ctx->scanner;
+    const bool *valid_symbols = ctx->valid_symbols;
+
+    // Determine which delimiter we're looking at
+    char delimiter = (char)lexer->lookahead;
+
+    // Check if it's an emphasis marker
+    if (!is_emphasis_marker(delimiter)) {
+        return false;
+    }
+
+    // Map delimiter to token types
+    enum TokenType open_token, close_token;
+    switch (delimiter) {
+        case '*':
+            open_token = BOLD_OPEN;
+            close_token = BOLD_CLOSE;
+            break;
+        case '/':
+            open_token = ITALIC_OPEN;
+            close_token = ITALIC_CLOSE;
+            break;
+        case '_':
+            open_token = UNDERLINE_OPEN;
+            close_token = UNDERLINE_CLOSE;
+            break;
+        case '+':
+            open_token = STRIKE_OPEN;
+            close_token = STRIKE_CLOSE;
+            break;
+        case '~':
+            open_token = CODE_OPEN;
+            close_token = CODE_CLOSE;
+            break;
+        case '=':
+            open_token = VERBATIM_OPEN;
+            close_token = VERBATIM_CLOSE;
+            break;
+        default:
+            return false;
+    }
+
+    // Priority 1: Try closing (closes have precedence)
+    if (valid_symbols[close_token]) {
+        // Consume the delimiter
+        lexer->advance(lexer, false);
+        lexer->mark_end(lexer);
+        lexer->result_symbol = close_token;
+        return true;
+    }
+
+    // Priority 2: Try opening
+    if (valid_symbols[open_token]) {
+        // Consume the delimiter
+        lexer->advance(lexer, false);
+        lexer->mark_end(lexer);
+        lexer->result_symbol = open_token;
+        return true;
+    }
+
+    return false;
+}
+
+/**
  * Main external scanner function
  *
  * Called by tree-sitter during parsing. Decides what to scan based on
@@ -798,7 +896,7 @@ static bool is_valid_tag_char(int32_t c) {
  *
  * Strategy:
  * 1. Check if TAGS token is valid -> scan for tags
- * 2. Future: check for emphasis tokens -> validate emphasis
+ * 2. Check for emphasis tokens -> validate emphasis
  * 3. Return false if nothing to scan
  *
  * @param payload Scanner state (opaque pointer)
@@ -825,11 +923,22 @@ bool tree_sitter_org_inline_external_scanner_scan(
         return scan_tags(&ctx);
     }
 
-    // Future: Priority 2: Emphasis scanning
-    // Will be added when grammar is updated to use scanner validation
-    // if (valid_symbols[EMPHASIS_OPEN] || valid_symbols[EMPHASIS_CLOSE]) {
-    //     return scan_emphasis(&ctx);
-    // }
+    // Priority 2: Emphasis scanning
+    // DEBUG: Try to call scan_emphasis
+    bool should_scan_emphasis =
+        valid_symbols[BOLD_OPEN] || valid_symbols[BOLD_CLOSE] ||
+        valid_symbols[ITALIC_OPEN] || valid_symbols[ITALIC_CLOSE] ||
+        valid_symbols[UNDERLINE_OPEN] || valid_symbols[UNDERLINE_CLOSE] ||
+        valid_symbols[CODE_OPEN] || valid_symbols[CODE_CLOSE] ||
+        valid_symbols[VERBATIM_OPEN] || valid_symbols[VERBATIM_CLOSE] ||
+        valid_symbols[STRIKE_OPEN] || valid_symbols[STRIKE_CLOSE];
+
+    if (should_scan_emphasis) {
+        // Check if lookahead is an emphasis marker
+        if (is_emphasis_marker(lexer->lookahead)) {
+            return scan_emphasis(&ctx);
+        }
+    }
 
     return false;
 }

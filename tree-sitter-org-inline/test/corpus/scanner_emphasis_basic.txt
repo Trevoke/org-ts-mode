@@ -1,0 +1,403 @@
+==================
+Bold with valid boundaries
+==================
+
+This is *bold* text.
+
+---
+
+(inline
+  (title_only
+    (title
+      (plain_text)
+      (text_markup
+        (bold))
+      (plain_text))))
+
+==================
+Italic with valid boundaries
+==================
+
+This is /italic/ text.
+
+---
+
+(inline
+  (title_only
+    (title
+      (plain_text)
+      (text_markup
+        (italic))
+      (plain_text))))
+
+==================
+Underline with valid boundaries
+==================
+
+This is _underline_ text.
+
+---
+
+(inline
+  (title_only
+    (title
+      (plain_text)
+      (text_markup
+        (underline))
+      (plain_text))))
+
+==================
+Strike-through with valid boundaries
+==================
+
+This is +strike+ text.
+
+---
+
+(inline
+  (title_only
+    (title
+      (plain_text)
+      (text_markup
+        (strike_through))
+      (plain_text))))
+
+==================
+Code with valid boundaries
+==================
+
+This is ~code~ text.
+
+---
+
+(inline
+  (title_only
+    (title
+      (plain_text)
+      (text_markup
+        (code))
+      (plain_text))))
+
+==================
+Verbatim with valid boundaries
+==================
+
+This is =verbatim= text.
+
+---
+
+(inline
+  (title_only
+    (title
+      (plain_text)
+      (text_markup
+        (verbatim))
+      (plain_text))))
+
+==================
+Bold at start of line
+==================
+
+*Bold* at beginning.
+
+---
+
+(inline
+  (title_only
+    (title
+      (text_markup
+        (bold))
+      (plain_text))))
+
+==================
+Bold at end of line
+==================
+
+Text with *bold*
+
+---
+
+(inline
+  (title_only
+    (title
+      (plain_text)
+      (text_markup
+        (bold)))))
+
+==================
+Multiple emphasis together
+==================
+
+This *bold* and /italic/ and _underline_ work.
+
+---
+
+(inline
+  (title_only
+    (title
+      (plain_text)
+      (text_markup
+        (bold))
+      (plain_text)
+      (text_markup
+        (italic))
+      (plain_text)
+      (text_markup
+        (underline))
+      (plain_text))))
+
+==================
+Bold with period after
+==================
+
+This is *bold*.
+
+---
+
+(inline
+  (title_only
+    (title
+      (plain_text)
+      (text_markup
+        (bold))
+      (plain_text))))
+
+==================
+Bold with comma after
+==================
+
+This is *bold*, yes.
+
+---
+
+(inline
+  (title_only
+    (title
+      (plain_text)
+      (text_markup
+        (bold))
+      (plain_text))))
+
+==================
+Bold with exclamation after
+==================
+
+This is *bold*!
+
+---
+
+(inline
+  (title_only
+    (title
+      (plain_text)
+      (text_markup
+        (bold))
+      (plain_text))))
+
+==================
+Bold with question after
+==================
+
+Is this *bold*?
+
+---
+
+(inline
+  (title_only
+    (title
+      (plain_text)
+      (text_markup
+        (bold))
+      (plain_text))))
+
+==================
+Bold with colon after
+==================
+
+This is *bold*: yes.
+
+---
+
+(inline
+  (title_only
+    (title
+      (plain_text)
+      (text_markup
+        (bold))
+      (plain_text))))
+
+==================
+Bold with semicolon after
+==================
+
+This is *bold*; yes.
+
+---
+
+(inline
+  (title_only
+    (title
+      (plain_text)
+      (text_markup
+        (bold))
+      (plain_text))))
+
+==================
+Bold in parentheses
+==================
+
+This is (*bold*) text.
+
+---
+
+(inline
+  (title_only
+    (title
+      (plain_text)
+      (text_markup
+        (bold))
+      (plain_text))))
+
+==================
+Bold in quotes
+==================
+
+This is "*bold*" text.
+
+---
+
+(inline
+  (title_only
+    (title
+      (plain_text)
+      (text_markup
+        (bold))
+      (plain_text))))
+
+==================
+Bold with hyphen before
+==================
+
+Text-*bold* here.
+
+---
+
+(inline
+  (title_only
+    (title
+      (plain_text)
+      (text_markup
+        (bold))
+      (plain_text))))
+
+==================
+Bold with hyphen after
+==================
+
+Text *bold*-more.
+
+---
+
+(inline
+  (title_only
+    (title
+      (plain_text)
+      (text_markup
+        (bold))
+      (plain_text))))
+
+==================
+Single character bold
+==================
+
+This is *x* text.
+
+---
+
+(inline
+  (title_only
+    (title
+      (plain_text)
+      (text_markup
+        (bold))
+      (plain_text))))
+
+==================
+Bold with numbers
+==================
+
+This is *123* text.
+
+---
+
+(inline
+  (title_only
+    (title
+      (plain_text)
+      (text_markup
+        (bold))
+      (plain_text))))
+
+==================
+Bold with mixed content
+==================
+
+This is *bold with 123 numbers* text.
+
+---
+
+(inline
+  (title_only
+    (title
+      (plain_text)
+      (text_markup
+        (bold))
+      (plain_text))))
+
+==================
+Italic in parentheses
+==================
+
+This (*italic* text) works.
+
+---
+
+(inline
+  (title_only
+    (title
+      (plain_text)
+      (text_markup
+        (italic))
+      (plain_text))))
+
+==================
+Code with special chars
+==================
+
+This ~var *ptr~ works.
+
+---
+
+(inline
+  (title_only
+    (title
+      (plain_text)
+      (text_markup
+        (code))
+      (plain_text))))
+
+==================
+Verbatim with markup chars
+==================
+
+This =*bold* text= works.
+
+---
+
+(inline
+  (title_only
+    (title
+      (plain_text)
+      (text_markup
+        (verbatim))
+      (plain_text))))
