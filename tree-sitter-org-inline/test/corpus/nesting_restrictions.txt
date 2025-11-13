@@ -1,0 +1,343 @@
+==================
+No link inside regular link description
+==================
+
+[[http://example.com][Visit example.com]]
+
+---
+
+(inline
+  (title_only
+    (title
+      (regular_link))))
+
+==================
+Angle link inside regular link is prevented
+==================
+
+[[http://example.com][Visit <http://other.com> site]]
+
+---
+
+(inline
+  (title_only
+    (title
+      (regular_link))))
+
+==================
+Code has no markup inside
+==================
+
+Code ~*bold* /italic/ http://example.com~ here
+
+---
+
+(inline
+  (title_only
+    (title
+      (plain_text)
+      (text_markup
+        (code))
+      (plain_text))))
+
+==================
+Verbatim has no markup inside
+==================
+
+Text =*bold* /italic/ [[link]]= here
+
+---
+
+(inline
+  (title_only
+    (title
+      (plain_text)
+      (text_markup
+        (verbatim))
+      (plain_text))))
+
+==================
+Export snippet has no markup inside
+==================
+
+Use @@html:<b>text</b> with *markup*@@ here
+
+---
+
+(inline
+  (title_only
+    (title
+      (plain_text)
+      (export_snippet)
+      (plain_text))))
+
+==================
+Target with markup nearby
+==================
+
+See <<target>> and *bold* text
+
+---
+
+(inline
+  (title_only
+    (title
+      (plain_text)
+      (target)
+      (plain_text)
+      (text_markup
+        (bold))
+      (plain_text))))
+
+==================
+Radio target with markup nearby
+==================
+
+The <<<radio>>> and /italic/ test
+
+---
+
+(inline
+  (title_only
+    (title
+      (plain_text)
+      (radio_target)
+      (plain_text)
+      (text_markup
+        (italic))
+      (plain_text))))
+
+==================
+Multiple emphasis types together
+==================
+
+This *bold* /italic/ _underline_ +strike+ works
+
+---
+
+(inline
+  (title_only
+    (title
+      (plain_text)
+      (text_markup
+        (bold))
+      (plain_text)
+      (text_markup
+        (italic))
+      (plain_text)
+      (text_markup
+        (underline))
+      (plain_text)
+      (text_markup
+        (strike_through))
+      (plain_text))))
+
+==================
+Footnote with simple text
+==================
+
+See footnote[fn:1] here
+
+---
+
+(inline
+  (title_only
+    (title
+      (plain_text)
+      (footnote_reference)
+      (plain_text))))
+
+==================
+Statistics cookie with markup nearby
+==================
+
+Progress [50%] and *bold* text
+
+---
+
+(inline
+  (title_only
+    (title
+      (plain_text)
+      (statistics_cookie)
+      (plain_text)
+      (text_markup
+        (bold))
+      (plain_text))))
+
+==================
+Macro and entity together
+==================
+
+Document {{{title}}} and \alpha test
+
+---
+
+(inline
+  (title_only
+    (title
+      (plain_text)
+      (macro
+        (macro_name))
+      (plain_text)
+      (entity)
+      (plain_text))))
+
+==================
+Link and timestamp together
+==================
+
+Visit [[http://example.com]] on <2024-01-15 Mon> today
+
+---
+
+(inline
+  (title_only
+    (title
+      (plain_text)
+      (regular_link)
+      (plain_text)
+      (timestamp)
+      (plain_text))))
+
+==================
+Emphasis markers as literal text in code
+==================
+
+Code ~var *ptr~ works
+
+---
+
+(inline
+  (title_only
+    (title
+      (plain_text)
+      (text_markup
+        (code))
+      (plain_text))))
+
+==================
+Link markers as literal text in verbatim
+==================
+
+Text =[[link]]= here
+
+---
+
+(inline
+  (title_only
+    (title
+      (plain_text)
+      (text_markup
+        (verbatim))
+      (plain_text))))
+
+==================
+All object types together
+==================
+
+Use \alpha and {{{macro}}} with [[http://example.com]] on <2024-01-15 Mon> note[fn:1] end
+
+---
+
+(inline
+  (title_only
+    (title
+      (plain_text)
+      (entity)
+      (plain_text)
+      (macro
+        (macro_name))
+      (plain_text)
+      (regular_link)
+      (plain_text)
+      (timestamp)
+      (plain_text)
+      (footnote_reference)
+      (plain_text))))
+
+==================
+Markup with objects
+==================
+
+This *bold with http://example.com inside* works
+
+---
+
+(inline
+  (title_only
+    (title
+      (plain_text)
+      (text_markup
+        (bold))
+      (plain_text))))
+
+==================
+Objects in different emphasis types
+==================
+
+Bold *with \alpha* and /italic with {{{title}}}/ text
+
+---
+
+(inline
+  (title_only
+    (title
+      (plain_text)
+      (text_markup
+        (bold))
+      (plain_text)
+      (text_markup
+        (italic))
+      (plain_text))))
+
+==================
+Target and radio target in same title
+==================
+
+Link to <<target>> or <<<radio>>> here
+
+---
+
+(inline
+  (title_only
+    (title
+      (plain_text)
+      (target)
+      (plain_text)
+      (radio_target)
+      (plain_text))))
+
+==================
+Export snippet with timestamp nearby
+==================
+
+Use @@html:<span>@@ on <2024-01-15 Mon> test
+
+---
+
+(inline
+  (title_only
+    (title
+      (plain_text)
+      (export_snippet)
+      (plain_text)
+      (timestamp)
+      (plain_text))))
+
+==================
+Statistics cookies with fractions and percentages
+==================
+
+Progress [50%] and [3/10] done
+
+---
+
+(inline
+  (title_only
+    (title
+      (plain_text)
+      (statistics_cookie)
+      (plain_text)
+      (statistics_cookie)
+      (plain_text))))

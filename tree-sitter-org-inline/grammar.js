@@ -396,9 +396,8 @@ module.exports = grammar({
     // ========================================================================
 
     // Plain text: fallback for any characters not matched by other rules
-    // Excludes: markup delimiters, brackets, special chars
-    // Includes: underscore and caret (subscript/superscript removed)
-    plain_text: $ => prec(PRECEDENCE.PLAIN_TEXT, /[^*\/~=+:@\[\]<>\\\{\}\n]+/),
+    // Excludes: markup delimiters, brackets, special chars, underscore (for underline)
+    plain_text: $ => prec(PRECEDENCE.PLAIN_TEXT, /[^*\/~=+_:@\[\]<>\\\{\}\n]+/),
 
     // ========================================================================
     // CONTEXT-SPECIFIC RULES
