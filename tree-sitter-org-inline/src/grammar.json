@@ -86,22 +86,6 @@
               "value": 3,
               "content": {
                 "type": "SYMBOL",
-                "name": "subscript"
-              }
-            },
-            {
-              "type": "PREC",
-              "value": 3,
-              "content": {
-                "type": "SYMBOL",
-                "name": "superscript"
-              }
-            },
-            {
-              "type": "PREC",
-              "value": 3,
-              "content": {
-                "type": "SYMBOL",
                 "name": "text_markup"
               }
             },
@@ -683,66 +667,12 @@
         ]
       }
     },
-    "subscript": {
-      "type": "SEQ",
-      "members": [
-        {
-          "type": "ALIAS",
-          "content": {
-            "type": "PATTERN",
-            "value": "[a-zA-Z0-9]+"
-          },
-          "named": true,
-          "value": "base"
-        },
-        {
-          "type": "STRING",
-          "value": "_"
-        },
-        {
-          "type": "ALIAS",
-          "content": {
-            "type": "PATTERN",
-            "value": "[^\\s\\n]+"
-          },
-          "named": true,
-          "value": "script"
-        }
-      ]
-    },
-    "superscript": {
-      "type": "SEQ",
-      "members": [
-        {
-          "type": "ALIAS",
-          "content": {
-            "type": "PATTERN",
-            "value": "[a-zA-Z0-9]+"
-          },
-          "named": true,
-          "value": "base"
-        },
-        {
-          "type": "STRING",
-          "value": "^"
-        },
-        {
-          "type": "ALIAS",
-          "content": {
-            "type": "PATTERN",
-            "value": "[^\\s\\n]+"
-          },
-          "named": true,
-          "value": "script"
-        }
-      ]
-    },
     "plain_text": {
       "type": "PREC",
       "value": 1,
       "content": {
         "type": "PATTERN",
-        "value": "[^*\\/~=_+:@\\[\\]<>\\\\\\{\\}\\^\\n]+"
+        "value": "[^*\\/~=+:@\\[\\]<>\\\\\\{\\}\\n]+"
       }
     }
   },

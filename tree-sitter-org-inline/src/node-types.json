@@ -94,44 +94,6 @@
     "fields": {}
   },
   {
-    "type": "subscript",
-    "named": true,
-    "fields": {},
-    "children": {
-      "multiple": true,
-      "required": true,
-      "types": [
-        {
-          "type": "base",
-          "named": true
-        },
-        {
-          "type": "script",
-          "named": true
-        }
-      ]
-    }
-  },
-  {
-    "type": "superscript",
-    "named": true,
-    "fields": {},
-    "children": {
-      "multiple": true,
-      "required": true,
-      "types": [
-        {
-          "type": "base",
-          "named": true
-        },
-        {
-          "type": "script",
-          "named": true
-        }
-      ]
-    }
-  },
-  {
     "type": "target",
     "named": true,
     "fields": {}
@@ -217,14 +179,6 @@
         },
         {
           "type": "statistics_cookie",
-          "named": true
-        },
-        {
-          "type": "subscript",
-          "named": true
-        },
-        {
-          "type": "superscript",
           "named": true
         },
         {
@@ -379,16 +333,8 @@
     "named": false
   },
   {
-    "type": "^",
-    "named": false
-  },
-  {
     "type": "_",
     "named": false
-  },
-  {
-    "type": "base",
-    "named": true
   },
   {
     "type": "footnote_reference",
@@ -404,10 +350,6 @@
   },
   {
     "type": "plain_link",
-    "named": true
-  },
-  {
-    "type": "script",
     "named": true
   },
   {

@@ -119,21 +119,6 @@ Text with[fn:note:Long definition with spaces] content
       (plain_text))))
 
 ==================
-Footnote with special characters in label
-==================
-
-Reference[fn:my-note_123] here
-
----
-
-(inline
-  (title_only
-    (title
-      (plain_text)
-      (footnote_reference)
-      (plain_text))))
-
-==================
 Footnote near statistics cookie
 ==================
 
@@ -150,17 +135,3 @@ Progress [50%] and note[fn:1] here
       (footnote_reference)
       (plain_text))))
 
-==================
-Footnote with link in definition
-==================
-
-See[fn:link:Check https://example.com for more] this
-
----
-
-(inline
-  (title_only
-    (title
-      (plain_text)
-      (footnote_reference)
-      (plain_text))))

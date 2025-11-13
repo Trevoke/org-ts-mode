@@ -8,7 +8,7 @@
  * - Title/tags separation in headlines
  * - Text markup (bold, italic, code, etc.)
  * - Links, macros, footnotes
- * - Timestamps, entities, subscript/superscript
+ * - Timestamps, entities
  *
  * This grammar is injected into nodes from the block-level grammar
  * (tree-sitter-org) via injection queries.
@@ -51,8 +51,6 @@ module.exports = grammar({
     // Right-associative to greedily consume all content
     title: $ => prec.right(repeat1(choice(
       prec(4, $.plain_link),         // FIRST: contains ':' - must override standalone ':'
-      prec(3, $.subscript),          // BEFORE text_markup (both use _, but subscript is BASE_SCRIPT pattern)
-      prec(3, $.superscript),        // BEFORE text_markup (^ could conflict)
       prec(3, $.text_markup),
       prec(3, $.regular_link),       // BEFORE footnote_reference (longer match: [[ vs [fn:)
       prec(3, $.angle_link),         // BEFORE timestamp (both use <>, but angle_link has protocol)
@@ -286,38 +284,16 @@ module.exports = grammar({
       seq('[', /\d[^\]]*-[^\]]*/, ']')
     )),
 
-    // Subscript: BASE_SCRIPT (e.g., H_2O, A_i,j)
-    // Base: alphanumeric word (letters and digits)
-    // Script: any characters until whitespace or newline
-    // Distinguished from underline markup (_text_) by having only ONE underscore
-    // Unlike block version, no newline required (for inline usage)
-    // Not using token() to allow base to be parsed separately in inline contexts
-    subscript: $ => seq(
-      alias(/[a-zA-Z0-9]+/, $.base),  // Base text: alphanumeric word
-      '_',                             // Underscore separator
-      alias(/[^\s\n]+/, $.script)      // Script content: anything except whitespace/newline
-    ),
-
-    // Superscript: BASE^SCRIPT (e.g., x^2, x^{y^{z}})
-    // Base: alphanumeric word (letters and digits)
-    // Script: any characters until whitespace or newline
-    // Unlike block version, no newline required (for inline usage)
-    // Not using token() to allow base to be parsed separately in inline contexts
-    superscript: $ => seq(
-      alias(/[a-zA-Z0-9]+/, $.base),  // Base text: alphanumeric word
-      '^',                             // Caret separator
-      alias(/[^\s\n]+/, $.script)      // Script content: anything except whitespace/newline
-    ),
-
     // Plain text - any characters except markup delimiters, brackets, @, angle brackets, colon, backslash, braces, newline
-    // Lower precedence so markup, cookies, snippets, targets, links, entities, macros, subscript, superscript are preferred
+    // Lower precedence so markup, cookies, snippets, targets, links, entities, macros are preferred
     // Colons are excluded to allow external scanner to detect TAGS (:tag1:tag2:)
     // Square brackets are excluded so statistics cookies and regular_link can be recognized
     // @ is excluded so export snippets can be recognized
     // Angle brackets are excluded so targets can be recognized
     // Backslash is excluded so entities can be recognized
     // Braces are excluded so macros can be recognized
-    // Underscore and caret excluded so subscript/superscript can be recognized
-    plain_text: $ => prec(1, /[^*\/~=_+:@\[\]<>\\\{\}\^\n]+/),
+    // Underscore allowed in plain text (subscript/superscript removed)
+    // Caret allowed in plain text (subscript/superscript removed)
+    plain_text: $ => prec(1, /[^*\/~=+:@\[\]<>\\\{\}\n]+/),
   }
 });
