@@ -10,7 +10,15 @@
       "Bash(git commit:*)",
       "WebSearch",
       "WebFetch(domain:github.com)",
-      "Bash(git add:*)"
+      "Bash(git add:*)",
+      "Skill(superpowers:using-superpowers)",
+      "Skill(superpowers:brainstorming)",
+      "Skill(superpowers:using-git-worktrees)",
+      "Bash(git worktree add:*)",
+      "Bash(find:*)",
+      "Skill(superpowers:writing-plans)",
+      "Skill(superpowers:subagent-driven-development)",
+      "Bash(jq:*)"
     ],
     "deny": [],
     "ask": []
