@@ -623,67 +623,26 @@ static unsigned serialize(Scanner *scanner, char *buffer) {
  * @param length Buffer length
  */
 static void deserialize(Scanner *scanner, const char *buffer, unsigned length) {
-    if (scanner == NULL) {
-        fprintf(stderr, "DEBUG DESERIALIZE: NULL scanner\n");
+    if (!scanner) return;
+
+    if (length == 0 || !buffer) {
+        // Clean state
+        scanner->last_char = 0;
+        scanner->at_line_start = true;
+        scanner->state_flags = 0;
         return;
     }
 
-    fprintf(stderr, "DEBUG DESERIALIZE: Called with length=%u\n", length);
-
-    // Initialize to clean state (defensive programming)
-    scanner->stack_depth = 0;
-    scanner->state_flags = STATE_FLAG_NONE;
-    memset(scanner->delimiter_stack, 0, MAX_EMPHASIS_DEPTH);
-    memset(scanner->padding, 0, sizeof(scanner->padding));
-
-    // Validate minimum length
-    if (buffer == NULL || length < 4) {
-        fprintf(stderr, "DEBUG DESERIALIZE: Invalid buffer (buffer=%p, length=%u), using clean state\n",
-                (void*)buffer, length);
-        return;  // Invalid buffer, use clean state
+    if (length >= 6) {
+        memcpy(&scanner->last_char, buffer, sizeof(int32_t));
+        scanner->at_line_start = buffer[4] != 0;
+        scanner->state_flags = buffer[5];
+    } else {
+        // Invalid buffer, use clean state
+        scanner->last_char = 0;
+        scanner->at_line_start = true;
+        scanner->state_flags = 0;
     }
-
-    // Validate version
-    uint8_t version = (uint8_t)buffer[0];
-    if (version != SERIALIZATION_VERSION) {
-        fprintf(stderr, "DEBUG DESERIALIZE: Version mismatch (got 0x%02x, expected 0x%02x), using clean state\n",
-                version, SERIALIZATION_VERSION);
-        return;  // Version mismatch, use clean state
-    }
-
-    // Read stack depth
-    scanner->stack_depth = (uint8_t)buffer[1];
-
-    // Validate stack depth
-    if (scanner->stack_depth > MAX_EMPHASIS_DEPTH) {
-        fprintf(stderr, "DEBUG DESERIALIZE: Invalid stack_depth=%d > MAX=%d, using clean state\n",
-                scanner->stack_depth, MAX_EMPHASIS_DEPTH);
-        // Corrupted data, reset to clean state
-        scanner->stack_depth = 0;
-        return;
-    }
-
-    // Read state flags
-    scanner->state_flags = (uint8_t)buffer[2];
-
-    // Read delimiter stack (if buffer is large enough)
-    if (length >= SERIALIZATION_SIZE) {
-        memcpy(scanner->delimiter_stack, buffer + 4, MAX_EMPHASIS_DEPTH);
-    }
-
-    fprintf(stderr, "DEBUG DESERIALIZE: Restored stack_depth=%d, state_flags=0x%02x\n",
-            scanner->stack_depth, scanner->state_flags);
-
-    // Print restored delimiter stack contents
-    if (scanner->stack_depth > 0) {
-        fprintf(stderr, "DEBUG DESERIALIZE: stack contents: ");
-        for (int i = 0; i < scanner->stack_depth; i++) {
-            fprintf(stderr, "'%c' ", scanner->delimiter_stack[i]);
-        }
-        fprintf(stderr, "\n");
-    }
-
-    // Padding is intentionally not restored (not used)
 }
 
 // ============================================================================

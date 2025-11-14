@@ -23,5 +23,15 @@ int main() {
     assert(buffer[5] == FLAG_IN_TAGS);
 
     printf("✓ Scanner serialization works correctly\n");
+
+    // Test deserialization roundtrip
+    Scanner s2;
+    tree_sitter_org_inline_external_scanner_deserialize(&s2, buffer, 6);
+
+    assert(s2.last_char == 'a');
+    assert(s2.at_line_start == false);
+    assert(s2.state_flags == FLAG_IN_TAGS);
+
+    printf("✓ Scanner serialization roundtrip works\n");
     return 0;
 }
