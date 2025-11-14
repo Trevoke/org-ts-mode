@@ -971,6 +971,55 @@ static bool scan_emphasis(ScanContext *ctx) {
             return true;
         }
 
+        // For code/verbatim (opaque, non-nesting): validate entire content before emitting OPEN
+        // Check for trailing whitespace and empty content
+        if (delimiter == '~' || delimiter == '=') {
+            fprintf(stderr, "DEBUG: Validating code/verbatim content\n");
+
+            // Look ahead to find closing delimiter
+            int content_len = 0;
+            char last_char = '\0';
+            bool found_close = false;
+
+            // Save current position
+            TSLexer *lex = lexer;
+
+            // Scan content
+            while (!lex->eof(lex) && lex->lookahead != '\n') {
+                if (lex->lookahead == delimiter) {
+                    // Found potential closing delimiter
+                    found_close = true;
+                    break;
+                }
+
+                last_char = (char)lex->lookahead;
+                content_len++;
+                lex->advance(lex, false);
+            }
+
+            // Validation checks
+            if (!found_close) {
+                fprintf(stderr, "DEBUG: No closing delimiter found - emitting DELIMITER_CHAR\n");
+                lexer->result_symbol = DELIMITER_CHAR;
+                return true;
+            }
+
+            if (content_len == 0) {
+                fprintf(stderr, "DEBUG: Empty content - emitting DELIMITER_CHAR\n");
+                lexer->result_symbol = DELIMITER_CHAR;
+                return true;
+            }
+
+            // Check if last character before close is whitespace (trailing whitespace)
+            if (is_whitespace(last_char)) {
+                fprintf(stderr, "DEBUG: Trailing whitespace before close - emitting DELIMITER_CHAR\n");
+                lexer->result_symbol = DELIMITER_CHAR;
+                return true;
+            }
+
+            fprintf(stderr, "DEBUG: Code/verbatim content valid\n");
+        }
+
         // Push delimiter to stack
         if (!push_delimiter(scanner, delimiter)) {
             fprintf(stderr, "DEBUG: Failed to push delimiter (stack full?)\n");
@@ -982,18 +1031,12 @@ static bool scan_emphasis(ScanContext *ctx) {
         return true;
     }
 
-    // CASE 3: Can't make valid decision - emit as delimiter if allowed
-    fprintf(stderr, "DEBUG: No valid decision (is_open=%d, open_valid=%d, close_valid=%d)\n",
+    // CASE 3: Can't make valid decision - return false and let parser decide
+    // DELIMITER_CHAR should ONLY be emitted when we've proven emphasis is invalid
+    // (e.g., whitespace after OPEN, invalid POST char)
+    // If we can't decide, return false and let the parser explore other paths
+    fprintf(stderr, "DEBUG: No valid decision (is_open=%d, open_valid=%d, close_valid=%d) - returning false\n",
             is_open, valid_symbols[open_token], valid_symbols[close_token]);
-
-    // If DELIMITER_CHAR is valid, emit it so this becomes plain text
-    if (valid_symbols[DELIMITER_CHAR]) {
-        lexer->advance(lexer, false);
-        lexer->mark_end(lexer);
-        lexer->result_symbol = DELIMITER_CHAR;
-        fprintf(stderr, "DEBUG: Emitting DELIMITER_CHAR\n");
-        return true;
-    }
 
     return false;
 }
