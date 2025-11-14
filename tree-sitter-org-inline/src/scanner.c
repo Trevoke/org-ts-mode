@@ -601,46 +601,14 @@ static bool is_valid_emphasis(
  * @return Number of bytes written
  */
 static unsigned serialize(Scanner *scanner, char *buffer) {
-    if (scanner == NULL || buffer == NULL) {
-        fprintf(stderr, "DEBUG SERIALIZE: NULL scanner or buffer\n");
-        return 0;
-    }
+    if (!scanner) return 0;
 
-    fprintf(stderr, "DEBUG SERIALIZE: stack_depth=%d, state_flags=0x%02x\n",
-            scanner->stack_depth, scanner->state_flags);
+    // Serialize: last_char (4) + at_line_start (1) + state_flags (1) = 6 bytes
+    memcpy(buffer, &scanner->last_char, sizeof(int32_t));
+    buffer[4] = scanner->at_line_start ? 1 : 0;
+    buffer[5] = scanner->state_flags;
 
-    // Print delimiter stack contents
-    if (scanner->stack_depth > 0) {
-        fprintf(stderr, "DEBUG SERIALIZE: stack contents: ");
-        for (int i = 0; i < scanner->stack_depth; i++) {
-            fprintf(stderr, "'%c' ", scanner->delimiter_stack[i]);
-        }
-        fprintf(stderr, "\n");
-    }
-
-    unsigned size = 0;
-
-    // Byte 0: Version
-    buffer[size++] = SERIALIZATION_VERSION;
-
-    // Byte 1: Stack depth
-    buffer[size++] = scanner->stack_depth;
-
-    // Byte 2: State flags
-    buffer[size++] = scanner->state_flags;
-
-    // Byte 3: Padding
-    buffer[size++] = 0;
-
-    // Bytes 4-19: Delimiter stack (copy all 16 bytes)
-    memcpy(buffer + size, scanner->delimiter_stack, MAX_EMPHASIS_DEPTH);
-    size += MAX_EMPHASIS_DEPTH;
-
-    // Verify we wrote exactly SERIALIZATION_SIZE bytes
-    assert(size == SERIALIZATION_SIZE);
-
-    fprintf(stderr, "DEBUG SERIALIZE: Wrote %u bytes\n", size);
-    return size;
+    return 6;
 }
 
 /**

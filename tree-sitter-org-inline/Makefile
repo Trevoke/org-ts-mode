@@ -118,4 +118,8 @@ test-scanner-lifecycle: src/scanner.c test/scanner/test_scanner_lifecycle.c
 	cc -Isrc -std=c11 test/scanner/test_scanner_lifecycle.c -o test/scanner/test_scanner_lifecycle
 	./test/scanner/test_scanner_lifecycle
 
-.PHONY: all install uninstall clean test test-scanner-state test-scanner-lifecycle
+test-scanner-serialization: src/scanner.c test/scanner/test_scanner_serialization.c
+	cc -Isrc -std=c11 test/scanner/test_scanner_serialization.c -o test/scanner/test_scanner_serialization
+	./test/scanner/test_scanner_serialization
+
+.PHONY: all install uninstall clean test test-scanner-state test-scanner-lifecycle test-scanner-serialization
