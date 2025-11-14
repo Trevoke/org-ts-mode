@@ -32,6 +32,7 @@
 #include <stdint.h>
 #include <string.h>
 #include <assert.h>
+#include <stdio.h>  // For debug fprintf
 
 // ============================================================================
 // CONSTANTS AND ENUMS
@@ -834,6 +835,8 @@ static bool scan_emphasis(ScanContext *ctx) {
     // Determine which delimiter we're looking at
     char delimiter = (char)lexer->lookahead;
 
+    fprintf(stderr, "DEBUG: scan_emphasis called, delimiter='%c'\n", delimiter);
+
     // Check if it's an emphasis marker
     if (!is_emphasis_marker(delimiter)) {
         return false;
@@ -867,11 +870,25 @@ static bool scan_emphasis(ScanContext *ctx) {
             close_token = VERBATIM_CLOSE;
             break;
         default:
+            fprintf(stderr, "DEBUG: Unknown delimiter '%c'\n", delimiter);
             return false;
     }
 
-    // Priority 1: Try closing (closes have precedence)
-    if (valid_symbols[close_token]) {
+    fprintf(stderr, "DEBUG: Mapped delimiter '%c' to open=%d, close=%d. valid_open=%d, valid_close=%d\n",
+            delimiter, open_token, close_token,
+            valid_symbols[open_token], valid_symbols[close_token]);
+
+    // Decide whether this is an opening or closing delimiter based on context
+    // Following org-syntax.md and markdown pattern:
+    // - If LAST_TOKEN_WHITESPACE is valid, likely an opening (whitespace before = valid PRE)
+    // - If not valid, likely a closing (non-whitespace before)
+    bool has_whitespace_before = valid_symbols[LAST_TOKEN_WHITESPACE];
+    bool at_line_start = (lexer->get_column(lexer) == 0);
+
+    // Try CLOSING if both are valid and we DON'T have whitespace before
+    // (close markers come after content, which is non-whitespace)
+    if (valid_symbols[close_token] && !has_whitespace_before && !at_line_start) {
+        fprintf(stderr, "DEBUG: Trying close (no whitespace before)\n");
         // Consume the delimiter
         lexer->advance(lexer, false);
         lexer->mark_end(lexer);
@@ -879,30 +896,18 @@ static bool scan_emphasis(ScanContext *ctx) {
         // POST validation: Character after closing delimiter must be valid POST
         bool at_line_end = at_line_boundary(lexer);
         if (!is_post_char(lexer->lookahead, at_line_end)) {
+            fprintf(stderr, "DEBUG: Invalid POST char after close\n");
             return false;  // Invalid POST character
         }
 
+        fprintf(stderr, "DEBUG: Emitting CLOSE token\n");
         lexer->result_symbol = close_token;
         return true;
     }
 
-    // Priority 2: Try opening
-    if (valid_symbols[open_token]) {
-        // PRE validation: Check if previous character was valid PRE
-        // If LAST_TOKEN_WHITESPACE is valid, previous token was whitespace (valid PRE!)
-        // If not valid, previous was NOT whitespace - could be invalid PRE
-        // For now, accept if:  // 1. We have whitespace context (previous was whitespace), OR
-        // 2. We're at beginning of line (column 0)
-        bool has_whitespace_pre = valid_symbols[LAST_TOKEN_WHITESPACE];
-        bool at_line_start = (lexer->get_column(lexer) == 0);
-
-        if (!has_whitespace_pre && !at_line_start) {
-            // Previous char was NOT whitespace and we're NOT at line start
-            // This could be invalid PRE (e.g., "word*bold")
-            // TODO: Check for other valid PRE characters (-, (, {, ', ")
-            // For now, reject to be safe
-            return false;
-        }
+    // Try OPENING if valid and we have whitespace before OR at line start
+    if (valid_symbols[open_token] && (has_whitespace_before || at_line_start)) {
+        fprintf(stderr, "DEBUG: Trying open (whitespace before or BOL)\n");
 
         // Consume the delimiter
         lexer->advance(lexer, false);
@@ -910,18 +915,23 @@ static bool scan_emphasis(ScanContext *ctx) {
 
         // CONTENTS validation: Character after opening delimiter must NOT be whitespace
         if (is_whitespace(lexer->lookahead)) {
+            fprintf(stderr, "DEBUG: Whitespace after open marker\n");
             return false;  // Invalid: whitespace after opening marker
         }
 
         // Cannot be at EOF
         if (lexer->eof(lexer)) {
+            fprintf(stderr, "DEBUG: EOF after open marker\n");
             return false;
         }
 
+        fprintf(stderr, "DEBUG: Emitting OPEN token\n");
         lexer->result_symbol = open_token;
         return true;
     }
 
+    fprintf(stderr, "DEBUG: No valid open/close decision (open_valid=%d, close_valid=%d, ws_before=%d, BOL=%d)\n",
+            valid_symbols[open_token], valid_symbols[close_token], has_whitespace_before, at_line_start);
     return false;
 }
 
@@ -948,6 +958,13 @@ bool tree_sitter_org_inline_external_scanner_scan(
 ) {
     Scanner *scanner = (Scanner *)payload;
 
+    fprintf(stderr, "MAIN_SCAN: lookahead='%c' (0x%02x), TAGS=%d, BOLD_OPEN=%d, LAST_TOKEN_WS=%d\n",
+            (lexer->lookahead >= 32 && lexer->lookahead < 127) ? lexer->lookahead : '?',
+            lexer->lookahead,
+            valid_symbols[TAGS],
+            valid_symbols[BOLD_OPEN],
+            valid_symbols[LAST_TOKEN_WHITESPACE]);
+
     // Create scanning context
     ScanContext ctx = {
         .scanner = scanner,
@@ -955,22 +972,25 @@ bool tree_sitter_org_inline_external_scanner_scan(
         .valid_symbols = valid_symbols
     };
 
-    // Priority 1: Tag scanning (preserve existing functionality)
+    // Priority 1: Emphasis scanning (MUST come before TAGS!)
+    // Only try if we're at an emphasis marker character
+    if (is_emphasis_marker(lexer->lookahead) &&
+        (valid_symbols[BOLD_OPEN] || valid_symbols[BOLD_CLOSE] ||
+         valid_symbols[ITALIC_OPEN] || valid_symbols[ITALIC_CLOSE] ||
+         valid_symbols[UNDERLINE_OPEN] || valid_symbols[UNDERLINE_CLOSE] ||
+         valid_symbols[CODE_OPEN] || valid_symbols[CODE_CLOSE] ||
+         valid_symbols[VERBATIM_OPEN] || valid_symbols[VERBATIM_CLOSE] ||
+         valid_symbols[STRIKE_OPEN] || valid_symbols[STRIKE_CLOSE])) {
+        fprintf(stderr, "MAIN_SCAN: Calling scan_emphasis\n");
+        return scan_emphasis(&ctx);
+    }
+
+    // Priority 2: Tag scanning (only if not emphasis)
     if (valid_symbols[TAGS]) {
         return scan_tags(&ctx);
     }
 
-    // Priority 2: Emphasis scanning
-    // Try any valid emphasis token
-    if (valid_symbols[BOLD_OPEN] || valid_symbols[BOLD_CLOSE] ||
-        valid_symbols[ITALIC_OPEN] || valid_symbols[ITALIC_CLOSE] ||
-        valid_symbols[UNDERLINE_OPEN] || valid_symbols[UNDERLINE_CLOSE] ||
-        valid_symbols[CODE_OPEN] || valid_symbols[CODE_CLOSE] ||
-        valid_symbols[VERBATIM_OPEN] || valid_symbols[VERBATIM_CLOSE] ||
-        valid_symbols[STRIKE_OPEN] || valid_symbols[STRIKE_CLOSE]) {
-        return scan_emphasis(&ctx);
-    }
-
+    fprintf(stderr, "MAIN_SCAN: Returning false (no valid tokens)\n");
     return false;
 }
 
