@@ -72,6 +72,15 @@ enum TokenType {
 #define MAX_EMPHASIS_DEPTH 16
 
 /**
+ * Maximum lookahead distance for finding matching closer
+ *
+ * Rationale: Prevents scanner from hanging on very long content.
+ * 1000 characters is more than enough for any reasonable emphasis content.
+ * If content exceeds this, emphasis delimiter will be treated as plain text.
+ */
+#define MAX_LOOKAHEAD_DISTANCE 1000
+
+/**
  * Serialization format version
  */
 #define SERIALIZATION_VERSION 0x01
@@ -397,11 +406,22 @@ static bool validate_closing_boundary(
 /**
  * Look ahead to find valid closing delimiter
  *
- * Scans forward to find a matching marker with valid closing boundary.
- * Stops at line end (org emphasis cannot span lines).
+ * Uses mark_end() mechanism to lookahead without consuming input.
+ * This function is called AFTER the opening delimiter has been consumed
+ * and mark_end() has been called to mark the token boundary.
  *
- * Precondition: lexer positioned AFTER opening marker
- * Postcondition: if successful, lexer at closing marker; else, position undefined
+ * Scans forward to find a matching marker with valid closing boundary.
+ * Stops at line end (org emphasis cannot span lines) or max lookahead distance.
+ *
+ * Implementation notes:
+ * - mark_end() must be called BEFORE this function
+ * - This function advances the lexer for lookahead only
+ * - The token boundary remains at the opening delimiter (set by mark_end)
+ * - If matching closer found, returns true (caller emits OPEN token)
+ * - If no closer found, returns false (delimiter is plain text)
+ *
+ * Precondition: lexer positioned AFTER opening marker, mark_end() called
+ * Postcondition: lexer position advanced (lookahead), token boundary unchanged
  *
  * @param ctx Scanning context
  * @param marker Delimiter to find
@@ -414,6 +434,7 @@ static bool find_closing_delimiter(ScanContext *ctx, char marker) {
 
     TSLexer *lexer = ctx->lexer;
     int32_t prev_char = 0;
+    int distance = 0;
 
     // Track previous character for boundary validation
     // Start with whatever came after opening marker
@@ -422,7 +443,8 @@ static bool find_closing_delimiter(ScanContext *ctx, char marker) {
     }
 
     // Scan forward looking for closing marker
-    while (!lexer->eof(lexer)) {
+    // Stop at: EOF, newline, or max lookahead distance
+    while (!lexer->eof(lexer) && distance < MAX_LOOKAHEAD_DISTANCE) {
         int32_t current = lexer->lookahead;
 
         // Stop at line end (emphasis cannot span lines)
@@ -433,21 +455,36 @@ static bool find_closing_delimiter(ScanContext *ctx, char marker) {
 
         // Found potential closing marker
         if (current == marker) {
-            // Save current position to restore if validation fails
-            uint32_t saved_column = lexer->get_column(lexer);
-
             // Validate closing boundary
-            if (validate_closing_boundary(ctx, marker, prev_char)) {
+            // Need to check that previous char is not whitespace (no trailing whitespace)
+            // and that next char (after marker) is valid POST char
+
+            // Check CONTENTS boundary (no trailing whitespace before closer)
+            if (is_whitespace(prev_char)) {
+                // Invalid: whitespace before closer
+                // Continue looking for another potential closer
+                prev_char = current;
+                lexer->advance(lexer, false);
+                distance++;
+                continue;
+            }
+
+            // Advance past the closing marker to check POST boundary
+            lexer->advance(lexer, false);
+            distance++;
+
+            // Check POST boundary
+            bool at_line_end = at_line_boundary(lexer);
+            if (is_post_char(lexer->lookahead, at_line_end)) {
                 // Valid closing found!
-                // Note: lexer is now positioned AFTER the closing marker
-                // due to validate_closing_boundary advancing
+                // Note: Token boundary is still at opening marker (mark_end was called before)
                 return true;
             }
 
-            // Invalid closing boundary, restore position and keep looking
-            // Note: We can't actually restore position in tree-sitter,
-            // so we just continue from where validate_closing_boundary left us
-            // This is okay because we're in a lookahead context
+            // Invalid POST boundary, continue looking
+            // lexer is now past the invalid closer marker
+            prev_char = marker;  // The marker we just passed
+            continue;
         }
 
         // Track previous character for next iteration
@@ -455,9 +492,10 @@ static bool find_closing_delimiter(ScanContext *ctx, char marker) {
 
         // Advance to next character
         lexer->advance(lexer, false);
+        distance++;
     }
 
-    // Reached EOF without finding valid closing
+    // Reached EOF, newline, or max distance without finding valid closing
     return false;
 }
 
@@ -631,15 +669,20 @@ static bool is_valid_tag_char(int32_t c) {
 // ============================================================================
 
 /**
- * Scan emphasis delimiter (simplified, stateless version)
+ * Scan emphasis delimiter (lookahead-based version)
  *
- * Phase 2.1: No longer uses delimiter stack for nesting control.
- * Grammar will control nesting via valid_symbols array.
+ * Phase 2.2: Uses find_closing_delimiter to determine OPEN vs CLOSE.
+ * Grammar controls nesting via valid_symbols array.
  *
  * Strategy:
  * 1. Check if OPEN or CLOSE is valid in this context (via valid_symbols)
- * 2. Validate PRE/POST boundaries
- * 3. For now: prefer OPEN if both valid (Phase 2.2 will add lookahead)
+ * 2. Validate PRE boundary
+ * 3. Consume delimiter and mark_end (token boundary)
+ * 4. Check CONTENTS boundary (no leading whitespace for OPEN)
+ * 5. Use lookahead to find matching closer:
+ *    - If can_open && matching closer found -> emit OPEN
+ *    - If can_close && valid POST boundary -> emit CLOSE
+ *    - Otherwise -> return false (delimiter is plain text)
  *
  * @param ctx Scanning context
  * @return true if token emitted, false otherwise
@@ -707,36 +750,58 @@ static bool scan_emphasis(ScanContext *ctx) {
 
     // Consume delimiter
     lexer->advance(lexer, false);
-    lexer->mark_end(lexer);
+    lexer->mark_end(lexer);  // Mark token boundary at delimiter
 
     // Validate POST boundary (peek ahead)
     bool at_line_end = at_line_boundary(lexer);
 
-    // For OPEN: check CONTENTS boundary (no leading whitespace)
-    if (can_open) {
-        if (is_whitespace(lexer->lookahead) || lexer->eof(lexer)) {
-            // Invalid OPEN - but might be valid CLOSE
-            if (can_close && is_post_char(lexer->lookahead, at_line_end)) {
-                lexer->result_symbol = close_token;
-                return true;
-            }
-            return false;
+    // Check CONTENTS boundary (no leading whitespace for OPEN)
+    if (is_whitespace(lexer->lookahead)) {
+        // Leading whitespace - can't be OPEN, might be CLOSE
+        if (can_close && is_post_char(lexer->lookahead, at_line_end)) {
+            lexer->result_symbol = close_token;
+            return true;
         }
+        return false;  // Invalid delimiter
     }
 
-    // For CLOSE: check POST boundary
+    // EOF check
+    if (lexer->eof(lexer)) {
+        // At EOF - can't be OPEN, might be CLOSE
+        if (can_close && is_post_char(lexer->lookahead, at_line_end)) {
+            lexer->result_symbol = close_token;
+            return true;
+        }
+        return false;
+    }
+
+    // Phase 2.2: Use lookahead to determine OPEN vs CLOSE
+    if (can_open) {
+        // Try to find matching closer using lookahead
+        if (find_closing_delimiter(ctx, delimiter)) {
+            // Found valid matching closer - emit OPEN
+            lexer->result_symbol = open_token;
+            return true;
+        }
+
+        // No matching closer found
+        // If can_close and has valid POST, emit CLOSE
+        if (can_close && is_post_char(lexer->lookahead, at_line_end)) {
+            lexer->result_symbol = close_token;
+            return true;
+        }
+
+        // Neither OPEN (no closer) nor CLOSE (not valid) - delimiter is plain text
+        return false;
+    }
+
+    // Only CLOSE is valid (OPEN not allowed in this context)
     if (can_close) {
         if (is_post_char(lexer->lookahead, at_line_end)) {
             lexer->result_symbol = close_token;
             return true;
         }
-    }
-
-    // For now: prefer OPEN if both valid
-    // Phase 2.2 will add lookahead to determine OPEN vs CLOSE
-    if (can_open) {
-        lexer->result_symbol = open_token;
-        return true;
+        return false;
     }
 
     return false;

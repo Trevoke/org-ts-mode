@@ -126,4 +126,8 @@ test-boundaries: src/scanner.c test/scanner/test_boundaries.c
 	cc -Isrc -std=c11 test/scanner/test_boundaries.c -o test/scanner/test_boundaries
 	./test/scanner/test_boundaries
 
-.PHONY: all install uninstall clean test test-scanner-state test-scanner-lifecycle test-scanner-serialization test-boundaries
+test-lookahead: src/scanner.c test/scanner/test_lookahead.c
+	cc -Isrc -std=c11 test/scanner/test_lookahead.c -o test/scanner/test_lookahead
+	./test/scanner/test_lookahead
+
+.PHONY: all install uninstall clean test test-scanner-state test-scanner-lifecycle test-scanner-serialization test-boundaries test-lookahead
