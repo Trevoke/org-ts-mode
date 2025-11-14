@@ -181,34 +181,33 @@ function create_inline_variant($, name, context, exclude_emphasis = null) {
 
 /**
  * Generate all 7 inline element variants
- * @param {object} $ - Grammar rule references
- * @returns {object} Map of variant name → grammar rule
+ * @returns {object} Map of variant name → grammar rule function
  */
-function generate_all_inline_variants($) {
+function generate_all_inline_variants() {
   return {
     // 1. NORMAL - Everything allowed (default context)
-    _inline_element:
+    _inline_element: $ =>
       create_inline_variant($, 'normal', CONTEXTS.NORMAL),
 
     // 2. NO_LINK - Inside link descriptions (prevent nesting)
-    _inline_element_no_link:
+    _inline_element_no_link: $ =>
       create_inline_variant($, 'no_link', CONTEXTS.LINK_DESCRIPTION),
 
     // 3. NO_MARKUP - Inside code/verbatim (plain text only)
-    _inline_element_no_markup:
+    _inline_element_no_markup: $ =>
       create_inline_variant($, 'no_markup', CONTEXTS.CODE_CONTENT),
 
     // 4-7. NO_EMPHASIS - Inside each emphasis type (prevent same-delimiter nesting)
-    _inline_element_no_bold:
+    _inline_element_no_bold: $ =>
       create_inline_variant($, 'no_bold', CONTEXTS.EMPHASIS, 'bold'),
 
-    _inline_element_no_italic:
+    _inline_element_no_italic: $ =>
       create_inline_variant($, 'no_italic', CONTEXTS.EMPHASIS, 'italic'),
 
-    _inline_element_no_underline:
+    _inline_element_no_underline: $ =>
       create_inline_variant($, 'no_underline', CONTEXTS.EMPHASIS, 'underline'),
 
-    _inline_element_no_strike:
+    _inline_element_no_strike: $ =>
       create_inline_variant($, 'no_strike', CONTEXTS.EMPHASIS, 'strike_through'),
   };
 }
@@ -255,6 +254,21 @@ module.exports = grammar({
       prec.dynamic(PRECEDENCE.TITLE_ONLY, $.title_only)
     ),
 
+    // ========================================================================
+    // INLINE ELEMENT VARIANTS (Generated)
+    // ========================================================================
+    // 7 variants for different nesting contexts:
+    // - _inline_element: All elements allowed (normal context)
+    // - _inline_element_no_link: No links (inside link descriptions)
+    // - _inline_element_no_markup: Plain text only (inside code/verbatim)
+    // - _inline_element_no_bold/italic/underline/strike: Exclude same delimiter
+
+    ...generate_all_inline_variants(),
+
+    // ========================================================================
+    // TITLE RULES
+    // ========================================================================
+
     // Title with tags
     title_with_tags: $ => seq(
       field('title', optional($.title)),
@@ -266,35 +280,7 @@ module.exports = grammar({
 
     // Title: sequence of inline objects
     // Right-associative to greedily consume all content
-    title: $ => prec.right(repeat1(choice(
-      // Links (highest precedence - contain special chars)
-      prec.dynamic(PRECEDENCE.PLAIN_LINK, $.plain_link),
-      prec.dynamic(PRECEDENCE.ANGLE_LINK, $.angle_link),
-      prec.dynamic(PRECEDENCE.REGULAR_LINK, $.regular_link),
-
-      // References
-      prec.dynamic(PRECEDENCE.FOOTNOTE_REFERENCE, $.footnote_reference),
-
-      // Time and counting
-      prec.dynamic(PRECEDENCE.STATISTICS_COOKIE, $.statistics_cookie),
-      prec.dynamic(PRECEDENCE.TIMESTAMP, $.timestamp),
-
-      // Standard objects
-      prec.dynamic(PRECEDENCE.EXPORT_SNIPPET, $.export_snippet),
-      prec.dynamic(PRECEDENCE.RADIO_TARGET, $.radio_target),
-      prec.dynamic(PRECEDENCE.TARGET, $.target),
-      prec.dynamic(PRECEDENCE.MACRO, $.macro),
-      prec.dynamic(PRECEDENCE.ENTITY, $.entity),
-
-      // Formatting
-      prec.dynamic(PRECEDENCE.CODE, $.text_markup),
-
-      // Structural
-      prec.dynamic(PRECEDENCE.COLON, ':'),
-
-      // Fallback
-      prec.dynamic(PRECEDENCE.PLAIN_TEXT, $.plain_text)
-    ))),
+    title: $ => prec.right(repeat1($._inline_element)),  // Uses normal variant
 
     // ========================================================================
     // TEXT MARKUP (Emphasis)
