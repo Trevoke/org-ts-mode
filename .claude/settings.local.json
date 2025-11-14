@@ -1,0 +1,18 @@
+{
+  "permissions": {
+    "allow": [
+      "Bash(tree-sitter generate:*)",
+      "Bash(make:*)",
+      "Bash(tree-sitter test:*)",
+      "Skill(superpowers:systematic-debugging)",
+      "Bash(tree-sitter parse:*)",
+      "Bash(git log:*)",
+      "Bash(git commit:*)",
+      "WebSearch",
+      "WebFetch(domain:github.com)",
+      "Bash(git add:*)"
+    ],
+    "deny": [],
+    "ask": []
+  }
+}
