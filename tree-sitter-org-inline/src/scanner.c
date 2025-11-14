@@ -143,16 +143,12 @@ static inline bool is_whitespace(int32_t c);
 static inline bool is_emphasis_marker(int32_t c);
 static inline bool at_line_boundary(TSLexer *lexer);
 
-// State management
-static void clear_delimiter_stack(Scanner *scanner);
-
 // Boundary validation
 static bool validate_opening_boundary(ScanContext *ctx, char marker, int32_t prev_char, bool at_line_start);
 static bool validate_closing_boundary(ScanContext *ctx, char marker, int32_t prev_char);
 
 // Lookahead scanning
 static bool find_closing_delimiter(ScanContext *ctx, char marker);
-static bool is_valid_emphasis(ScanContext *ctx, char marker, int32_t prev_char, bool at_line_start);
 
 // Serialization
 static unsigned serialize(Scanner *scanner, char *buffer);
@@ -252,21 +248,8 @@ static inline bool at_line_boundary(TSLexer *lexer) {
 
 
 
-/**
- * Clear delimiter stack
- *
- * Used during initialization and error recovery.
- *
- * @param scanner Scanner state
- */
-static void clear_delimiter_stack(Scanner *scanner) {
-    if (scanner == NULL) {
-        return;
-    }
-
-    scanner->stack_depth = 0;
-    memset(scanner->delimiter_stack, 0, MAX_EMPHASIS_DEPTH);
-}
+// Delimiter stack functions removed in Phase 2.1
+// Scanner is now stateless - grammar controls nesting via valid_symbols
 
 // ============================================================================
 // BOUNDARY VALIDATION FUNCTIONS
@@ -443,53 +426,8 @@ static bool find_closing_delimiter(ScanContext *ctx, char marker) {
     return false;
 }
 
-/**
- * Check if emphasis is valid (complete validation)
- *
- * This function validates that:
- * 1. Opening boundary is valid
- * 2. Delimiter is not already on stack (no same-marker nesting)
- * 3. Closing delimiter exists with valid boundary
- *
- * This is a "pure" validation function - it doesn't modify scanner state.
- * It just answers: "Is this valid emphasis?"
- *
- * Note: This function advances the lexer during lookahead. The caller should
- * save/restore lexer position if needed.
- *
- * @param ctx Scanning context
- * @param marker The potential emphasis marker
- * @param prev_char Character before marker
- * @param at_line_start true if at beginning of line
- * @return true if valid emphasis pattern
- */
-static bool is_valid_emphasis(
-    ScanContext *ctx,
-    char marker,
-    int32_t prev_char,
-    bool at_line_start
-) {
-    if (ctx == NULL) {
-        return false;
-    }
-
-    // Check 1: Valid opening boundary
-    // Note: This advances lexer past the marker
-    if (!validate_opening_boundary(ctx, marker, prev_char, at_line_start)) {
-        return false;
-    }
-
-    // Check 2: Delimiter not already on stack (no same-marker nesting)
-    if (is_delimiter_on_stack(ctx->scanner, marker)) {
-        return false;
-    }
-
-    // Check 3: Valid closing delimiter exists
-    // Note: This advances lexer to the closing marker (or EOF/newline)
-    bool has_closing = find_closing_delimiter(ctx, marker);
-
-    return has_closing;
-}
+// is_valid_emphasis removed in Phase 2.1
+// Emphasis validation now done inline in scan_emphasis without stack checking
 
 // ============================================================================
 // SERIALIZATION FUNCTIONS
@@ -658,16 +596,15 @@ static bool is_valid_tag_char(int32_t c) {
 // ============================================================================
 
 /**
- * Scan emphasis delimiter with state tracking
+ * Scan emphasis delimiter (simplified, stateless version)
  *
- * Uses scanner state to make consistent open/close decisions and prevent
- * invalid nesting (e.g., *bold *inside* bold* is invalid).
+ * Phase 2.1: No longer uses delimiter stack for nesting control.
+ * Grammar will control nesting via valid_symbols array.
  *
  * Strategy:
- * 1. Check if delimiter is currently open (on stack)
- * 2. If open: try CLOSE (with validation)
- * 3. If not open: try OPEN (with validation)
- * 4. Update stack on success
+ * 1. Check if OPEN or CLOSE is valid in this context (via valid_symbols)
+ * 2. Validate PRE/POST boundaries
+ * 3. For now: prefer OPEN if both valid (Phase 2.2 will add lookahead)
  *
  * @param ctx Scanning context
  * @return true if token emitted, false otherwise
@@ -683,9 +620,6 @@ static bool scan_emphasis(ScanContext *ctx) {
 
     // Determine which delimiter we're looking at
     char delimiter = (char)lexer->lookahead;
-
-    fprintf(stderr, "DEBUG: scan_emphasis delimiter='%c', stack_depth=%d\n",
-            delimiter, scanner->stack_depth);
 
     // Check if it's an emphasis marker
     if (!is_emphasis_marker(delimiter)) {
@@ -723,145 +657,52 @@ static bool scan_emphasis(ScanContext *ctx) {
             return false;
     }
 
-    // Check if this delimiter is currently open
-    bool is_open = is_delimiter_on_stack(scanner, delimiter);
+    // Check if OPEN or CLOSE is valid in this context
+    bool can_open = valid_symbols[open_token];
+    bool can_close = valid_symbols[close_token];
 
-    fprintf(stderr, "DEBUG: is_open=%d, valid_open=%d, valid_close=%d\n",
-            is_open, valid_symbols[open_token], valid_symbols[close_token]);
-
-    // CASE 1: Delimiter is OPEN → Try to CLOSE it
-    if (is_open && valid_symbols[close_token]) {
-        fprintf(stderr, "DEBUG: Trying CLOSE (delimiter on stack)\n");
-
-        // Consume delimiter
-        lexer->advance(lexer, false);
-        lexer->mark_end(lexer);
-
-        // POST validation: character after must be valid POST
-        bool at_line_end = at_line_boundary(lexer);
-        if (!is_post_char(lexer->lookahead, at_line_end)) {
-            fprintf(stderr, "DEBUG: Invalid POST char '%c' - emitting DELIMITER_CHAR\n", (char)lexer->lookahead);
-            // Invalid emphasis - emit closing delimiter as plain character
-            lexer->result_symbol = DELIMITER_CHAR;
-            return true;
-        }
-
-        // Pop delimiter from stack
-        if (!pop_delimiter(scanner, delimiter)) {
-            fprintf(stderr, "DEBUG: Failed to pop delimiter (shouldn't happen)\n");
-            return false;
-        }
-
-        fprintf(stderr, "DEBUG: Emitting CLOSE, new_depth=%d\n", scanner->stack_depth);
-        lexer->result_symbol = close_token;
-        return true;
+    if (!can_open && !can_close) {
+        return false;  // Neither valid here
     }
 
-    // CASE 2: Delimiter is NOT OPEN → Try to OPEN it
-    if (!is_open && valid_symbols[open_token]) {
-        fprintf(stderr, "DEBUG: Trying OPEN (delimiter not on stack)\n");
+    // Validate PRE boundary
+    if (!is_pre_char(scanner->last_char, scanner->at_line_start)) {
+        return false;
+    }
 
-        // NOTE: Simplified PRE validation - we don't validate what came before
-        // The grammar's context (what's valid_symbols[OPEN] is true) handles most cases
-        // In the future, we could add stricter PRE validation if needed
+    // Consume delimiter
+    lexer->advance(lexer, false);
+    lexer->mark_end(lexer);
 
-        // Consume delimiter
-        lexer->advance(lexer, false);
-        lexer->mark_end(lexer);
+    // Validate POST boundary (peek ahead)
+    bool at_line_end = at_line_boundary(lexer);
 
-        // CONTENTS validation: no whitespace after OPEN
-        if (is_whitespace(lexer->lookahead)) {
-            fprintf(stderr, "DEBUG: Whitespace after OPEN - emitting DELIMITER_CHAR\n");
-            // Invalid emphasis - emit as plain delimiter character
-            lexer->result_symbol = DELIMITER_CHAR;
-            return true;
-        }
-
-        // Cannot be at EOF
-        if (lexer->eof(lexer)) {
-            fprintf(stderr, "DEBUG: EOF after OPEN - emitting DELIMITER_CHAR\n");
-            // Invalid emphasis - emit as plain delimiter character
-            lexer->result_symbol = DELIMITER_CHAR;
-            return true;
-        }
-
-        // For recursive emphasis (bold, italic, underline, strike): check for empty content
-        // Empty content = immediate closing delimiter (e.g., ** or // or __ or ++)
-        if (delimiter == '*' || delimiter == '/' || delimiter == '_' || delimiter == '+') {
-            if (lexer->lookahead == delimiter) {
-                fprintf(stderr, "DEBUG: Empty content (immediate closing delimiter) - emitting DELIMITER_CHAR\n");
-                // Invalid emphasis - emit as plain delimiter character
-                lexer->result_symbol = DELIMITER_CHAR;
+    // For OPEN: check CONTENTS boundary (no leading whitespace)
+    if (can_open) {
+        if (is_whitespace(lexer->lookahead) || lexer->eof(lexer)) {
+            // Invalid OPEN - but might be valid CLOSE
+            if (can_close && is_post_char(lexer->lookahead, at_line_end)) {
+                lexer->result_symbol = close_token;
                 return true;
             }
-        }
-
-        // For code/verbatim (opaque, non-nesting): validate entire content before emitting OPEN
-        // Check for trailing whitespace and empty content
-        if (delimiter == '~' || delimiter == '=') {
-            fprintf(stderr, "DEBUG: Validating code/verbatim content\n");
-
-            // Look ahead to find closing delimiter
-            int content_len = 0;
-            char last_char = '\0';
-            bool found_close = false;
-
-            // Save current position
-            TSLexer *lex = lexer;
-
-            // Scan content
-            while (!lex->eof(lex) && lex->lookahead != '\n') {
-                if (lex->lookahead == delimiter) {
-                    // Found potential closing delimiter
-                    found_close = true;
-                    break;
-                }
-
-                last_char = (char)lex->lookahead;
-                content_len++;
-                lex->advance(lex, false);
-            }
-
-            // Validation checks
-            if (!found_close) {
-                fprintf(stderr, "DEBUG: No closing delimiter found - emitting DELIMITER_CHAR\n");
-                lexer->result_symbol = DELIMITER_CHAR;
-                return true;
-            }
-
-            if (content_len == 0) {
-                fprintf(stderr, "DEBUG: Empty content - emitting DELIMITER_CHAR\n");
-                lexer->result_symbol = DELIMITER_CHAR;
-                return true;
-            }
-
-            // Check if last character before close is whitespace (trailing whitespace)
-            if (is_whitespace(last_char)) {
-                fprintf(stderr, "DEBUG: Trailing whitespace before close - emitting DELIMITER_CHAR\n");
-                lexer->result_symbol = DELIMITER_CHAR;
-                return true;
-            }
-
-            fprintf(stderr, "DEBUG: Code/verbatim content valid\n");
-        }
-
-        // Push delimiter to stack
-        if (!push_delimiter(scanner, delimiter)) {
-            fprintf(stderr, "DEBUG: Failed to push delimiter (stack full?)\n");
             return false;
         }
+    }
 
-        fprintf(stderr, "DEBUG: Emitting OPEN, new_depth=%d\n", scanner->stack_depth);
+    // For CLOSE: check POST boundary
+    if (can_close) {
+        if (is_post_char(lexer->lookahead, at_line_end)) {
+            lexer->result_symbol = close_token;
+            return true;
+        }
+    }
+
+    // For now: prefer OPEN if both valid
+    // Phase 2.2 will add lookahead to determine OPEN vs CLOSE
+    if (can_open) {
         lexer->result_symbol = open_token;
         return true;
     }
-
-    // CASE 3: Can't make valid decision - return false and let parser decide
-    // DELIMITER_CHAR should ONLY be emitted when we've proven emphasis is invalid
-    // (e.g., whitespace after OPEN, invalid POST char)
-    // If we can't decide, return false and let the parser explore other paths
-    fprintf(stderr, "DEBUG: No valid decision (is_open=%d, open_valid=%d, close_valid=%d) - returning false\n",
-            is_open, valid_symbols[open_token], valid_symbols[close_token]);
 
     return false;
 }
@@ -889,12 +730,6 @@ bool tree_sitter_org_inline_external_scanner_scan(
 ) {
     Scanner *scanner = (Scanner *)payload;
 
-    fprintf(stderr, "MAIN_SCAN: lookahead='%c' (0x%02x), TAGS=%d, BOLD_OPEN=%d\n",
-            (lexer->lookahead >= 32 && lexer->lookahead < 127) ? lexer->lookahead : '?',
-            lexer->lookahead,
-            valid_symbols[TAGS],
-            valid_symbols[BOLD_OPEN]);
-
     // Create scanning context
     ScanContext ctx = {
         .scanner = scanner,
@@ -911,7 +746,6 @@ bool tree_sitter_org_inline_external_scanner_scan(
          valid_symbols[CODE_OPEN] || valid_symbols[CODE_CLOSE] ||
          valid_symbols[VERBATIM_OPEN] || valid_symbols[VERBATIM_CLOSE] ||
          valid_symbols[STRIKE_OPEN] || valid_symbols[STRIKE_CLOSE])) {
-        fprintf(stderr, "MAIN_SCAN: Calling scan_emphasis\n");
         return scan_emphasis(&ctx);
     }
 
@@ -920,7 +754,6 @@ bool tree_sitter_org_inline_external_scanner_scan(
         return scan_tags(&ctx);
     }
 
-    fprintf(stderr, "MAIN_SCAN: Returning false (no valid tokens)\n");
     return false;
 }
 
