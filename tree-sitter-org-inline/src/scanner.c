@@ -144,8 +144,6 @@ static inline bool is_emphasis_marker(int32_t c);
 static inline bool at_line_boundary(TSLexer *lexer);
 
 // State management
-static bool push_delimiter(Scanner *scanner, char delimiter);
-static bool pop_delimiter(Scanner *scanner, char delimiter);
 static void clear_delimiter_stack(Scanner *scanner);
 
 // Boundary validation
@@ -252,70 +250,7 @@ static inline bool at_line_boundary(TSLexer *lexer) {
 // STATE MANAGEMENT FUNCTIONS
 // ============================================================================
 
-/**
- * Push delimiter onto stack
- *
- * @param scanner Scanner state
- * @param delimiter Delimiter to push
- * @return true if successful, false if stack full or invalid delimiter
- */
-static bool push_delimiter(Scanner *scanner, char delimiter) {
-    // Validate inputs
-    if (scanner == NULL) {
-        return false;
-    }
 
-    if (!is_emphasis_marker(delimiter)) {
-        return false;  // Invalid delimiter
-    }
-
-    // Check for stack overflow
-    if (scanner->stack_depth >= MAX_EMPHASIS_DEPTH) {
-        return false;  // Stack full
-    }
-
-    // Push delimiter
-    scanner->delimiter_stack[scanner->stack_depth] = delimiter;
-    scanner->stack_depth++;
-
-    // Verify postcondition (debug builds)
-    assert(scanner->stack_depth <= MAX_EMPHASIS_DEPTH);
-
-    return true;
-}
-
-/**
- * Pop delimiter from stack
- *
- * @param scanner Scanner state
- * @param delimiter Expected delimiter (for validation)
- * @return true if successful and matches, false otherwise
- */
-static bool pop_delimiter(Scanner *scanner, char delimiter) {
-    // Validate inputs
-    if (scanner == NULL) {
-        return false;
-    }
-
-    // Check for stack underflow
-    if (scanner->stack_depth == 0) {
-        return false;  // Stack empty
-    }
-
-    // Verify that top of stack matches expected delimiter
-    uint8_t top_idx = scanner->stack_depth - 1;
-    if (scanner->delimiter_stack[top_idx] != delimiter) {
-        return false;  // Mismatch (shouldn't happen with correct grammar)
-    }
-
-    // Pop delimiter
-    scanner->stack_depth--;
-
-    // Clear the popped slot (defensive programming)
-    scanner->delimiter_stack[scanner->stack_depth] = 0;
-
-    return true;
-}
 
 /**
  * Clear delimiter stack
