@@ -229,11 +229,8 @@
             "name": "_bold_open"
           },
           {
-            "type": "REPEAT1",
-            "content": {
-              "type": "SYMBOL",
-              "name": "_inline_element_no_bold"
-            }
+            "type": "PATTERN",
+            "value": "[^\\s*][^*\\n]*[^\\s*]|[^\\s*\\n]"
           },
           {
             "type": "SYMBOL",
@@ -253,11 +250,8 @@
             "name": "_italic_open"
           },
           {
-            "type": "REPEAT1",
-            "content": {
-              "type": "SYMBOL",
-              "name": "_inline_element_no_italic"
-            }
+            "type": "PATTERN",
+            "value": "[^\\s\\/][^\\/\\n]*[^\\s\\/]|[^\\s\\/\\n]"
           },
           {
             "type": "SYMBOL",
@@ -277,11 +271,8 @@
             "name": "_underline_open"
           },
           {
-            "type": "REPEAT1",
-            "content": {
-              "type": "SYMBOL",
-              "name": "_inline_element_no_underline"
-            }
+            "type": "PATTERN",
+            "value": "[^\\s_][^_\\n]*[^\\s_]|[^\\s_\\n]"
           },
           {
             "type": "SYMBOL",
@@ -343,11 +334,8 @@
             "name": "_strike_open"
           },
           {
-            "type": "REPEAT1",
-            "content": {
-              "type": "SYMBOL",
-              "name": "_inline_element_no_strike"
-            }
+            "type": "PATTERN",
+            "value": "[^\\s+][^+\\n]*[^\\s+]|[^\\s+\\n]"
           },
           {
             "type": "SYMBOL",

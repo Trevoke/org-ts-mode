@@ -250,9 +250,10 @@ module.exports = grammar({
 
     // Bold: *text*
     // Scanner validates PRE/POST/CONTENTS boundaries
+    // TEMPORARY: Using regex like code to test if grammar rule is the problem
     bold: $ => prec.dynamic(PRECEDENCE.EMPHASIS, seq(
       $._bold_open,
-      repeat1($._inline_element_no_bold),
+      /[^\s*][^*\n]*[^\s*]|[^\s*\n]/,  // Temporary regex (like code)
       $._bold_close
     )),
 
@@ -260,7 +261,7 @@ module.exports = grammar({
     // Scanner validates PRE/POST/CONTENTS boundaries
     italic: $ => prec.dynamic(PRECEDENCE.EMPHASIS, seq(
       $._italic_open,
-      repeat1($._inline_element_no_italic),
+      /[^\s\/][^\/\n]*[^\s\/]|[^\s\/\n]/,  // Regex content (no nesting)
       $._italic_close
     )),
 
@@ -268,7 +269,7 @@ module.exports = grammar({
     // Scanner validates PRE/POST/CONTENTS boundaries
     underline: $ => prec.dynamic(PRECEDENCE.EMPHASIS, seq(
       $._underline_open,
-      repeat1($._inline_element_no_underline),
+      /[^\s_][^_\n]*[^\s_]|[^\s_\n]/,  // Regex content (no nesting)
       $._underline_close
     )),
 
@@ -294,7 +295,7 @@ module.exports = grammar({
     // Scanner validates PRE/POST/CONTENTS boundaries
     strike_through: $ => prec.dynamic(PRECEDENCE.EMPHASIS, seq(
       $._strike_open,
-      repeat1($._inline_element_no_strike),
+      /[^\s+][^+\n]*[^\s+]|[^\s+\n]/,  // Regex content (no nesting)
       $._strike_close
     )),
 
