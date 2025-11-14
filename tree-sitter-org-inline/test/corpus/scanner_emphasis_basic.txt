@@ -110,7 +110,8 @@ Bold at start of line
   (title_only
     (title
       (text_markup
-        (bold))
+        (bold
+          (plain_text)))
       (plain_text))))
 
 ==================
