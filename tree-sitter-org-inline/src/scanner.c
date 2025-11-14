@@ -110,37 +110,15 @@ enum TokenType {
  * - No pointers (simplifies serialization)
  * - No dynamic allocation (performance and simplicity)
  */
+// New stateless scanner structure
 typedef struct {
-    /**
-     * Delimiter stack for nesting prevention
-     *
-     * Stores which delimiters are currently open.
-     * Example: ['*', '/', '_'] means bold contains italic contains underline.
-     */
-    char delimiter_stack[MAX_EMPHASIS_DEPTH];
+    int32_t last_char;      // Last character seen (for PRE boundary)
+    bool at_line_start;     // Are we at beginning of line?
+    uint8_t state_flags;    // Bit flags for tags state
+} Scanner;  // 6 bytes total (down from 20)
 
-    /**
-     * Current depth of delimiter stack
-     *
-     * Valid range: 0 to MAX_EMPHASIS_DEPTH
-     */
-    uint8_t stack_depth;
-
-    /**
-     * State flags (reserved for future use)
-     *
-     * Currently unused. Reserved for:
-     * - Tracking multi-character sequences
-     * - Caching boundary validation results
-     */
-    uint8_t state_flags;
-
-    /**
-     * Padding for alignment (optional)
-     */
-    uint8_t padding[2];
-
-} Scanner;
+// State flag bits
+#define FLAG_IN_TAGS 0x01
 
 /**
  * Scanning context (stack-allocated, not serialized)

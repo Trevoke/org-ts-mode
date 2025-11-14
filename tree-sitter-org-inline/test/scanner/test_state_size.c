@@ -6,11 +6,12 @@ int main() {
     Scanner s;
     size_t size = sizeof(Scanner);
 
-    printf("Current scanner state size: %zu bytes\n", size);
+    printf("Scanner state size: %zu bytes\n", size);
 
-    // Baseline: should be ~20 bytes with delimiter_stack
-    assert(size >= 18 && size <= 24);
+    // After Phase 2.1: should be ~6 bytes (no delimiter_stack)
+    // last_char (4) + at_line_start (1) + state_flags (1) = 6 bytes
+    assert(size >= 4 && size <= 8);
 
-    printf("✓ Scanner state size within expected range\n");
+    printf("✓ Scanner state size reduced successfully\n");
     return 0;
 }
