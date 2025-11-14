@@ -10,7 +10,7 @@
  * - Character classification: PRE/POST character validation
  * - Boundary validation: Opening/closing delimiter validation
  * - Lookahead scanning: Find valid closing delimiters
- * - State management: Delimiter stack for nesting prevention
+ * - State management: Grammar-controlled nesting via valid_symbols
  * - Serialization: Save/restore state for incremental parsing
  *
  * Design principles:
@@ -79,14 +79,12 @@ enum TokenType {
 /**
  * Serialization buffer size (fixed)
  *
- * Layout:
- * [0]: Version (0x01)
- * [1]: Stack depth (0-MAX_EMPHASIS_DEPTH)
- * [2]: State flags
- * [3]: Padding
- * [4-19]: Delimiter stack (16 bytes)
+ * Layout (6 bytes):
+ * [0-3]: last_char (int32_t)
+ * [4]: at_line_start (bool)
+ * [5]: state_flags (uint8_t)
  */
-#define SERIALIZATION_SIZE 20
+#define SERIALIZATION_SIZE 6
 
 /**
  * State flags (currently unused, reserved for future extensions)
