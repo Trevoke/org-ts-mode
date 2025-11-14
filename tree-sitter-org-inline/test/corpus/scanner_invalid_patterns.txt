@@ -175,10 +175,8 @@ This is *outer *inner* outer* text.
     (title
       (plain_text)
       (text_markup
-        (bold))
-      (plain_text)
-      (text_markup
-        (bold))
+        (bold
+          (plain_text)))
       (plain_text))))
 
 ==================
@@ -194,10 +192,8 @@ This is /outer /inner/ outer/ text.
     (title
       (plain_text)
       (text_markup
-        (italic))
-      (plain_text)
-      (text_markup
-        (italic))
+        (italic
+          (plain_text)))
       (plain_text))))
 
 ==================
@@ -270,6 +266,10 @@ This is **bold* text.
 (inline
   (title_only
     (title
+      (plain_text)
+      (text_markup
+        (bold
+          (plain_text)))
       (plain_text))))
 
 ==================
@@ -283,6 +283,10 @@ This is *bold** text.
 (inline
   (title_only
     (title
+      (plain_text)
+      (text_markup
+        (bold
+          (plain_text)))
       (plain_text))))
 
 ==================
@@ -309,6 +313,10 @@ This is *** text.
 (inline
   (title_only
     (title
+      (plain_text)
+      (text_markup
+        (bold
+          (plain_text)))
       (plain_text))))
 
 ==================
@@ -324,7 +332,8 @@ This is *first *second* text.
     (title
       (plain_text)
       (text_markup
-        (bold))
+        (bold
+          (plain_text)))
       (plain_text))))
 
 ==================
@@ -340,7 +349,8 @@ This is *first* second* text.
     (title
       (plain_text)
       (text_markup
-        (bold))
+        (bold
+          (plain_text)))
       (plain_text))))
 
 ==================

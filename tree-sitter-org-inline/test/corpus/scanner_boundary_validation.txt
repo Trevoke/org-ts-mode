@@ -568,7 +568,6 @@ text* here.
       (plain_text)
       (text_markup
         (bold
-          (plain_text)
           (plain_text)))
       (plain_text))))
 
@@ -587,7 +586,6 @@ text/ here.
       (plain_text)
       (text_markup
         (italic
-          (plain_text)
           (plain_text)))
       (plain_text))))
 
