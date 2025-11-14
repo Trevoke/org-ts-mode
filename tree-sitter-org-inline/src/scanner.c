@@ -115,7 +115,7 @@ typedef struct {
     int32_t last_char;      // Last character seen (for PRE boundary)
     bool at_line_start;     // Are we at beginning of line?
     uint8_t state_flags;    // Bit flags for tags state
-} Scanner;  // 6 bytes total (down from 20)
+} Scanner;  // 8 bytes total (6 data + 2 padding, down from 20)
 
 // State flag bits
 #define FLAG_IN_TAGS 0x01
