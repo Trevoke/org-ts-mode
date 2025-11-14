@@ -971,6 +971,17 @@ static bool scan_emphasis(ScanContext *ctx) {
             return true;
         }
 
+        // For recursive emphasis (bold, italic, underline, strike): check for empty content
+        // Empty content = immediate closing delimiter (e.g., ** or // or __ or ++)
+        if (delimiter == '*' || delimiter == '/' || delimiter == '_' || delimiter == '+') {
+            if (lexer->lookahead == delimiter) {
+                fprintf(stderr, "DEBUG: Empty content (immediate closing delimiter) - emitting DELIMITER_CHAR\n");
+                // Invalid emphasis - emit as plain delimiter character
+                lexer->result_symbol = DELIMITER_CHAR;
+                return true;
+            }
+        }
+
         // For code/verbatim (opaque, non-nesting): validate entire content before emitting OPEN
         // Check for trailing whitespace and empty content
         if (delimiter == '~' || delimiter == '=') {

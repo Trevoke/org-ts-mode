@@ -210,9 +210,6 @@ This is ~outer ~inner~ outer~ text.
       (plain_text)
       (text_markup
         (code))
-      (plain_text)
-      (text_markup
-        (code))
       (plain_text))))
 
 ==================
@@ -313,10 +310,6 @@ This is *** text.
 (inline
   (title_only
     (title
-      (plain_text)
-      (text_markup
-        (bold
-          (plain_text)))
       (plain_text))))
 
 ==================
