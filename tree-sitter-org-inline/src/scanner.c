@@ -872,14 +872,16 @@ bool tree_sitter_org_inline_external_scanner_scan(
          valid_symbols[DELIMITER_CHAR])) {
         bool result = scan_emphasis(&ctx);
         if (result) {
-            // Successfully emitted a token - current_char is now "last" for next scan
-            scanner->last_char = current_char;
+            // Successfully emitted a token
+            // Reset last_char to 0 (unknown) because grammar will consume characters
+            // between scanner invocations, making the delimiter position stale
+            scanner->last_char = 0;
         } else if (valid_symbols[DELIMITER_CHAR]) {
             // Invalid emphasis - emit DELIMITER_CHAR fallback
             lexer->advance(lexer, false);
             lexer->mark_end(lexer);
             lexer->result_symbol = DELIMITER_CHAR;
-            scanner->last_char = current_char;
+            scanner->last_char = 0;  // Reset to unknown
             return true;
         }
         return result;
