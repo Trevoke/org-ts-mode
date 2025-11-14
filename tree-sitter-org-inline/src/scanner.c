@@ -185,6 +185,13 @@ static inline bool is_pre_char(int32_t c, bool at_line_start) {
         return true;
     }
 
+    // Unknown previous character (never scanned by scanner) - skip validation
+    // This is a limitation of the Tree-sitter API: we can't access characters
+    // that were consumed by the grammar rather than the scanner
+    if (c == 0) {
+        return true;  // Assume valid when unknown
+    }
+
     // Check explicit PRE character set
     return c == ' '  || c == '\t' || c == '\n' ||
            c == '-'  || c == '('  || c == '{' ||
@@ -743,11 +750,6 @@ static bool scan_emphasis(ScanContext *ctx) {
         return false;  // Neither valid here
     }
 
-    // Validate PRE boundary
-    if (!is_pre_char(scanner->last_char, scanner->at_line_start)) {
-        return false;
-    }
-
     // Consume delimiter
     lexer->advance(lexer, false);
     lexer->mark_end(lexer);  // Mark token boundary at delimiter
@@ -778,6 +780,7 @@ static bool scan_emphasis(ScanContext *ctx) {
     // Phase 2.2: Use lookahead to determine OPEN vs CLOSE
     if (can_open) {
         // Try to find matching closer using lookahead
+        // This will validate the full emphasis construct
         if (find_closing_delimiter(ctx, delimiter)) {
             // Found valid matching closer - emit OPEN
             lexer->result_symbol = open_token;
@@ -833,6 +836,11 @@ bool tree_sitter_org_inline_external_scanner_scan(
     // Update at_line_start tracking based on current lexer column position
     scanner->at_line_start = (lexer->get_column(lexer) == 0);
 
+    // Update last_char at the start of each scan
+    // This tracks the character at the current position (before we advance)
+    // After we emit a token and advance, this becomes the "last character" for the next scan
+    int32_t current_char = lexer->lookahead;
+
     // Create scanning context
     ScanContext ctx = {
         .scanner = scanner,
@@ -848,13 +856,30 @@ bool tree_sitter_org_inline_external_scanner_scan(
          valid_symbols[UNDERLINE_OPEN] || valid_symbols[UNDERLINE_CLOSE] ||
          valid_symbols[CODE_OPEN] || valid_symbols[CODE_CLOSE] ||
          valid_symbols[VERBATIM_OPEN] || valid_symbols[VERBATIM_CLOSE] ||
-         valid_symbols[STRIKE_OPEN] || valid_symbols[STRIKE_CLOSE])) {
-        return scan_emphasis(&ctx);
+         valid_symbols[STRIKE_OPEN] || valid_symbols[STRIKE_CLOSE] ||
+         valid_symbols[DELIMITER_CHAR])) {
+        bool result = scan_emphasis(&ctx);
+        if (result) {
+            // Successfully emitted a token - current_char is now "last" for next scan
+            scanner->last_char = current_char;
+        } else if (valid_symbols[DELIMITER_CHAR]) {
+            // Invalid emphasis - emit DELIMITER_CHAR fallback
+            lexer->advance(lexer, false);
+            lexer->mark_end(lexer);
+            lexer->result_symbol = DELIMITER_CHAR;
+            scanner->last_char = current_char;
+            return true;
+        }
+        return result;
     }
 
     // Priority 2: Tag scanning (only if not emphasis)
     if (valid_symbols[TAGS]) {
-        return scan_tags(&ctx);
+        bool result = scan_tags(&ctx);
+        if (result) {
+            scanner->last_char = current_char;
+        }
+        return result;
     }
 
     return false;
