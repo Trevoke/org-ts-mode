@@ -111,11 +111,11 @@ const CONTEXTS = {
 
 /**
  * Build choice array for a context
- * This returns an array of rule references, not a choice() call
+ * @param {object} context - CONTEXTS entry defining allowed elements
+ * @param {string|null} exclude_emphasis - Emphasis type to exclude
+ * @returns {Array<string>} Array of rule name strings
  */
 function build_choices_array(context, exclude_emphasis = null) {
-  // Return array of rule name strings
-  // These will be converted to $.rule in the grammar rules section
   const choices = [];
 
   // Links (if allowed)
@@ -123,11 +123,16 @@ function build_choices_array(context, exclude_emphasis = null) {
     choices.push('plain_link', 'angle_link', 'regular_link');
   }
 
-  // Emphasis (if allowed)
-  // All types share _emphasis_content which allows recursive nesting
-  // Scanner state prevents same-delimiter nesting
+  // Emphasis (if allowed, excluding specified type)
   if (context.allow_emphasis) {
-    choices.push('bold', 'italic', 'underline', 'strike_through');
+    const all_emphasis = ['bold', 'italic', 'underline', 'strike_through'];
+
+    // Filter out excluded emphasis type if specified
+    const allowed_emphasis = exclude_emphasis
+      ? all_emphasis.filter(e => e !== exclude_emphasis)
+      : all_emphasis;
+
+    choices.push(...allowed_emphasis);
   }
 
   // Code (if allowed)
@@ -153,6 +158,59 @@ function build_choices_array(context, exclude_emphasis = null) {
   choices.push('plain_text');
 
   return choices;
+}
+
+/**
+ * Create an inline element variant from a context
+ * @param {object} $ - Grammar rule references
+ * @param {string} name - Variant name (for debugging)
+ * @param {object} context - CONTEXTS entry defining allowed elements
+ * @param {string|null} exclude_emphasis - Emphasis type to exclude (for same-delimiter prevention)
+ * @returns {object} Tree-sitter choice() rule
+ */
+function create_inline_variant($, name, context, exclude_emphasis = null) {
+  // Get array of allowed rule names
+  const choices_array = build_choices_array(context, exclude_emphasis);
+
+  // Convert string names to $ rule references
+  const choices_refs = choices_array.map(choice_name => $[choice_name]);
+
+  // Return choice() rule
+  return choice(...choices_refs);
+}
+
+/**
+ * Generate all 7 inline element variants
+ * @param {object} $ - Grammar rule references
+ * @returns {object} Map of variant name → grammar rule
+ */
+function generate_all_inline_variants($) {
+  return {
+    // 1. NORMAL - Everything allowed (default context)
+    _inline_element:
+      create_inline_variant($, 'normal', CONTEXTS.NORMAL),
+
+    // 2. NO_LINK - Inside link descriptions (prevent nesting)
+    _inline_element_no_link:
+      create_inline_variant($, 'no_link', CONTEXTS.LINK_DESCRIPTION),
+
+    // 3. NO_MARKUP - Inside code/verbatim (plain text only)
+    _inline_element_no_markup:
+      create_inline_variant($, 'no_markup', CONTEXTS.CODE_CONTENT),
+
+    // 4-7. NO_EMPHASIS - Inside each emphasis type (prevent same-delimiter nesting)
+    _inline_element_no_bold:
+      create_inline_variant($, 'no_bold', CONTEXTS.EMPHASIS, 'bold'),
+
+    _inline_element_no_italic:
+      create_inline_variant($, 'no_italic', CONTEXTS.EMPHASIS, 'italic'),
+
+    _inline_element_no_underline:
+      create_inline_variant($, 'no_underline', CONTEXTS.EMPHASIS, 'underline'),
+
+    _inline_element_no_strike:
+      create_inline_variant($, 'no_strike', CONTEXTS.EMPHASIS, 'strike_through'),
+  };
 }
 
 // ============================================================================
