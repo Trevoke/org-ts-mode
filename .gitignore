@@ -36,3 +36,7 @@ dist/
 *.wasm
 *.obj
 *.o
+
+# Worktrees
+.worktrees/
+.claude/settings.local.json

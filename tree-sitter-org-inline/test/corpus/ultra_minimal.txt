@@ -1,0 +1,12 @@
+==================
+Just asterisk
+==================
+
+*
+
+---
+
+(inline
+  (title_only
+    (title
+      (plain_text))))

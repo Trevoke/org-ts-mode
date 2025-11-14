@@ -8,67 +8,240 @@
  * - Title/tags separation in headlines
  * - Text markup (bold, italic, code, etc.)
  * - Links, macros, footnotes
- * - Timestamps, entities, subscript/superscript
+ * - Timestamps, entities
  *
  * This grammar is injected into nodes from the block-level grammar
  * (tree-sitter-org) via injection queries.
+ *
+ * ARCHITECTURE:
+ * - Systematic precedence hierarchy (PRECEDENCE constants)
+ * - Context-specific rules prevent invalid nesting
+ * - Clean separation of concerns
  */
 
 /// <reference types="tree-sitter-cli/dsl" />
 // @ts-check
+
+// ============================================================================
+// PRECEDENCE HIERARCHY
+// ============================================================================
+// Systematic precedence levels for disambiguation.
+// Higher values win in conflicts.
+
+const PRECEDENCE = {
+  // Plain text (lowest - fallback)
+  PLAIN_TEXT: 0,
+
+  // Structural tokens
+  COLON: 2,
+
+  // Basic formatting
+  EMPHASIS: 10,        // bold, italic, underline, strike
+  CODE: 15,            // code, verbatim
+
+  // Minimal set objects
+  ENTITY: 20,          // \alpha, \nbsp
+
+  // Standard objects
+  TARGET: 30,          // <<target>>
+  RADIO_TARGET: 31,    // <<<radio>>>
+  MACRO: 32,           // {{{name}}}
+  EXPORT_SNIPPET: 33,  // @@backend:value@@
+
+  // Time and counting
+  TIMESTAMP: 40,       // <2024-01-15>, [2024-01-15]
+  STATISTICS_COOKIE: 41,  // [50%], [1/2] - higher than timestamp
+
+  // References
+  FOOTNOTE_REFERENCE: 50,  // [fn:label]
+
+  // Links (high precedence)
+  PLAIN_LINK: 60,      // http://example.com
+  ANGLE_LINK: 61,      // <http://example.com>
+  REGULAR_LINK: 62,    // [[link][desc]]
+
+  // Special (root-level disambiguation)
+  TITLE_WITH_TAGS: 100,
+  TITLE_ONLY: 90,
+};
+
+// ============================================================================
+// CONTEXT DEFINITIONS
+// ============================================================================
+// Define which objects are allowed in which contexts
+
+const CONTEXTS = {
+  // Normal context: all objects allowed
+  NORMAL: {
+    allow_links: true,
+    allow_emphasis: true,
+    allow_code: true,
+    allow_all_objects: true,
+  },
+
+  // Inside link description: no nested links
+  LINK_DESCRIPTION: {
+    allow_links: false,
+    allow_emphasis: true,
+    allow_code: true,
+    allow_all_objects: true,
+  },
+
+  // Inside code/verbatim: no markup at all
+  CODE_CONTENT: {
+    allow_links: false,
+    allow_emphasis: false,
+    allow_code: false,
+    allow_all_objects: false,
+  },
+
+  // Inside emphasis: all except same delimiter
+  // (handled per-emphasis-type in generate_emphasis_rules)
+  EMPHASIS: {
+    allow_links: true,
+    allow_emphasis: true,  // but filtered per delimiter
+    allow_code: true,
+    allow_all_objects: true,
+  },
+};
+
+// ============================================================================
+// RULE GENERATION HELPERS
+// ============================================================================
+
+/**
+ * Build choice array for a context
+ * This returns an array of rule references, not a choice() call
+ */
+function build_choices_array(context, exclude_emphasis = null) {
+  // Return array of rule name strings
+  // These will be converted to $.rule in the grammar rules section
+  const choices = [];
+
+  // Links (if allowed)
+  if (context.allow_links) {
+    choices.push('plain_link', 'angle_link', 'regular_link');
+  }
+
+  // Emphasis (if allowed)
+  // All types share _emphasis_content which allows recursive nesting
+  // Scanner state prevents same-delimiter nesting
+  if (context.allow_emphasis) {
+    choices.push('bold', 'italic', 'underline', 'strike_through');
+  }
+
+  // Code (if allowed)
+  if (context.allow_code) {
+    choices.push('code', 'verbatim');
+  }
+
+  // Standard objects (if allowed)
+  if (context.allow_all_objects) {
+    choices.push(
+      'entity',
+      'target',
+      'radio_target',
+      'macro',
+      'export_snippet',
+      'timestamp',
+      'statistics_cookie',
+      'footnote_reference'
+    );
+  }
+
+  // Plain text always allowed
+  choices.push('plain_text');
+
+  return choices;
+}
+
+// ============================================================================
+// GRAMMAR DEFINITION
+// ============================================================================
 
 module.exports = grammar({
   name: 'org_inline',
 
   externals: $ => [
     $.TAGS,  // Tags portion (:tag1:tag2:) - detected by scanner
+
+    // Emphasis markers - scanner validates PRE/POST/CONTENTS boundaries
+    $._bold_open,
+    $._bold_close,
+    $._italic_open,
+    $._italic_close,
+    $._underline_open,
+    $._underline_close,
+    $._code_open,
+    $._code_close,
+    $._verbatim_open,
+    $._verbatim_close,
+    $._strike_open,
+    $._strike_close,
+
+    // Delimiter fallback - for when scanner rejects invalid emphasis
+    // Allows invalid emphasis delimiters to be treated as plain text
+    $._delimiter_char,
   ],
 
-  // Only skip newlines (they delimit inline content) - not spaces (they're part of plain_text)
   extras: $ => ['\n'],
 
   rules: {
-    // Root: Inline content is objects with optional tags at end
-    // Use dynamic precedence to prefer title_with_tags when tags are present
+    // ========================================================================
+    // ROOT RULES
+    // ========================================================================
+
+    // Root: Inline content with optional tags at end
     inline: $ => choice(
-      prec.dynamic(2, $.title_with_tags),
-      prec.dynamic(1, $.title_only)
+      prec.dynamic(PRECEDENCE.TITLE_WITH_TAGS, $.title_with_tags),
+      prec.dynamic(PRECEDENCE.TITLE_ONLY, $.title_only)
     ),
 
-    // Title with tags: title followed by tags (scanner validates space before tags)
+    // Title with tags
     title_with_tags: $ => seq(
       field('title', optional($.title)),
       field('tags', alias($.TAGS, $.tags))
     ),
 
-    // Title without tags: just title
+    // Title without tags
     title_only: $ => field('title', $.title),
 
-    // Title: sequence of inline objects, including colons
-    // Use repeat1 to ensure at least one object
-    // Colons are explicit tokens so external scanner can intercept for tags
-    // Higher precedence for inline objects (markup/cookies/snippets/targets/links), then colon, then plain text
+    // Title: sequence of inline objects
     // Right-associative to greedily consume all content
     title: $ => prec.right(repeat1(choice(
-      prec(4, $.plain_link),         // FIRST: contains ':' - must override standalone ':'
-      prec(3, $.subscript),          // BEFORE text_markup (both use _, but subscript is BASE_SCRIPT pattern)
-      prec(3, $.superscript),        // BEFORE text_markup (^ could conflict)
-      prec(3, $.text_markup),
-      prec(3, $.regular_link),       // BEFORE footnote_reference (longer match: [[ vs [fn:)
-      prec(3, $.angle_link),         // BEFORE timestamp (both use <>, but angle_link has protocol)
-      prec(3, $.footnote_reference), // BEFORE statistics_cookie (both start with [, but [fn: is more specific)
-      prec.dynamic(4, $.statistics_cookie),  // Higher dynamic precedence than timestamp
-      prec.dynamic(3, $.timestamp),          // Lower dynamic precedence - fallback for [\d...] patterns
-      prec(3, $.export_snippet),
-      prec(3, $.radio_target),       // Triple angle brackets <<<>>>
-      prec(3, $.target),             // Double angle brackets <<>>
-      prec(3, $.entity),             // LaTeX entities: \alpha, \nbsp, etc.
-      prec(3, $.macro),              // Org macros: {{{name}}} or {{{name(args)}}}
-      prec(2, ':'),  // Allow colons in title (lower precedence than TAGS and plain_link)
-      prec(1, $.plain_text)
+      // Links (highest precedence - contain special chars)
+      prec.dynamic(PRECEDENCE.PLAIN_LINK, $.plain_link),
+      prec.dynamic(PRECEDENCE.ANGLE_LINK, $.angle_link),
+      prec.dynamic(PRECEDENCE.REGULAR_LINK, $.regular_link),
+
+      // References
+      prec.dynamic(PRECEDENCE.FOOTNOTE_REFERENCE, $.footnote_reference),
+
+      // Time and counting
+      prec.dynamic(PRECEDENCE.STATISTICS_COOKIE, $.statistics_cookie),
+      prec.dynamic(PRECEDENCE.TIMESTAMP, $.timestamp),
+
+      // Standard objects
+      prec.dynamic(PRECEDENCE.EXPORT_SNIPPET, $.export_snippet),
+      prec.dynamic(PRECEDENCE.RADIO_TARGET, $.radio_target),
+      prec.dynamic(PRECEDENCE.TARGET, $.target),
+      prec.dynamic(PRECEDENCE.MACRO, $.macro),
+      prec.dynamic(PRECEDENCE.ENTITY, $.entity),
+
+      // Formatting
+      prec.dynamic(PRECEDENCE.CODE, $.text_markup),
+
+      // Structural
+      prec.dynamic(PRECEDENCE.COLON, ':'),
+
+      // Fallback
+      prec.dynamic(PRECEDENCE.PLAIN_TEXT, $.plain_text)
     ))),
 
-    // Text markup: bold, italic, underline, code, verbatim, strike-through
+    // ========================================================================
+    // TEXT MARKUP (Emphasis)
+    // ========================================================================
+
     text_markup: $ => choice(
       $.bold,
       $.italic,
@@ -78,246 +251,202 @@ module.exports = grammar({
       $.strike_through
     ),
 
-    // Bold: *text*
-    // Content must not start/end with whitespace, and can't contain newlines or *
-    // Simple pattern for now - PRE/POST validation can be added later via scanner
-    bold: $ => seq(
-      '*',
-      /[^\s*][^*\n]*[^\s*]|[^\s*\n]/,  // content: non-ws + optional(any-except-*-newline) + non-ws, OR single non-ws
-      '*'
+    // Unified emphasis implementation
+    // Scanner determines type via delimiter and validates boundaries
+    // Scanner state prevents same-delimiter nesting (*bold *invalid* bold*)
+    // Grammar allows different-delimiter nesting via _emphasis_content recursion
+
+    bold: $ => prec.dynamic(PRECEDENCE.EMPHASIS,
+      seq($._bold_open, repeat1($._emphasis_content), $._bold_close)
     ),
 
-    // Italic: /text/
-    italic: $ => seq(
-      '/',
-      /[^\s\/][^\/\n]*[^\s\/]|[^\s\/\n]/,
-      '/'
+    italic: $ => prec.dynamic(PRECEDENCE.EMPHASIS,
+      seq($._italic_open, repeat1($._emphasis_content), $._italic_close)
     ),
 
-    // Underline: _text_
-    underline: $ => seq(
-      '_',
-      /[^\s_][^_\n]*[^\s_]|[^\s_\n]/,
-      '_'
+    underline: $ => prec.dynamic(PRECEDENCE.EMPHASIS,
+      seq($._underline_open, repeat1($._emphasis_content), $._underline_close)
+    ),
+
+    strike_through: $ => prec.dynamic(PRECEDENCE.EMPHASIS,
+      seq($._strike_open, repeat1($._emphasis_content), $._strike_close)
+    ),
+
+    // Content allowed inside emphasis (shared by all types)
+    // Recursive to allow nesting different emphasis types
+    _emphasis_content: $ => choice(
+      $.bold,          // Allows *bold /italic/ nested*
+      $.italic,
+      $.underline,
+      $.strike_through,
+      $.plain_text,
+      $.entity,
+      $.code,
+      $.verbatim
     ),
 
     // Code: ~text~
-    code: $ => seq(
-      '~',
-      /[^\s~][^~\n]*[^\s~]|[^\s~\n]/,
-      '~'
-    ),
+    // Content is opaque - no parsing inside
+    // Scanner validates PRE/POST/CONTENTS boundaries
+    code: $ => prec.dynamic(PRECEDENCE.CODE, seq(
+      $._code_open,
+      /[^\s~][^~\n]*[^\s~]|[^\s~\n]/,  // Scanner validates, but regex ensures no leading/trailing ws
+      $._code_close
+    )),
 
     // Verbatim: =text=
-    verbatim: $ => seq(
-      '=',
-      /[^\s=][^=\n]*[^\s=]|[^\s=\n]/,
-      '='
-    ),
+    // Content is opaque - no parsing inside
+    // Scanner validates PRE/POST/CONTENTS boundaries
+    verbatim: $ => prec.dynamic(PRECEDENCE.CODE, seq(
+      $._verbatim_open,
+      /[^\s=][^=\n]*[^\s=]|[^\s=\n]/,  // Scanner validates, but regex ensures no leading/trailing ws
+      $._verbatim_close
+    )),
 
-    // Strike-through: +text+
-    strike_through: $ => seq(
-      '+',
-      /[^\s+][^+\n]*[^\s+]|[^\s+\n]/,
-      '+'
-    ),
+    // ========================================================================
+    // LINKS
+    // ========================================================================
 
-    // Statistics cookie: [N%] or [N/M] where N and M are optional digits
-    // Used for progress tracking in headlines and lists
-    statistics_cookie: $ => choice(
-      // Percentage format: [N%] where N is zero or more digits
-      seq('[', /\d*/, '%', ']'),
-      // Fraction format: [N/M] where N and M are zero or more digits
-      seq('[', /\d*/, '/', /\d*/, ']')
-    ),
-
-    // Export snippet: @@backend:content@@
-    // Used for backend-specific export formatting
-    // Backend: alphanumeric and hyphens
-    // Content: anything except @ or newline (simplified from spec)
-    export_snippet: $ => seq(
-      '@@',
-      /[a-zA-Z0-9-]+/,  // Backend name
-      ':',
-      /[^@\n]*/,        // Content (excludes @ to avoid closing delimiter issues)
-      '@@'
-    ),
-
-    // Target: <<TARGET>>
-    // Used as anchors for internal links and references
-    // Target name can contain any characters except < > and newline
-    // Can include spaces, hyphens, underscores, dots, etc.
-    target: $ => seq(
-      '<<',
-      /[^<>\n]+/,  // Target name: any characters except angle brackets and newline
-      '>>'
-    ),
-
-    // Radio target: <<<TARGET>>>
-    // Creates a target that automatically links all matching text in the document
-    // Target name can contain any characters except < > and newline
-    // Per spec: should start/end with non-whitespace and contain inline objects
-    // Simplified implementation: match content, let validation happen elsewhere
-    radio_target: $ => seq(
-      '<<<',
-      /[^<>\n]+/,  // Target name: any characters except angle brackets and newline
-      '>>>'
-    ),
-
-    // Regular link: [[URL]] or [[URL][DESCRIPTION]]
-    // The standard org-mode link format with double square brackets
-    // URL can be: protocol:path, file:path, id:uuid, #heading, fuzzy text, etc.
-    // DESCRIPTION is optional human-readable text
-    // Note: No newline at end (unlike block grammar) - allows inline usage
-    regular_link: $ => seq(
+    // Regular link: [[path]] or [[path][description]]
+    regular_link: $ => prec.dynamic(PRECEDENCE.REGULAR_LINK, seq(
       '[[',
-      // URL/path: any characters except ] and newline
-      /[^\]\n]+/,
-      // Optional description after ][
+      field('path', /[^\]]+/),
       optional(seq(
         '][',
-        // Description: any characters except ] and newline
-        // Future: could parse description as inline objects (recursive)
-        /[^\]\n]+/
+        field('description', /[^\]]+/)
       )),
       ']]'
-    ),
+    )),
 
-    // Plain link: PROTOCOL://PATH or mailto:EMAIL (bare URL without brackets)
-    // Recognized for well-defined protocols (http, https, ftp, mailto, etc.)
-    // Cannot contain whitespace (unlike angle links)
-    // Smart termination: excludes trailing sentence punctuation
-    // Per org-mode spec: must end with non-punct char, /, or balanced parens
-    // Simplified implementation: requires last char to be alphanumeric, /, -, _, ), or @
-    // Must have :// OR must contain @ (to distinguish from :tags:)
-    plain_link: $ => /[a-zA-Z][a-zA-Z0-9+.-]*:(\/\/[^\s]*[a-zA-Z0-9\/\-_)]|[^\s:]*@[^\s]*[a-zA-Z0-9])/,
-
-    // Angle link: <PROTOCOL:PATH>
-    // More permissive than plain links (allows whitespace, parentheses)
-    // Protocol required to distinguish from plain angle brackets in text
-    // Common protocols: http, https, file, ftp, mailto, news, etc.
-    // PATH can contain any character except > (newlines/indentation ignored per spec)
-    angle_link: $ => seq(
+    // Angle link: <protocol:path>
+    angle_link: $ => prec.dynamic(PRECEDENCE.ANGLE_LINK, seq(
       '<',
-      // Protocol: alphanumeric + optional plus/dot/hyphen, followed by colon
-      /[a-zA-Z][a-zA-Z0-9+.-]*:/,
-      // Path: any characters except > and newline
-      /[^>\n]+/,
+      /[a-zA-Z][a-zA-Z0-9+.-]*/,  // protocol
+      ':',
+      /[^>\n]+/,  // path
       '>'
-    ),
+    )),
 
-    // Entity: \NAME or \NAME{} (LaTeX-style entities)
-    // Examples: \alpha, \beta, \nbsp, \tilde, etc.
-    // Used for special characters, Greek letters, math symbols
-    // Name must be letters only (per org-mode spec)
-    // Optional {} can follow for explicit termination
-    // Unlike block version, no newline required (for inline usage)
-    entity: $ => seq(
+    // Plain link: protocol:path
+    plain_link: $ => prec.dynamic(PRECEDENCE.PLAIN_LINK, seq(
+      /[a-zA-Z][a-zA-Z0-9+.-]*/,  // protocol
+      ':',
+      /\/\/[^\s\[\]<>()]+|[^\s\[\]<>()]+/  // path with or without //
+    )),
+
+    // ========================================================================
+    // OBJECTS
+    // ========================================================================
+
+    // Entity: \alpha, \nbsp, etc.
+    entity: $ => prec.dynamic(PRECEDENCE.ENTITY, seq(
       '\\',
-      /[a-zA-Z]+/,     // Entity name: letters only
-      optional('{}')    // Optional explicit braces
-    ),
+      /[a-zA-Z]+/,
+      optional('{}')  // Optional braces for explicit termination
+    )),
+
+    // Target: <<target>>
+    target: $ => prec.dynamic(PRECEDENCE.TARGET, seq(
+      '<<',
+      /[^<>\n]+/,
+      '>>'
+    )),
+
+    // Radio target: <<<content>>>
+    radio_target: $ => prec.dynamic(PRECEDENCE.RADIO_TARGET, seq(
+      '<<<',
+      /[^<>\n]+/,
+      '>>>'
+    )),
 
     // Macro: {{{name}}} or {{{name(args)}}}
-    // Used for text replacement and templating in org-mode
-    // Name: letter followed by letters/digits/underscores/hyphens
-    // Args: any characters except } and ) (simplified from spec)
-    // Unlike block version, no newline required (for inline usage)
-    macro: $ => seq(
+    macro: $ => prec.dynamic(PRECEDENCE.MACRO, seq(
       '{{{',
-      alias(/[a-zA-Z][a-zA-Z0-9_-]*/, $.macro_name),
+      $.macro_name,
       optional(seq(
         '(',
-        alias(/[^})]+/, $.macro_args),
+        $.macro_args,
         ')'
       )),
       '}}}'
-    ),
+    )),
 
-    // Footnote reference: [fn:label], [fn:label:def], or [fn::def]
-    // Used to reference or define footnotes inline
-    // Three formats:
-    //   1. Named reference: [fn:label] - references a footnote defined elsewhere
-    //   2. Inline with definition: [fn:label:definition text] - defines footnote inline
-    //   3. Anonymous: [fn::definition text] - anonymous inline footnote
-    // Label: alphanumeric, hyphens, underscores (no spaces)
-    // Definition: any text except ] and newline
-    // Unlike block version, no newline required (for inline usage)
-    // Atomic token for bounding - prevents internal components from leaking
-    footnote_reference: $ => token(seq(
+    macro_name: $ => /[a-zA-Z][a-zA-Z0-9_-]*/,
+    macro_args: $ => /[^)]+/,
+
+    // Export snippet: @@backend:value@@
+    export_snippet: $ => prec.dynamic(PRECEDENCE.EXPORT_SNIPPET, seq(
+      '@@',
+      /[a-zA-Z][a-zA-Z0-9-]*/,  // backend
+      ':',
+      optional(/[^@]+/),  // value
+      '@@'
+    )),
+
+    // Footnote reference: [fn:label], [fn:label:definition], [fn::definition]
+    footnote_reference: $ => prec.dynamic(PRECEDENCE.FOOTNOTE_REFERENCE, seq(
       '[fn:',
-      choice(
-        // Named with definition: [fn:label:definition]
-        seq(
-          /[a-zA-Z0-9_-]+/,  // Label
-          ':',
-          /[^\]]+/           // Definition (excludes ] to prevent greedy matching)
-        ),
-        // Named without definition: [fn:label]
-        /[a-zA-Z0-9_-]+/,    // Label only
-        // Anonymous: [fn::definition]
-        seq(
-          ':',
-          /[^\]]+/           // Definition (excludes ] to prevent greedy matching)
-        )
-      ),
+      optional(/[a-zA-Z0-9_-]+/),  // label
+      optional(seq(':', /[^\]]+/)),  // definition
       ']'
     )),
 
-    // Timestamp: <2024-01-15 Mon> or [2024-01-15 Mon]
-    // Active timestamps (<>) appear in agenda, inactive ([]) are for reference
-    // Can include time (14:30), ranges (09:00-17:00), repeaters (+1w), delays (-2d)
-    // Pattern specificity for bounding:
-    // - Active: Must NOT contain ':/' early (to avoid matching <protocol://url> angle links)
-    // - Inactive: Must start with digit and contain '-' or space (date format, not [50%] cookie)
-    // Unlike block version, no newline required (for inline usage)
-    // Atomic token for bounding - prevents internal components from leaking
-    timestamp: $ => token(choice(
-      // Active timestamp: <2024-01-15 Mon 14:30>
-      // Must start with digit and contain dash (date separator)
-      // This distinguishes from angle links which have protocol:// early on
-      seq('<', /[0-9][^>]*-[^>]*/, '>'),
-      // Inactive timestamp: [2024-01-15 Mon 14:30]
-      // Must start with digit and contain dash (date separator)
-      // This distinguishes from:
-      // - [fn:...] (starts with 'f', not digit)
-      // - [50%] (no dash)
-      // - [1/2] (no dash)
-      seq('[', /\d[^\]]*-[^\]]*/, ']')
+    // Timestamp: <2024-01-15>, [2024-01-15], with optional time/repeater
+    timestamp: $ => prec.dynamic(PRECEDENCE.TIMESTAMP, choice(
+      // Active: <date>
+      seq(
+        '<',
+        /\d{4}-\d{2}-\d{2}[^>\]\n]*/,
+        '>'
+      ),
+      // Inactive: [date]
+      seq(
+        '[',
+        /\d{4}-\d{2}-\d{2}[^>\]\n]*/,
+        ']'
+      )
     )),
 
-    // Subscript: BASE_SCRIPT (e.g., H_2O, A_i,j)
-    // Base: alphanumeric word (letters and digits)
-    // Script: any characters until whitespace or newline
-    // Distinguished from underline markup (_text_) by having only ONE underscore
-    // Unlike block version, no newline required (for inline usage)
-    // Not using token() to allow base to be parsed separately in inline contexts
-    subscript: $ => seq(
-      alias(/[a-zA-Z0-9]+/, $.base),  // Base text: alphanumeric word
-      '_',                             // Underscore separator
-      alias(/[^\s\n]+/, $.script)      // Script content: anything except whitespace/newline
+    // Statistics cookie: [50%] or [1/2]
+    statistics_cookie: $ => prec.dynamic(PRECEDENCE.STATISTICS_COOKIE, choice(
+      // Percentage: [50%] or [%]
+      seq('[', /\d*/, '%', ']'),
+      // Fraction: [1/2], [3/], or [/5]
+      seq('[', /\d*/, '/', /\d*/, ']')
+    )),
+
+    // ========================================================================
+    // PLAIN TEXT
+    // ========================================================================
+
+    // Plain text: fallback for any characters not matched by other rules
+    // Includes DELIMITER_CHAR for invalid emphasis delimiters (e.g., * in "* text*")
+    // Excludes: brackets, special chars for objects (links, entities, macros, etc.)
+    plain_text: $ => prec.right(PRECEDENCE.PLAIN_TEXT, repeat1(choice(
+      /[^*\/~=+_:@\[\]<>\\\{\}\n]+/,  // Regular text
+      $._delimiter_char                 // Invalid emphasis delimiter
+    ))),
+
+    // ========================================================================
+    // CONTEXT-SPECIFIC RULES
+    // ========================================================================
+    // These rules define what objects are allowed in different contexts
+    // to prevent invalid nesting (e.g., links inside links)
+
+    // Normal context: all objects allowed
+    _inline_element: $ => choice(
+      ...build_choices_array(CONTEXTS.NORMAL).map(name => $[name])
     ),
 
-    // Superscript: BASE^SCRIPT (e.g., x^2, x^{y^{z}})
-    // Base: alphanumeric word (letters and digits)
-    // Script: any characters until whitespace or newline
-    // Unlike block version, no newline required (for inline usage)
-    // Not using token() to allow base to be parsed separately in inline contexts
-    superscript: $ => seq(
-      alias(/[a-zA-Z0-9]+/, $.base),  // Base text: alphanumeric word
-      '^',                             // Caret separator
-      alias(/[^\s\n]+/, $.script)      // Script content: anything except whitespace/newline
+    // Link description context: no nested links
+    _inline_element_no_link: $ => choice(
+      ...build_choices_array(CONTEXTS.LINK_DESCRIPTION).map(name => $[name])
     ),
 
-    // Plain text - any characters except markup delimiters, brackets, @, angle brackets, colon, backslash, braces, newline
-    // Lower precedence so markup, cookies, snippets, targets, links, entities, macros, subscript, superscript are preferred
-    // Colons are excluded to allow external scanner to detect TAGS (:tag1:tag2:)
-    // Square brackets are excluded so statistics cookies and regular_link can be recognized
-    // @ is excluded so export snippets can be recognized
-    // Angle brackets are excluded so targets can be recognized
-    // Backslash is excluded so entities can be recognized
-    // Braces are excluded so macros can be recognized
-    // Underscore and caret excluded so subscript/superscript can be recognized
-    plain_text: $ => prec(1, /[^*\/~=_+:@\[\]<>\\\{\}\^\n]+/),
+    // Code content context: only plain text (no parsing)
+    _inline_element_code_content: $ => $.plain_text,
+
+    // NOTE: Removed _inline_element_no_bold/italic/underline/strike rules
+    // Now using unified emphasis rule with recursion + scanner state for nesting prevention
   }
 });

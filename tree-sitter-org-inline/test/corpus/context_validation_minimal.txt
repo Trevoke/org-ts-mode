@@ -1,0 +1,65 @@
+==================
+Test 1: Valid PRE - whitespace before opening
+==================
+
+This is *bold* text.
+
+---
+
+(inline
+  (title_only
+    (title
+      (plain_text)
+      (text_markup
+        (bold
+          (plain_text)))
+      (plain_text))))
+
+==================
+Test 2: Invalid PRE - letter before opening
+==================
+
+word*bold*word
+
+---
+
+(inline
+  (title_only
+    (title
+      (plain_text))))
+
+==================
+Test 3: Valid PRE - beginning of line
+==================
+
+*bold* at start
+
+---
+
+(inline
+  (title_only
+    (title
+      (text_markup
+        (bold
+          (plain_text)))
+      (_whitespace)
+      (plain_text)
+      (_whitespace)
+      (plain_text))))
+
+==================
+Test 4: Valid PRE and POST - space after close
+==================
+
+Text *bold* more
+
+---
+
+(inline
+  (title_only
+    (title
+      (plain_text)
+      (text_markup
+        (bold
+          (plain_text)))
+      (plain_text))))

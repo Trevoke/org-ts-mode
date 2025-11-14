@@ -7,7 +7,45 @@
   {
     "type": "bold",
     "named": true,
-    "fields": {}
+    "fields": {},
+    "children": {
+      "multiple": true,
+      "required": true,
+      "types": [
+        {
+          "type": "bold",
+          "named": true
+        },
+        {
+          "type": "code",
+          "named": true
+        },
+        {
+          "type": "entity",
+          "named": true
+        },
+        {
+          "type": "italic",
+          "named": true
+        },
+        {
+          "type": "plain_text",
+          "named": true
+        },
+        {
+          "type": "strike_through",
+          "named": true
+        },
+        {
+          "type": "underline",
+          "named": true
+        },
+        {
+          "type": "verbatim",
+          "named": true
+        }
+      ]
+    }
   },
   {
     "type": "code",
@@ -21,6 +59,11 @@
   },
   {
     "type": "export_snippet",
+    "named": true,
+    "fields": {}
+  },
+  {
+    "type": "footnote_reference",
     "named": true,
     "fields": {}
   },
@@ -47,7 +90,45 @@
   {
     "type": "italic",
     "named": true,
-    "fields": {}
+    "fields": {},
+    "children": {
+      "multiple": true,
+      "required": true,
+      "types": [
+        {
+          "type": "bold",
+          "named": true
+        },
+        {
+          "type": "code",
+          "named": true
+        },
+        {
+          "type": "entity",
+          "named": true
+        },
+        {
+          "type": "italic",
+          "named": true
+        },
+        {
+          "type": "plain_text",
+          "named": true
+        },
+        {
+          "type": "strike_through",
+          "named": true
+        },
+        {
+          "type": "underline",
+          "named": true
+        },
+        {
+          "type": "verbatim",
+          "named": true
+        }
+      ]
+    }
   },
   {
     "type": "macro",
@@ -67,6 +148,11 @@
         }
       ]
     }
+  },
+  {
+    "type": "plain_link",
+    "named": true,
+    "fields": {}
   },
   {
     "type": "plain_text",
@@ -91,41 +177,41 @@
   {
     "type": "strike_through",
     "named": true,
-    "fields": {}
-  },
-  {
-    "type": "subscript",
-    "named": true,
     "fields": {},
     "children": {
       "multiple": true,
       "required": true,
       "types": [
         {
-          "type": "base",
+          "type": "bold",
           "named": true
         },
         {
-          "type": "script",
-          "named": true
-        }
-      ]
-    }
-  },
-  {
-    "type": "superscript",
-    "named": true,
-    "fields": {},
-    "children": {
-      "multiple": true,
-      "required": true,
-      "types": [
-        {
-          "type": "base",
+          "type": "code",
           "named": true
         },
         {
-          "type": "script",
+          "type": "entity",
+          "named": true
+        },
+        {
+          "type": "italic",
+          "named": true
+        },
+        {
+          "type": "plain_text",
+          "named": true
+        },
+        {
+          "type": "strike_through",
+          "named": true
+        },
+        {
+          "type": "underline",
+          "named": true
+        },
+        {
+          "type": "verbatim",
           "named": true
         }
       ]
@@ -170,6 +256,11 @@
         }
       ]
     }
+  },
+  {
+    "type": "timestamp",
+    "named": true,
+    "fields": {}
   },
   {
     "type": "title",
@@ -217,14 +308,6 @@
         },
         {
           "type": "statistics_cookie",
-          "named": true
-        },
-        {
-          "type": "subscript",
-          "named": true
-        },
-        {
-          "type": "superscript",
           "named": true
         },
         {
@@ -287,7 +370,45 @@
   {
     "type": "underline",
     "named": true,
-    "fields": {}
+    "fields": {},
+    "children": {
+      "multiple": true,
+      "required": true,
+      "types": [
+        {
+          "type": "bold",
+          "named": true
+        },
+        {
+          "type": "code",
+          "named": true
+        },
+        {
+          "type": "entity",
+          "named": true
+        },
+        {
+          "type": "italic",
+          "named": true
+        },
+        {
+          "type": "plain_text",
+          "named": true
+        },
+        {
+          "type": "strike_through",
+          "named": true
+        },
+        {
+          "type": "underline",
+          "named": true
+        },
+        {
+          "type": "verbatim",
+          "named": true
+        }
+      ]
+    }
   },
   {
     "type": "verbatim",
@@ -304,14 +425,6 @@
   },
   {
     "type": ")",
-    "named": false
-  },
-  {
-    "type": "*",
-    "named": false
-  },
-  {
-    "type": "+",
     "named": false
   },
   {
@@ -332,10 +445,6 @@
   },
   {
     "type": "<<<",
-    "named": false
-  },
-  {
-    "type": "=",
     "named": false
   },
   {
@@ -363,6 +472,10 @@
     "named": false
   },
   {
+    "type": "[fn:",
+    "named": false
+  },
+  {
     "type": "\\",
     "named": false
   },
@@ -379,22 +492,6 @@
     "named": false
   },
   {
-    "type": "^",
-    "named": false
-  },
-  {
-    "type": "_",
-    "named": false
-  },
-  {
-    "type": "base",
-    "named": true
-  },
-  {
-    "type": "footnote_reference",
-    "named": true
-  },
-  {
     "type": "macro_args",
     "named": true
   },
@@ -403,19 +500,7 @@
     "named": true
   },
   {
-    "type": "plain_link",
-    "named": true
-  },
-  {
-    "type": "script",
-    "named": true
-  },
-  {
     "type": "tags",
-    "named": true
-  },
-  {
-    "type": "timestamp",
     "named": true
   },
   {
@@ -428,10 +513,6 @@
   },
   {
     "type": "}}}",
-    "named": false
-  },
-  {
-    "type": "~",
     "named": false
   }
 ]

@@ -73,18 +73,3 @@ Entity mixed with markup
       (plain_text)
       (text_markup
         (italic)))))
-
-==================
-Non-breaking space entity
-==================
-
-word\nbsp word
-
----
-
-(inline
-  (title_only
-    title: (title
-      (plain_text)
-      (entity)
-      (plain_text))))

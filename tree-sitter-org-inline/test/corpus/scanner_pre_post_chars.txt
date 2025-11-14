@@ -1,0 +1,1127 @@
+==================
+PRE: Space before bold
+==================
+
+Text *bold* here.
+
+---
+
+(inline
+  (title_only
+    (title
+      (plain_text)
+      (text_markup
+        (bold
+          (plain_text)))
+      (plain_text))))
+
+==================
+PRE: Tab before bold
+==================
+
+Text	*bold* here.
+
+---
+
+(inline
+  (title_only
+    (title
+      (plain_text)
+      (text_markup
+        (bold
+          (plain_text)))
+      (plain_text))))
+
+==================
+PRE: Hyphen before bold
+==================
+
+Text-*bold* here.
+
+---
+
+(inline
+  (title_only
+    (title
+      (plain_text)
+      (text_markup
+        (bold))
+      (plain_text))))
+
+==================
+PRE: Left parenthesis before bold
+==================
+
+Text(*bold* here.
+
+---
+
+(inline
+  (title_only
+    (title
+      (plain_text)
+      (text_markup
+        (bold
+          (plain_text)))
+      (plain_text))))
+
+==================
+PRE: Left brace before bold
+==================
+
+Text{*bold* here.
+
+---
+
+(inline
+  (title_only
+    (title
+      (plain_text)
+      (text_markup
+        (bold))
+      (plain_text))))
+
+==================
+PRE: Single quote before bold
+==================
+
+Text'*bold* here.
+
+---
+
+(inline
+  (title_only
+    (title
+      (plain_text)
+      (text_markup
+        (bold
+          (plain_text)))
+      (plain_text))))
+
+==================
+PRE: Double quote before bold
+==================
+
+Text"*bold* here.
+
+---
+
+(inline
+  (title_only
+    (title
+      (plain_text)
+      (text_markup
+        (bold
+          (plain_text)))
+      (plain_text))))
+
+==================
+PRE: Beginning of line (bold)
+==================
+
+*bold* text here.
+
+---
+
+(inline
+  (title_only
+    (title
+      (text_markup
+        (bold))
+      (plain_text))))
+
+==================
+PRE: Space before italic
+==================
+
+Text /italic/ here.
+
+---
+
+(inline
+  (title_only
+    (title
+      (plain_text)
+      (text_markup
+        (italic
+          (plain_text)))
+      (plain_text))))
+
+==================
+PRE: Hyphen before italic
+==================
+
+Text-/italic/ here.
+
+---
+
+(inline
+  (title_only
+    (title
+      (plain_text)
+      (text_markup
+        (italic))
+      (plain_text))))
+
+==================
+PRE: Left parenthesis before italic
+==================
+
+Text(/italic/ here.
+
+---
+
+(inline
+  (title_only
+    (title
+      (plain_text)
+      (text_markup
+        (italic
+          (plain_text)))
+      (plain_text))))
+
+==================
+PRE: Beginning of line (italic)
+==================
+
+/italic/ text here.
+
+---
+
+(inline
+  (title_only
+    (title
+      (text_markup
+        (italic))
+      (plain_text))))
+
+==================
+PRE: Space before underline
+==================
+
+Text _underline_ here.
+
+---
+
+(inline
+  (title_only
+    (title
+      (plain_text)
+      (text_markup
+        (underline
+          (plain_text)))
+      (plain_text))))
+
+==================
+PRE: Hyphen before underline
+==================
+
+Text-_underline_ here.
+
+---
+
+(inline
+  (title_only
+    (title
+      (plain_text)
+      (text_markup
+        (underline))
+      (plain_text))))
+
+==================
+PRE: Beginning of line (underline)
+==================
+
+_underline_ text here.
+
+---
+
+(inline
+  (title_only
+    (title
+      (text_markup
+        (underline))
+      (plain_text))))
+
+==================
+PRE: Space before code
+==================
+
+Text ~code~ here.
+
+---
+
+(inline
+  (title_only
+    (title
+      (plain_text)
+      (text_markup
+        (code))
+      (plain_text))))
+
+==================
+PRE: Hyphen before code
+==================
+
+Text-~code~ here.
+
+---
+
+(inline
+  (title_only
+    (title
+      (plain_text)
+      (text_markup
+        (code))
+      (plain_text))))
+
+==================
+PRE: Beginning of line (code)
+==================
+
+~code~ text here.
+
+---
+
+(inline
+  (title_only
+    (title
+      (text_markup
+        (code))
+      (plain_text))))
+
+==================
+PRE: Space before verbatim
+==================
+
+Text =verbatim= here.
+
+---
+
+(inline
+  (title_only
+    (title
+      (plain_text)
+      (text_markup
+        (verbatim))
+      (plain_text))))
+
+==================
+PRE: Hyphen before verbatim
+==================
+
+Text-=verbatim= here.
+
+---
+
+(inline
+  (title_only
+    (title
+      (plain_text)
+      (text_markup
+        (verbatim))
+      (plain_text))))
+
+==================
+PRE: Beginning of line (verbatim)
+==================
+
+=verbatim= text here.
+
+---
+
+(inline
+  (title_only
+    (title
+      (text_markup
+        (verbatim))
+      (plain_text))))
+
+==================
+PRE: Space before strike
+==================
+
+Text +strike+ here.
+
+---
+
+(inline
+  (title_only
+    (title
+      (plain_text)
+      (text_markup
+        (strike_through
+          (plain_text)))
+      (plain_text))))
+
+==================
+PRE: Hyphen before strike
+==================
+
+Text-+strike+ here.
+
+---
+
+(inline
+  (title_only
+    (title
+      (plain_text)
+      (text_markup
+        (strike_through))
+      (plain_text))))
+
+==================
+PRE: Beginning of line (strike)
+==================
+
++strike+ text here.
+
+---
+
+(inline
+  (title_only
+    (title
+      (text_markup
+        (strike_through))
+      (plain_text))))
+
+==================
+POST: Space after bold
+==================
+
+Text *bold* here.
+
+---
+
+(inline
+  (title_only
+    (title
+      (plain_text)
+      (text_markup
+        (bold
+          (plain_text)))
+      (plain_text))))
+
+==================
+POST: Tab after bold
+==================
+
+Text *bold*	here.
+
+---
+
+(inline
+  (title_only
+    (title
+      (plain_text)
+      (text_markup
+        (bold
+          (plain_text)))
+      (plain_text))))
+
+==================
+POST: Hyphen after bold
+==================
+
+Text *bold*-here.
+
+---
+
+(inline
+  (title_only
+    (title
+      (plain_text)
+      (text_markup
+        (bold
+          (plain_text)))
+      (plain_text))))
+
+==================
+POST: Period after bold
+==================
+
+Text *bold*.
+
+---
+
+(inline
+  (title_only
+    (title
+      (plain_text)
+      (text_markup
+        (bold
+          (plain_text)))
+      (plain_text))))
+
+==================
+POST: Comma after bold
+==================
+
+Text *bold*, here.
+
+---
+
+(inline
+  (title_only
+    (title
+      (plain_text)
+      (text_markup
+        (bold
+          (plain_text)))
+      (plain_text))))
+
+==================
+POST: Semicolon after bold
+==================
+
+Text *bold*; here.
+
+---
+
+(inline
+  (title_only
+    (title
+      (plain_text)
+      (text_markup
+        (bold
+          (plain_text)))
+      (plain_text))))
+
+==================
+POST: Colon after bold
+==================
+
+Text *bold*: here.
+
+---
+
+(inline
+  (title_only
+    (title
+      (plain_text)
+      (text_markup
+        (bold
+          (plain_text)))
+      (plain_text))))
+
+==================
+POST: Exclamation after bold
+==================
+
+Text *bold*! Yes.
+
+---
+
+(inline
+  (title_only
+    (title
+      (plain_text)
+      (text_markup
+        (bold
+          (plain_text)))
+      (plain_text))))
+
+==================
+POST: Question mark after bold
+==================
+
+Text *bold*? Yes.
+
+---
+
+(inline
+  (title_only
+    (title
+      (plain_text)
+      (text_markup
+        (bold
+          (plain_text)))
+      (plain_text))))
+
+==================
+POST: Single quote after bold
+==================
+
+Text *bold*'s here.
+
+---
+
+(inline
+  (title_only
+    (title
+      (plain_text)
+      (text_markup
+        (bold
+          (plain_text)))
+      (plain_text))))
+
+==================
+POST: Right parenthesis after bold
+==================
+
+Text (*bold*) here.
+
+---
+
+(inline
+  (title_only
+    (title
+      (plain_text)
+      (text_markup
+        (bold
+          (plain_text)))
+      (plain_text))))
+
+==================
+POST: Right brace after bold
+==================
+
+Text {*bold*} here.
+
+---
+
+(inline
+  (title_only
+    (title
+      (plain_text)
+      (text_markup
+        (bold))
+      (plain_text))))
+
+==================
+POST: Left bracket after bold
+==================
+
+Text *bold*[1] here.
+
+---
+
+(inline
+  (title_only
+    (title
+      (plain_text)
+      (text_markup
+        (bold))
+      (plain_text))))
+
+==================
+POST: Double quote after bold
+==================
+
+Text "*bold*" here.
+
+---
+
+(inline
+  (title_only
+    (title
+      (plain_text)
+      (text_markup
+        (bold
+          (plain_text)))
+      (plain_text))))
+
+==================
+POST: Backslash after bold
+==================
+
+Text *bold*\here.
+
+---
+
+(inline
+  (title_only
+    (title
+      (plain_text)
+      (text_markup
+        (bold
+          (plain_text)))
+      (entity)
+      (plain_text))))
+
+==================
+POST: End of line (bold)
+==================
+
+Text *bold*
+
+---
+
+(inline
+  (title_only
+    (title
+      (plain_text)
+      (text_markup
+        (bold
+          (plain_text))))))
+
+==================
+POST: Period after italic
+==================
+
+Text /italic/.
+
+---
+
+(inline
+  (title_only
+    (title
+      (plain_text)
+      (text_markup
+        (italic
+          (plain_text)))
+      (plain_text))))
+
+==================
+POST: Comma after italic
+==================
+
+Text /italic/, here.
+
+---
+
+(inline
+  (title_only
+    (title
+      (plain_text)
+      (text_markup
+        (italic
+          (plain_text)))
+      (plain_text))))
+
+==================
+POST: Exclamation after italic
+==================
+
+Text /italic*! Yes.
+
+---
+
+(inline
+  (title_only
+    (title
+      (plain_text)
+      (text_markup
+        (italic))
+      (plain_text))))
+
+==================
+POST: End of line (italic)
+==================
+
+Text /italic/
+
+---
+
+(inline
+  (title_only
+    (title
+      (plain_text)
+      (text_markup
+        (italic
+          (plain_text))))))
+
+==================
+POST: Period after underline
+==================
+
+Text _underline_.
+
+---
+
+(inline
+  (title_only
+    (title
+      (plain_text)
+      (text_markup
+        (underline
+          (plain_text)))
+      (plain_text))))
+
+==================
+POST: Comma after underline
+==================
+
+Text _underline_, here.
+
+---
+
+(inline
+  (title_only
+    (title
+      (plain_text)
+      (text_markup
+        (underline
+          (plain_text)))
+      (plain_text))))
+
+==================
+POST: End of line (underline)
+==================
+
+Text _underline_
+
+---
+
+(inline
+  (title_only
+    (title
+      (plain_text)
+      (text_markup
+        (underline
+          (plain_text))))))
+
+==================
+POST: Period after code
+==================
+
+Text ~code~.
+
+---
+
+(inline
+  (title_only
+    (title
+      (plain_text)
+      (text_markup
+        (code))
+      (plain_text))))
+
+==================
+POST: Comma after code
+==================
+
+Text ~code~, here.
+
+---
+
+(inline
+  (title_only
+    (title
+      (plain_text)
+      (text_markup
+        (code))
+      (plain_text))))
+
+==================
+POST: End of line (code)
+==================
+
+Text ~code~
+
+---
+
+(inline
+  (title_only
+    (title
+      (plain_text)
+      (text_markup
+        (code)))))
+
+==================
+POST: Period after verbatim
+==================
+
+Text =verbatim=.
+
+---
+
+(inline
+  (title_only
+    (title
+      (plain_text)
+      (text_markup
+        (verbatim))
+      (plain_text))))
+
+==================
+POST: Comma after verbatim
+==================
+
+Text =verbatim=, here.
+
+---
+
+(inline
+  (title_only
+    (title
+      (plain_text)
+      (text_markup
+        (verbatim))
+      (plain_text))))
+
+==================
+POST: End of line (verbatim)
+==================
+
+Text =verbatim=
+
+---
+
+(inline
+  (title_only
+    (title
+      (plain_text)
+      (text_markup
+        (verbatim)))))
+
+==================
+POST: Period after strike
+==================
+
+Text +strike+.
+
+---
+
+(inline
+  (title_only
+    (title
+      (plain_text)
+      (text_markup
+        (strike_through
+          (plain_text)))
+      (plain_text))))
+
+==================
+POST: Comma after strike
+==================
+
+Text +strike+, here.
+
+---
+
+(inline
+  (title_only
+    (title
+      (plain_text)
+      (text_markup
+        (strike_through
+          (plain_text)))
+      (plain_text))))
+
+==================
+POST: End of line (strike)
+==================
+
+Text +strike+
+
+---
+
+(inline
+  (title_only
+    (title
+      (plain_text)
+      (text_markup
+        (strike_through
+          (plain_text))))))
+
+==================
+Invalid PRE: Letter before bold
+==================
+
+word*bold* here
+
+---
+
+(inline
+  (title_only
+    (title
+      (plain_text))))
+
+==================
+Invalid PRE: Digit before bold
+==================
+
+123*bold* here
+
+---
+
+(inline
+  (title_only
+    (title
+      (plain_text)
+      (text_markup
+        (bold
+          (plain_text)))
+      (plain_text))))
+
+==================
+Invalid PRE: Right paren before bold
+==================
+
+text)*bold* here
+
+---
+
+(inline
+  (title_only
+    (title
+      (plain_text)
+      (text_markup
+        (bold
+          (plain_text)))
+      (plain_text))))
+
+==================
+Invalid PRE: Right brace before bold
+==================
+
+text}*bold* here
+
+---
+
+(inline
+  (title_only
+    (title
+      (plain_text))))
+
+==================
+Invalid PRE: Period before bold
+==================
+
+text.*bold* here
+
+---
+
+(inline
+  (title_only
+    (title
+      (plain_text))))
+
+==================
+Invalid PRE: Comma before bold
+==================
+
+text,*bold* here
+
+---
+
+(inline
+  (title_only
+    (title
+      (plain_text)
+      (text_markup
+        (bold
+          (plain_text)))
+      (plain_text))))
+
+==================
+Invalid PRE: Letter before italic
+==================
+
+word/italic/ here
+
+---
+
+(inline
+  (title_only
+    (title
+      (plain_text))))
+
+==================
+Invalid PRE: Digit before underline
+==================
+
+123_underline_ here
+
+---
+
+(inline
+  (title_only
+    (title
+      (plain_text)
+      (text_markup
+        (underline
+          (plain_text)))
+      (plain_text))))
+
+==================
+Invalid POST: Letter after bold
+==================
+
+Text *bold*x here
+
+---
+
+(inline
+  (title_only
+    (title
+      (plain_text))))
+
+==================
+Invalid POST: Digit after bold
+==================
+
+Text *bold*9 here
+
+---
+
+(inline
+  (title_only
+    (title
+      (plain_text))))
+
+==================
+Invalid POST: Left paren after bold
+==================
+
+Text *bold*( here
+
+---
+
+(inline
+  (title_only
+    (title
+      (plain_text))))
+
+==================
+Invalid POST: Left brace after bold
+==================
+
+Text *bold*{ here
+
+---
+
+(inline
+  (title_only
+    (title
+      (plain_text))))
+
+==================
+Invalid POST: At sign after bold
+==================
+
+Text *bold*@ here
+
+---
+
+(inline
+  (title_only
+    (title
+      (plain_text))))
+
+==================
+Invalid POST: Letter after italic
+==================
+
+Text /italic/x here
+
+---
+
+(inline
+  (title_only
+    (title
+      (plain_text))))
+
+==================
+Invalid POST: Digit after underline
+==================
+
+Text _underline_9 here
+
+---
+
+(inline
+  (title_only
+    (title
+      (plain_text))))

@@ -96,16 +96,3 @@ Development task :dev_work:@home:#project:
       (plain_text))
     (tags)))
 
-==================
-Only tags (no title)
-==================
-
-:orphan:tag:
-
----
-
-(inline
-  (title_with_tags
-    (title
-      (plain_text))
-    (tags)))

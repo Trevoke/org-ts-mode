@@ -109,4 +109,29 @@ clean:
 test:
 	$(TS) test
 
-.PHONY: all install uninstall clean test
+test-scanner-state: src/scanner.c test/scanner/test_state_size.c
+	mkdir -p test/scanner
+	cc -Isrc -std=c11 test/scanner/test_state_size.c -o test/scanner/test_state_size
+	./test/scanner/test_state_size
+
+test-scanner-lifecycle: src/scanner.c test/scanner/test_scanner_lifecycle.c
+	cc -Isrc -std=c11 test/scanner/test_scanner_lifecycle.c -o test/scanner/test_scanner_lifecycle
+	./test/scanner/test_scanner_lifecycle
+
+test-scanner-serialization: src/scanner.c test/scanner/test_scanner_serialization.c
+	cc -Isrc -std=c11 test/scanner/test_scanner_serialization.c -o test/scanner/test_scanner_serialization
+	./test/scanner/test_scanner_serialization
+
+test-boundaries: src/scanner.c test/scanner/test_boundaries.c
+	cc -Isrc -std=c11 test/scanner/test_boundaries.c -o test/scanner/test_boundaries
+	./test/scanner/test_boundaries
+
+test-lookahead: src/scanner.c test/scanner/test_lookahead.c
+	cc -Isrc -std=c11 test/scanner/test_lookahead.c -o test/scanner/test_lookahead
+	./test/scanner/test_lookahead
+
+test-valid-symbols: src/scanner.c test/scanner/test_valid_symbols.c
+	cc -Isrc -std=c11 test/scanner/test_valid_symbols.c -o test/scanner/test_valid_symbols
+	./test/scanner/test_valid_symbols
+
+.PHONY: all install uninstall clean test test-scanner-state test-scanner-lifecycle test-scanner-serialization test-boundaries test-lookahead test-valid-symbols

@@ -1,0 +1,15 @@
+==================
+Debug: Bold at BOL
+==================
+
+*bold* text
+
+---
+
+(inline
+  (title_only
+    (title
+      (text_markup
+        (bold
+          (plain_text)))
+      (plain_text))))

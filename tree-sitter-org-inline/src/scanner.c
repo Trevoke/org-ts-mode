@@ -3,14 +3,27 @@
  * @author Tree-sitter Org-mode Contributors
  * @license MIT
  *
- * This scanner validates tags at the end of headlines.
- * The grammar handles parsing title content (markup and plain text).
+ * This scanner validates emphasis boundaries according to org-syntax.md rules.
+ * It also handles tag scanning at the end of headlines.
  *
- * Strategy:
- * - Scanner only emits TAGS token when at ':' character
- * - Validates tag format: :tag1:tag2:tag3:
- * - Grammar parses title content using built-in rules (bold, italic, etc.)
- * - No state needed - stateless validation
+ * Architecture:
+ * - Character classification: PRE/POST character validation
+ * - Boundary validation: Opening/closing delimiter validation
+ * - Lookahead scanning: Find valid closing delimiters
+ * - State management: Grammar-controlled nesting via valid_symbols
+ * - Serialization: Save/restore state for incremental parsing
+ *
+ * Design principles:
+ * - Correctness first (implement org-syntax.md exactly)
+ * - Clear code (obvious is better than clever)
+ * - Minimal state (only what's needed for incremental parsing)
+ * - Bounded resources (fixed limits, no dynamic allocation)
+ * - Testable (clear inputs/outputs for each function)
+ *
+ * References:
+ * - org-syntax.md lines 1744-1777 (emphasis specification)
+ * - doc/SCANNER_ARCHITECTURE.md (detailed design)
+ * - doc/EMPHASIS_RULES_REFERENCE.md (implementation rules)
  */
 
 #include <tree_sitter/parser.h>
@@ -18,67 +31,550 @@
 #include <stdbool.h>
 #include <stdint.h>
 #include <string.h>
+#include <assert.h>
+#include <stdio.h>  // For debug fprintf
 
-// Token types (must match order in grammar.js externals array)
+// ============================================================================
+// CONSTANTS AND ENUMS
+// ============================================================================
+
+/**
+ * Token types (must match order in grammar.js externals array)
+ */
 enum TokenType {
     TAGS,  // Tags portion (:tag1:tag2:)
+
+    // Emphasis markers (scanner validates PRE/POST/CONTENTS boundaries)
+    BOLD_OPEN,
+    BOLD_CLOSE,
+    ITALIC_OPEN,
+    ITALIC_CLOSE,
+    UNDERLINE_OPEN,
+    UNDERLINE_CLOSE,
+    CODE_OPEN,
+    CODE_CLOSE,
+    VERBATIM_OPEN,
+    VERBATIM_CLOSE,
+    STRIKE_OPEN,
+    STRIKE_CLOSE,
+
+    // Delimiter fallback - emitted when emphasis is invalid
+    DELIMITER_CHAR,
 };
 
-// Scanner state
-typedef struct {
-    // No state needed for simple tag detection
-    int unused;  // Placeholder to avoid empty struct
-} Scanner;
+/**
+ * Maximum nesting depth for emphasis
+ *
+ * Rationale: 16 levels is more than enough for any realistic document.
+ * org-syntax.md doesn't specify a limit, but we need bounded state for
+ * serialization and performance.
+ */
+#define MAX_EMPHASIS_DEPTH 16
 
-// Forward declarations
-static bool scan_tags(Scanner *scanner, TSLexer *lexer);
+/**
+ * Maximum lookahead distance for finding matching closer
+ *
+ * Rationale: Prevents scanner from hanging on very long content.
+ * 1000 characters is more than enough for any reasonable emphasis content.
+ * If content exceeds this, emphasis delimiter will be treated as plain text.
+ */
+#define MAX_LOOKAHEAD_DISTANCE 1000
+
+/**
+ * Serialization format version
+ */
+#define SERIALIZATION_VERSION 0x01
+
+/**
+ * Serialization buffer size (fixed)
+ *
+ * Layout (6 bytes):
+ * [0-3]: last_char (int32_t)
+ * [4]: at_line_start (bool)
+ * [5]: state_flags (uint8_t)
+ */
+#define SERIALIZATION_SIZE 6
+
+/**
+ * State flags (currently unused, reserved for future extensions)
+ */
+#define STATE_FLAG_NONE 0x00
+
+// ============================================================================
+// DATA STRUCTURES
+// ============================================================================
+
+/**
+ * Scanner state structure
+ *
+ * This structure maintains the minimal state needed for incremental parsing:
+ * - Delimiter stack: Tracks which emphasis delimiters are currently open
+ * - Stack depth: Current depth of the delimiter stack
+ * - State flags: Reserved for future extensions
+ *
+ * Design:
+ * - Fixed size (20 bytes) for efficient serialization
+ * - No pointers (simplifies serialization)
+ * - No dynamic allocation (performance and simplicity)
+ */
+// New stateless scanner structure
+typedef struct {
+    int32_t last_char;      // Last character seen (for PRE boundary)
+    bool at_line_start;     // Are we at beginning of line?
+    uint8_t state_flags;    // Bit flags for tags state
+} Scanner;  // 8 bytes total (6 data + 2 padding, down from 20)
+
+// State flag bits
+#define FLAG_IN_TAGS 0x01
+
+/**
+ * Scanning context (stack-allocated, not serialized)
+ *
+ * Groups related data to reduce function parameter count.
+ * Passed to helper functions to avoid global state.
+ */
+typedef struct {
+    Scanner *scanner;           // Scanner state
+    TSLexer *lexer;            // Tree-sitter lexer
+    const bool *valid_symbols;  // What grammar expects
+} ScanContext;
+
+// ============================================================================
+// FORWARD DECLARATIONS
+// ============================================================================
+
+// Character classification
+static inline bool is_pre_char(int32_t c, bool at_line_start);
+static inline bool is_post_char(int32_t c, bool at_line_end);
+static inline bool is_whitespace(int32_t c);
+static inline bool is_emphasis_marker(int32_t c);
+static inline bool at_line_boundary(TSLexer *lexer);
+
+// Boundary validation
+static bool validate_opening_boundary(ScanContext *ctx, char marker, int32_t prev_char, bool at_line_start);
+static bool validate_closing_boundary(ScanContext *ctx, char marker, int32_t prev_char);
+
+// Lookahead scanning
+static bool find_closing_delimiter(ScanContext *ctx, char marker);
+
+// Serialization
+static unsigned serialize(Scanner *scanner, char *buffer);
+static void deserialize(Scanner *scanner, const char *buffer, unsigned length);
+
+// Tag scanning (preserve existing functionality)
+static bool scan_tags(ScanContext *ctx);
 static bool is_valid_tag_char(int32_t c);
 
-/**
- * Create scanner
- */
-void *tree_sitter_org_inline_external_scanner_create() {
-    Scanner *scanner = (Scanner *)calloc(1, sizeof(Scanner));
-    return scanner;
-}
+// ============================================================================
+// CHARACTER CLASSIFICATION FUNCTIONS
+// ============================================================================
 
 /**
- * Destroy scanner
- */
-void tree_sitter_org_inline_external_scanner_destroy(void *payload) {
-    free(payload);
-}
-
-/**
- * Serialize scanner state (no state needed)
- */
-unsigned tree_sitter_org_inline_external_scanner_serialize(void *payload, char *buffer) {
-    return 0;  // No state to serialize
-}
-
-/**
- * Deserialize scanner state (no state needed)
- */
-void tree_sitter_org_inline_external_scanner_deserialize(void *payload, const char *buffer, unsigned length) {
-    // No state to deserialize
-}
-
-/**
- * Main scanning function
+ * Check if character is valid PRE (before opening marker)
  *
- * Only emits TAGS token. The grammar handles parsing title content
- * (markup and plain text) using its own rules.
+ * PRE: whitespace, -, (, {, ', ", or beginning of line
+ * Source: org-syntax.md lines 1756-1757
+ *
+ * @param c Character to check (int32_t for unicode support)
+ * @param at_line_start true if at beginning of line
+ * @return true if valid PRE character
  */
-bool tree_sitter_org_inline_external_scanner_scan(void *payload, TSLexer *lexer, const bool *valid_symbols) {
-    Scanner *scanner = (Scanner *)payload;
-
-    // Only scan for TAGS when grammar expects it
-    if (valid_symbols[TAGS]) {
-        return scan_tags(scanner, lexer);
+static inline bool is_pre_char(int32_t c, bool at_line_start) {
+    // Beginning of line is always valid PRE
+    if (at_line_start) {
+        return true;
     }
 
+    // Unknown previous character (never scanned by scanner) - skip validation
+    // This is a limitation of the Tree-sitter API: we can't access characters
+    // that were consumed by the grammar rather than the scanner
+    if (c == 0) {
+        return true;  // Assume valid when unknown
+    }
+
+    // Check explicit PRE character set
+    return c == ' '  || c == '\t' || c == '\n' ||
+           c == '-'  || c == '('  || c == '{' ||
+           c == '\'' || c == '"';
+}
+
+/**
+ * Check if character is valid POST (after closing marker)
+ *
+ * POST: whitespace, -, ., ,, ;, :, !, ?, ', ), }, [, ", \, or end of line
+ * Source: org-syntax.md lines 1768-1769
+ *
+ * @param c Character to check
+ * @param at_line_end true if at end of line
+ * @return true if valid POST character
+ */
+static inline bool is_post_char(int32_t c, bool at_line_end) {
+    // End of line is always valid POST
+    if (at_line_end) {
+        return true;
+    }
+
+    // Check explicit POST character set
+    return c == ' '  || c == '\t' || c == '\n' ||
+           c == '-'  || c == '.'  || c == ',' ||
+           c == ';'  || c == ':'  || c == '!' ||
+           c == '?'  || c == '\'' || c == ')' ||
+           c == '}'  || c == '['  || c == '"' ||
+           c == '\\';
+}
+
+/**
+ * Check if character is whitespace
+ *
+ * @param c Character to check
+ * @return true if whitespace (space, tab, newline)
+ */
+static inline bool is_whitespace(int32_t c) {
+    return c == ' ' || c == '\t' || c == '\n';
+}
+
+/**
+ * Check if character is an emphasis marker
+ *
+ * @param c Character to check
+ * @return true if *, /, _, +, ~, or =
+ */
+static inline bool is_emphasis_marker(int32_t c) {
+    return c == '*' || c == '/' || c == '_' ||
+           c == '+' || c == '~' || c == '=';
+}
+
+/**
+ * Check if at line boundary
+ *
+ * @param lexer Tree-sitter lexer
+ * @return true if at beginning or end of line, or EOF
+ */
+static inline bool at_line_boundary(TSLexer *lexer) {
+    return lexer->lookahead == '\n' ||
+           lexer->lookahead == '\r' ||
+           lexer->eof(lexer);
+}
+
+// ============================================================================
+// STATE MANAGEMENT FUNCTIONS
+// ============================================================================
+
+
+
+// Delimiter stack functions removed in Phase 2.1
+// Scanner is now stateless - grammar controls nesting via valid_symbols
+
+// ============================================================================
+// BOUNDARY VALIDATION FUNCTIONS
+// ============================================================================
+
+/**
+ * PRE boundary validation (simple form for testing)
+ *
+ * Valid PRE characters: whitespace | - | ( | { | ' | " | BOL
+ * Source: org-syntax.md lines 1756-1757
+ *
+ * @param ch Character to check (int32_t for unicode support)
+ * @param at_bol true if at beginning of line
+ * @return true if valid PRE character
+ */
+static bool is_valid_pre_char(int32_t ch, bool at_bol) {
+    if (at_bol) return true;
+    if (iswspace(ch)) return true;
+    if (ch == '-' || ch == '(' || ch == '{' ||
+        ch == '\'' || ch == '"') return true;
     return false;
 }
+
+/**
+ * POST boundary validation (simple form for testing)
+ *
+ * Valid POST characters: whitespace | - | . | , | ; | : | ! | ? | ' | ) | } | [ | " | \ | EOL
+ * Source: org-syntax.md lines 1768-1769
+ *
+ * @param ch Character to check
+ * @return true if valid POST character
+ */
+static bool is_valid_post_char(int32_t ch) {
+    if (ch == 0 || ch == '\n') return true;  // EOL
+    if (iswspace(ch)) return true;
+    if (ch == '-' || ch == '.' || ch == ',' || ch == ';' ||
+        ch == ':' || ch == '!' || ch == '?' || ch == '\'' ||
+        ch == ')' || ch == '}' || ch == '[' || ch == '"' ||
+        ch == '\\') return true;
+    return false;
+}
+
+/**
+ * Validate opening boundary for emphasis
+ *
+ * Rules (org-syntax.md):
+ * 1. Character before marker must be valid PRE
+ * 2. Character after marker must NOT be whitespace (CONTENTS boundary)
+ * 3. Marker must not be at EOF
+ *
+ * Note: This function temporarily advances the lexer to peek at the character
+ * after the marker. The caller is responsible for restoring the lexer position
+ * if needed (typically this is called in a lookahead context).
+ *
+ * @param ctx Scanning context
+ * @param marker The emphasis marker character (*, /, _, +, ~, =)
+ * @param prev_char Character immediately before marker
+ * @param at_line_start true if marker is at beginning of line
+ * @return true if valid opening boundary
+ */
+static bool validate_opening_boundary(
+    ScanContext *ctx,
+    char marker,
+    int32_t prev_char,
+    bool at_line_start
+) {
+    if (ctx == NULL || ctx->lexer == NULL) {
+        return false;
+    }
+
+    TSLexer *lexer = ctx->lexer;
+
+    // Rule 1: Check PRE character
+    if (!is_pre_char(prev_char, at_line_start)) {
+        return false;
+    }
+
+    // We're currently positioned at the marker, need to look at next char
+    // Advance past marker to check what follows
+    lexer->advance(lexer, false);
+
+    // Rule 3: Marker at EOF is invalid
+    if (lexer->eof(lexer)) {
+        return false;
+    }
+
+    // Rule 2: Character immediately after marker must not be whitespace
+    if (is_whitespace(lexer->lookahead)) {
+        return false;  // Invalid: whitespace after opening marker
+    }
+
+    // Valid opening boundary
+    return true;
+}
+
+/**
+ * Validate closing boundary for emphasis
+ *
+ * Rules (org-syntax.md):
+ * 1. Character before marker must NOT be whitespace (CONTENTS boundary)
+ * 2. Character after marker must be valid POST
+ *
+ * Note: This function temporarily advances the lexer to peek at the character
+ * after the marker. The caller is responsible for restoring the lexer position.
+ *
+ * @param ctx Scanning context
+ * @param marker The emphasis marker character
+ * @param prev_char Character immediately before marker
+ * @return true if valid closing boundary
+ */
+static bool validate_closing_boundary(
+    ScanContext *ctx,
+    char marker,
+    int32_t prev_char
+) {
+    if (ctx == NULL || ctx->lexer == NULL) {
+        return false;
+    }
+
+    TSLexer *lexer = ctx->lexer;
+
+    // Rule 1: Character before marker must not be whitespace
+    if (is_whitespace(prev_char)) {
+        return false;  // Invalid: whitespace before closing marker
+    }
+
+    // We're currently at the marker, need to look at next char
+    // Advance past marker to check what follows
+    lexer->advance(lexer, false);
+
+    // Check if we're at line boundary
+    bool at_line_end = at_line_boundary(lexer);
+
+    // Rule 2: Character after marker must be valid POST
+    if (!is_post_char(lexer->lookahead, at_line_end)) {
+        return false;  // Invalid POST character
+    }
+
+    // Valid closing boundary
+    return true;
+}
+
+// ============================================================================
+// LOOKAHEAD SCANNING FUNCTIONS
+// ============================================================================
+
+/**
+ * Look ahead to find valid closing delimiter
+ *
+ * Uses mark_end() mechanism to lookahead without consuming input.
+ * This function is called AFTER the opening delimiter has been consumed
+ * and mark_end() has been called to mark the token boundary.
+ *
+ * Scans forward to find a matching marker with valid closing boundary.
+ * Stops at line end (org emphasis cannot span lines) or max lookahead distance.
+ *
+ * Implementation notes:
+ * - mark_end() must be called BEFORE this function
+ * - This function advances the lexer for lookahead only
+ * - The token boundary remains at the opening delimiter (set by mark_end)
+ * - If matching closer found, returns true (caller emits OPEN token)
+ * - If no closer found, returns false (delimiter is plain text)
+ *
+ * Precondition: lexer positioned AFTER opening marker, mark_end() called
+ * Postcondition: lexer position advanced (lookahead), token boundary unchanged
+ *
+ * @param ctx Scanning context
+ * @param marker Delimiter to find
+ * @return true if valid closing delimiter found
+ */
+static bool find_closing_delimiter(ScanContext *ctx, char marker) {
+    if (ctx == NULL || ctx->lexer == NULL) {
+        return false;
+    }
+
+    TSLexer *lexer = ctx->lexer;
+    int32_t prev_char = 0;
+    int distance = 0;
+
+    // Track previous character for boundary validation
+    // Start with whatever came after opening marker
+    if (!lexer->eof(lexer)) {
+        prev_char = lexer->lookahead;
+    }
+
+    // Scan forward looking for closing marker
+    // Stop at: EOF, newline, or max lookahead distance
+    while (!lexer->eof(lexer) && distance < MAX_LOOKAHEAD_DISTANCE) {
+        int32_t current = lexer->lookahead;
+
+        // Stop at line end (emphasis cannot span lines)
+        // Source: org-syntax.md - emphasis is line-scoped
+        if (current == '\n' || current == '\r') {
+            return false;  // No valid closing found before line end
+        }
+
+        // Found potential closing marker
+        if (current == marker) {
+            // Validate closing boundary
+            // Need to check that previous char is not whitespace (no trailing whitespace)
+            // and that next char (after marker) is valid POST char
+
+            // Check CONTENTS boundary (no trailing whitespace before closer)
+            if (is_whitespace(prev_char)) {
+                // Invalid: whitespace before closer
+                // Continue looking for another potential closer
+                prev_char = current;
+                lexer->advance(lexer, false);
+                distance++;
+                continue;
+            }
+
+            // Advance past the closing marker to check POST boundary
+            lexer->advance(lexer, false);
+            distance++;
+
+            // Check POST boundary
+            bool at_line_end = at_line_boundary(lexer);
+            if (is_post_char(lexer->lookahead, at_line_end)) {
+                // Valid closing found!
+                // Note: Token boundary is still at opening marker (mark_end was called before)
+                return true;
+            }
+
+            // Invalid POST boundary, continue looking
+            // lexer is now past the invalid closer marker
+            prev_char = marker;  // The marker we just passed
+            continue;
+        }
+
+        // Track previous character for next iteration
+        prev_char = current;
+
+        // Advance to next character
+        lexer->advance(lexer, false);
+        distance++;
+    }
+
+    // Reached EOF, newline, or max distance without finding valid closing
+    return false;
+}
+
+// is_valid_emphasis removed in Phase 2.1
+// Emphasis validation now done inline in scan_emphasis without stack checking
+
+// ============================================================================
+// SERIALIZATION FUNCTIONS
+// ============================================================================
+
+/**
+ * Serialize scanner state to buffer
+ *
+ * Format (version 1, 20 bytes):
+ * [0]: Version (0x01)
+ * [1]: Stack depth (0-MAX_EMPHASIS_DEPTH)
+ * [2]: State flags
+ * [3]: Padding
+ * [4-19]: Delimiter stack (16 bytes)
+ *
+ * @param scanner Scanner state
+ * @param buffer Output buffer (must be at least SERIALIZATION_SIZE bytes)
+ * @return Number of bytes written
+ */
+static unsigned serialize(Scanner *scanner, char *buffer) {
+    if (!scanner) return 0;
+
+    // Serialize: last_char (4) + at_line_start (1) + state_flags (1) = 6 bytes
+    memcpy(buffer, &scanner->last_char, sizeof(int32_t));
+    buffer[4] = scanner->at_line_start ? 1 : 0;
+    buffer[5] = scanner->state_flags;
+
+    return 6;
+}
+
+/**
+ * Deserialize scanner state from buffer
+ *
+ * If buffer is invalid or corrupted, resets to clean state.
+ * This ensures graceful degradation - we never fail to parse,
+ * we just might parse from scratch for this chunk.
+ *
+ * @param scanner Scanner state to populate
+ * @param buffer Input buffer
+ * @param length Buffer length
+ */
+static void deserialize(Scanner *scanner, const char *buffer, unsigned length) {
+    if (!scanner) return;
+
+    if (length == 0 || !buffer) {
+        // Clean state
+        scanner->last_char = 0;
+        scanner->at_line_start = true;
+        scanner->state_flags = 0;
+        return;
+    }
+
+    if (length >= 6) {
+        memcpy(&scanner->last_char, buffer, sizeof(int32_t));
+        scanner->at_line_start = buffer[4] != 0;
+        scanner->state_flags = buffer[5];
+    } else {
+        // Invalid buffer, use clean state
+        scanner->last_char = 0;
+        scanner->at_line_start = true;
+        scanner->state_flags = 0;
+    }
+}
+
+// ============================================================================
+// TAG SCANNING FUNCTIONS (PRESERVE EXISTING FUNCTIONALITY)
+// ============================================================================
 
 /**
  * Scan tags - validates and consumes tags from current position
@@ -87,8 +583,17 @@ bool tree_sitter_org_inline_external_scanner_scan(void *payload, TSLexer *lexer,
  * Format: SPACE:tag1:tag2:...:tagN: where tags contain only alphanumeric, _, @, #, %
  * Space is required unless tags are at the start of content.
  * Must end at EOL or EOF.
+ *
+ * @param ctx Scanning context
+ * @return true if tags found and emitted
  */
-static bool scan_tags(Scanner *scanner, TSLexer *lexer) {
+static bool scan_tags(ScanContext *ctx) {
+    if (ctx == NULL || ctx->lexer == NULL) {
+        return false;
+    }
+
+    TSLexer *lexer = ctx->lexer;
+
     // Check if we're at a space (preceding tags) or ':' (tags at start)
     bool has_preceding_space = false;
 
@@ -108,7 +613,7 @@ static bool scan_tags(Scanner *scanner, TSLexer *lexer) {
     bool has_any_tag = false;
     int32_t tag_char_count = 0;
 
-    while (lexer->lookahead != '\n' && lexer->lookahead != 0) {
+    while (lexer->lookahead != '\n' && !lexer->eof(lexer)) {
         int32_t c = lexer->lookahead;
 
         if (c == ':') {
@@ -153,10 +658,319 @@ static bool scan_tags(Scanner *scanner, TSLexer *lexer) {
 
 /**
  * Check if character is valid in tag name
+ *
+ * Valid tag characters: alphanumeric, _, @, #, %
+ *
+ * @param c Character to check
+ * @return true if valid tag character
  */
 static bool is_valid_tag_char(int32_t c) {
     return (c >= 'a' && c <= 'z') ||
            (c >= 'A' && c <= 'Z') ||
            (c >= '0' && c <= '9') ||
            c == '_' || c == '@' || c == '#' || c == '%';
+}
+
+// ============================================================================
+// MAIN SCAN FUNCTION
+// ============================================================================
+
+/**
+ * Scan emphasis delimiter (lookahead-based version)
+ *
+ * Phase 2.2: Uses find_closing_delimiter to determine OPEN vs CLOSE.
+ * Grammar controls nesting via valid_symbols array.
+ *
+ * Strategy:
+ * 1. Check if OPEN or CLOSE is valid in this context (via valid_symbols)
+ * 2. Validate PRE boundary
+ * 3. Consume delimiter and mark_end (token boundary)
+ * 4. Check CONTENTS boundary (no leading whitespace for OPEN)
+ * 5. Use lookahead to find matching closer:
+ *    - If can_open && matching closer found -> emit OPEN
+ *    - If can_close && valid POST boundary -> emit CLOSE
+ *    - Otherwise -> return false (delimiter is plain text)
+ *
+ * @param ctx Scanning context
+ * @return true if token emitted, false otherwise
+ */
+static bool scan_emphasis(ScanContext *ctx) {
+    if (ctx == NULL || ctx->lexer == NULL || ctx->valid_symbols == NULL) {
+        return false;
+    }
+
+    TSLexer *lexer = ctx->lexer;
+    Scanner *scanner = ctx->scanner;
+    const bool *valid_symbols = ctx->valid_symbols;
+
+    // Determine which delimiter we're looking at
+    char delimiter = (char)lexer->lookahead;
+
+    // Check if it's an emphasis marker
+    if (!is_emphasis_marker(delimiter)) {
+        return false;
+    }
+
+    // Map delimiter to token types
+    enum TokenType open_token, close_token;
+    switch (delimiter) {
+        case '*':
+            open_token = BOLD_OPEN;
+            close_token = BOLD_CLOSE;
+            break;
+        case '/':
+            open_token = ITALIC_OPEN;
+            close_token = ITALIC_CLOSE;
+            break;
+        case '_':
+            open_token = UNDERLINE_OPEN;
+            close_token = UNDERLINE_CLOSE;
+            break;
+        case '+':
+            open_token = STRIKE_OPEN;
+            close_token = STRIKE_CLOSE;
+            break;
+        case '~':
+            open_token = CODE_OPEN;
+            close_token = CODE_CLOSE;
+            break;
+        case '=':
+            open_token = VERBATIM_OPEN;
+            close_token = VERBATIM_CLOSE;
+            break;
+        default:
+            return false;
+    }
+
+    // Check if OPEN or CLOSE is valid in this context
+    bool can_open = valid_symbols[open_token];
+    bool can_close = valid_symbols[close_token];
+
+    if (!can_open && !can_close) {
+        return false;  // Neither valid here
+    }
+
+    // Validate PRE boundary before consuming delimiter (only for OPEN, not CLOSE)
+    if (can_open && !is_pre_char(scanner->last_char, scanner->at_line_start)) {
+        #ifdef DEBUG_SCANNER
+        fprintf(stderr, "PRE validation failed: last_char=%d (%c), at_line_start=%d, delimiter=%c\n",
+                scanner->last_char,
+                (scanner->last_char >= 32 && scanner->last_char < 127) ? scanner->last_char : '?',
+                scanner->at_line_start,
+                delimiter);
+        #endif
+        return false;  // Invalid PRE character
+    }
+
+    // Consume delimiter
+    lexer->advance(lexer, false);
+    lexer->mark_end(lexer);  // Mark token boundary at delimiter
+
+    // Validate POST boundary (peek ahead)
+    bool at_line_end = at_line_boundary(lexer);
+
+    // Check CONTENTS boundary (no leading whitespace for OPEN)
+    if (is_whitespace(lexer->lookahead)) {
+        // Leading whitespace - can't be OPEN, might be CLOSE
+        if (can_close && is_post_char(lexer->lookahead, at_line_end)) {
+            lexer->result_symbol = close_token;
+            return true;
+        }
+        return false;  // Invalid delimiter
+    }
+
+    // EOF check
+    if (lexer->eof(lexer)) {
+        // At EOF - can't be OPEN, might be CLOSE
+        if (can_close && is_post_char(lexer->lookahead, at_line_end)) {
+            lexer->result_symbol = close_token;
+            return true;
+        }
+        return false;
+    }
+
+    // Phase 2.2: Use lookahead to determine OPEN vs CLOSE
+    if (can_open) {
+        // Try to find matching closer using lookahead
+        // This will validate the full emphasis construct
+        if (find_closing_delimiter(ctx, delimiter)) {
+            // Found valid matching closer - emit OPEN
+            lexer->result_symbol = open_token;
+            return true;
+        }
+
+        // No matching closer found
+        // If can_close and has valid POST, emit CLOSE
+        if (can_close && is_post_char(lexer->lookahead, at_line_end)) {
+            lexer->result_symbol = close_token;
+            return true;
+        }
+
+        // Neither OPEN (no closer) nor CLOSE (not valid) - delimiter is plain text
+        return false;
+    }
+
+    // Only CLOSE is valid (OPEN not allowed in this context)
+    if (can_close) {
+        if (is_post_char(lexer->lookahead, at_line_end)) {
+            lexer->result_symbol = close_token;
+            return true;
+        }
+        return false;
+    }
+
+    return false;
+}
+
+/**
+ * Main external scanner function
+ *
+ * Called by tree-sitter during parsing. Decides what to scan based on
+ * what tokens the grammar marks as valid (valid_symbols array).
+ *
+ * Strategy:
+ * 1. Check if TAGS token is valid -> scan for tags
+ * 2. Check for emphasis tokens -> validate emphasis
+ * 3. Return false if nothing to scan
+ *
+ * @param payload Scanner state (opaque pointer)
+ * @param lexer Tree-sitter lexer
+ * @param valid_symbols Array indicating which tokens grammar expects
+ * @return true if token emitted, false otherwise
+ */
+bool tree_sitter_org_inline_external_scanner_scan(
+    void *payload,
+    TSLexer *lexer,
+    const bool *valid_symbols
+) {
+    Scanner *scanner = (Scanner *)payload;
+
+    // Update at_line_start tracking based on current lexer column position
+    scanner->at_line_start = (lexer->get_column(lexer) == 0);
+
+    // Update last_char at the start of each scan
+    // This tracks the character at the current position (before we advance)
+    // After we emit a token and advance, this becomes the "last character" for the next scan
+    int32_t current_char = lexer->lookahead;
+
+    // Create scanning context
+    ScanContext ctx = {
+        .scanner = scanner,
+        .lexer = lexer,
+        .valid_symbols = valid_symbols
+    };
+
+    // Priority 1: Emphasis scanning (MUST come before TAGS!)
+    // Only try if we're at an emphasis marker character
+    if (is_emphasis_marker(lexer->lookahead) &&
+        (valid_symbols[BOLD_OPEN] || valid_symbols[BOLD_CLOSE] ||
+         valid_symbols[ITALIC_OPEN] || valid_symbols[ITALIC_CLOSE] ||
+         valid_symbols[UNDERLINE_OPEN] || valid_symbols[UNDERLINE_CLOSE] ||
+         valid_symbols[CODE_OPEN] || valid_symbols[CODE_CLOSE] ||
+         valid_symbols[VERBATIM_OPEN] || valid_symbols[VERBATIM_CLOSE] ||
+         valid_symbols[STRIKE_OPEN] || valid_symbols[STRIKE_CLOSE] ||
+         valid_symbols[DELIMITER_CHAR])) {
+        bool result = scan_emphasis(&ctx);
+        if (result) {
+            // Successfully emitted a token
+            // Reset last_char to 0 (unknown) because grammar will consume characters
+            // between scanner invocations, making the delimiter position stale
+            scanner->last_char = 0;
+        } else if (valid_symbols[DELIMITER_CHAR]) {
+            // Invalid emphasis - emit DELIMITER_CHAR fallback
+            lexer->advance(lexer, false);
+            lexer->mark_end(lexer);
+            lexer->result_symbol = DELIMITER_CHAR;
+            scanner->last_char = 0;  // Reset to unknown
+            return true;
+        }
+        return result;
+    }
+
+    // Priority 2: Tag scanning (only if not emphasis)
+    if (valid_symbols[TAGS]) {
+        bool result = scan_tags(&ctx);
+        if (result) {
+            scanner->last_char = current_char;
+        }
+        return result;
+    }
+
+    return false;
+}
+
+// ============================================================================
+// SCANNER LIFECYCLE FUNCTIONS
+// ============================================================================
+
+/**
+ * Create scanner
+ *
+ * Allocates and initializes scanner state.
+ *
+ * @return Pointer to new scanner, or NULL on allocation failure
+ */
+void *tree_sitter_org_inline_external_scanner_create() {
+    Scanner *scanner = calloc(1, sizeof(Scanner));
+    if (scanner) {
+        scanner->last_char = 0;
+        scanner->at_line_start = true;
+        scanner->state_flags = 0;
+    }
+    return scanner;
+}
+
+/**
+ * Destroy scanner
+ *
+ * Frees scanner state memory.
+ *
+ * @param payload Scanner state (opaque pointer)
+ */
+void tree_sitter_org_inline_external_scanner_destroy(void *payload) {
+    if (payload != NULL) {
+        free(payload);
+    }
+}
+
+/**
+ * Serialize scanner state
+ *
+ * Saves scanner state to buffer for incremental parsing.
+ *
+ * @param payload Scanner state (opaque pointer)
+ * @param buffer Output buffer
+ * @return Number of bytes written
+ */
+unsigned tree_sitter_org_inline_external_scanner_serialize(void *payload, char *buffer) {
+    Scanner *scanner = (Scanner *)payload;
+
+    if (scanner == NULL || buffer == NULL) {
+        return 0;
+    }
+
+    return serialize(scanner, buffer);
+}
+
+/**
+ * Deserialize scanner state
+ *
+ * Restores scanner state from buffer for incremental parsing.
+ *
+ * @param payload Scanner state (opaque pointer)
+ * @param buffer Input buffer
+ * @param length Buffer length
+ */
+void tree_sitter_org_inline_external_scanner_deserialize(
+    void *payload,
+    const char *buffer,
+    unsigned length
+) {
+    Scanner *scanner = (Scanner *)payload;
+
+    if (scanner == NULL) {
+        return;
+    }
+
+    deserialize(scanner, buffer, length);
 }

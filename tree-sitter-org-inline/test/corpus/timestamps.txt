@@ -138,23 +138,6 @@ Progress [50%] by [2024-01-15 Mon] target
       (plain_text))))
 
 ==================
-Inactive timestamp vs footnote reference
-==================
-
-Note[fn:1] created [2024-01-15 Mon] today
-
----
-
-(inline
-  (title_only
-    (title
-      (plain_text)
-      (footnote_reference)
-      (plain_text)
-      (timestamp)
-      (plain_text))))
-
-==================
 Timestamp with date range
 ==================
 

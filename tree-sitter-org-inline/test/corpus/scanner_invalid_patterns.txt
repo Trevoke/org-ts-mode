@@ -1,0 +1,681 @@
+==================
+Invalid: Missing closing bold delimiter
+==================
+
+This is *bold text here.
+
+---
+
+(inline
+  (title_only
+    (title
+      (plain_text))))
+
+==================
+Invalid: Missing closing italic delimiter
+==================
+
+This is /italic text here.
+
+---
+
+(inline
+  (title_only
+    (title
+      (plain_text))))
+
+==================
+Invalid: Missing closing underline delimiter
+==================
+
+This is _underline text here.
+
+---
+
+(inline
+  (title_only
+    (title
+      (plain_text))))
+
+==================
+Invalid: Missing closing code delimiter
+==================
+
+This is ~code text here.
+
+---
+
+(inline
+  (title_only
+    (title
+      (plain_text))))
+
+==================
+Invalid: Missing closing verbatim delimiter
+==================
+
+This is =verbatim text here.
+
+---
+
+(inline
+  (title_only
+    (title
+      (plain_text))))
+
+==================
+Invalid: Missing closing strike delimiter
+==================
+
+This is +strike text here.
+
+---
+
+(inline
+  (title_only
+    (title
+      (plain_text))))
+
+==================
+Invalid: Mismatched delimiters (bold open, italic close)
+==================
+
+This is *bold/ text.
+
+---
+
+(inline
+  (title_only
+    (title
+      (plain_text))))
+
+==================
+Invalid: Mismatched delimiters (italic open, bold close)
+==================
+
+This is /italic* text.
+
+---
+
+(inline
+  (title_only
+    (title
+      (plain_text))))
+
+==================
+Invalid: Mismatched delimiters (code open, verbatim close)
+==================
+
+This is ~code= text.
+
+---
+
+(inline
+  (title_only
+    (title
+      (plain_text))))
+
+==================
+Invalid: Adjacent emphasis without spacing
+==================
+
+This is *bold*/italic/ text.
+
+---
+
+(inline
+  (title_only
+    (title
+      (plain_text))))
+
+==================
+Invalid: Adjacent emphasis reversed
+==================
+
+This is /italic/*bold* text.
+
+---
+
+(inline
+  (title_only
+    (title
+      (plain_text))))
+
+==================
+Valid: Adjacent emphasis with space
+==================
+
+This is *bold* /italic/ text.
+
+---
+
+(inline
+  (title_only
+    (title
+      (plain_text)
+      (text_markup
+        (bold
+          (plain_text)))
+      (plain_text)
+      (text_markup
+        (italic
+          (plain_text)))
+      (plain_text))))
+
+==================
+Invalid: Same-delimiter nesting (bold in bold)
+==================
+
+This is *outer *inner* outer* text.
+
+---
+
+(inline
+  (title_only
+    (title
+      (plain_text)
+      (text_markup
+        (bold
+          (plain_text)))
+      (plain_text))))
+
+==================
+Invalid: Same-delimiter nesting (italic in italic)
+==================
+
+This is /outer /inner/ outer/ text.
+
+---
+
+(inline
+  (title_only
+    (title
+      (plain_text)
+      (text_markup
+        (italic
+          (plain_text)))
+      (plain_text))))
+
+==================
+Invalid: Same-delimiter nesting (code in code)
+==================
+
+This is ~outer ~inner~ outer~ text.
+
+---
+
+(inline
+  (title_only
+    (title
+      (plain_text)
+      (text_markup
+        (code))
+      (plain_text))))
+
+==================
+Valid: Different delimiter nesting (italic in bold)
+==================
+
+This is *bold /italic/ bold* text.
+
+---
+
+(inline
+  (title_only
+    (title
+      (plain_text)
+      (text_markup
+        (bold
+          (plain_text)
+          (italic
+            (plain_text))
+          (plain_text)))
+      (plain_text))))
+
+==================
+Valid: Different delimiter nesting (bold in italic)
+==================
+
+This is /italic *bold* italic/ text.
+
+---
+
+(inline
+  (title_only
+    (title
+      (plain_text)
+      (text_markup
+        (italic
+          (plain_text)
+          (bold
+            (plain_text))
+          (plain_text)))
+      (plain_text))))
+
+==================
+Invalid: Multiple opening delimiters
+==================
+
+This is **bold* text.
+
+---
+
+(inline
+  (title_only
+    (title
+      (plain_text)
+      (text_markup
+        (bold
+          (plain_text)))
+      (plain_text))))
+
+==================
+Invalid: Multiple closing delimiters
+==================
+
+This is *bold** text.
+
+---
+
+(inline
+  (title_only
+    (title
+      (plain_text)
+      (text_markup
+        (bold
+          (plain_text)))
+      (plain_text))))
+
+==================
+Invalid: Unclosed at end of line
+==================
+
+This is *bold
+
+---
+
+(inline
+  (title_only
+    (title
+      (plain_text))))
+
+==================
+Invalid: Three stars in a row
+==================
+
+This is *** text.
+
+---
+
+(inline
+  (title_only
+    (title
+      (plain_text))))
+
+==================
+Invalid: Two opening, one closing (bold)
+==================
+
+This is *first *second* text.
+
+---
+
+(inline
+  (title_only
+    (title
+      (plain_text)
+      (text_markup
+        (bold
+          (plain_text)))
+      (plain_text))))
+
+==================
+Invalid: One opening, two closing (bold)
+==================
+
+This is *first* second* text.
+
+---
+
+(inline
+  (title_only
+    (title
+      (plain_text)
+      (text_markup
+        (bold
+          (plain_text)))
+      (plain_text))))
+
+==================
+Invalid: No content between delimiters with space
+==================
+
+This is * * text.
+
+---
+
+(inline
+  (title_only
+    (title
+      (plain_text))))
+
+==================
+Invalid: Delimiter at start without closing
+==================
+
+*bold text here
+
+---
+
+(inline
+  (title_only
+    (title
+      (plain_text))))
+
+==================
+Invalid: Delimiter at start with invalid POST
+==================
+
+*boldx here
+
+---
+
+(inline
+  (title_only
+    (title
+      (plain_text))))
+
+==================
+Valid: Proper nesting of three different markers
+==================
+
+This is *bold /italic _underline_ italic/ bold* text.
+
+---
+
+(inline
+  (title_only
+    (title
+      (plain_text)
+      (text_markup
+        (bold
+          (plain_text)
+          (italic
+            (plain_text)
+            (underline
+              (plain_text))
+            (plain_text))
+          (plain_text)))
+      (plain_text))))
+
+==================
+Invalid: Crossing emphasis boundaries
+==================
+
+This is *bold /italic* bold/ text.
+
+---
+
+(inline
+  (title_only
+    (title
+      (plain_text)
+      (text_markup
+        (bold
+          (plain_text)))
+      (plain_text))))
+
+==================
+Invalid: Code cannot contain nested markup
+==================
+
+This is ~code *bold* code~ text.
+
+---
+
+(inline
+  (title_only
+    (title
+      (plain_text)
+      (text_markup
+        (code))
+      (plain_text))))
+
+==================
+Invalid: Verbatim cannot contain nested markup
+==================
+
+This is =verbatim /italic/ verbatim= text.
+
+---
+
+(inline
+  (title_only
+    (title
+      (plain_text)
+      (text_markup
+        (verbatim))
+      (plain_text))))
+
+==================
+Valid: Emphasis with number and letter mix
+==================
+
+This is *abc123xyz* text.
+
+---
+
+(inline
+  (title_only
+    (title
+      (plain_text)
+      (text_markup
+        (bold
+          (plain_text)))
+      (plain_text))))
+
+==================
+Valid: Emphasis with underscore inside (not delimiter)
+==================
+
+This is *snake_case_var* text.
+
+---
+
+(inline
+  (title_only
+    (title
+      (plain_text)
+      (text_markup
+        (bold))
+      (plain_text))))
+
+==================
+Valid: Code with emphasis markers inside (opaque)
+==================
+
+This is ~*not bold*~ text.
+
+---
+
+(inline
+  (title_only
+    (title
+      (plain_text)
+      (text_markup
+        (code))
+      (plain_text))))
+
+==================
+Valid: Verbatim with emphasis markers inside (opaque)
+==================
+
+This is =/not italic/= text.
+
+---
+
+(inline
+  (title_only
+    (title
+      (plain_text)
+      (text_markup
+        (verbatim))
+      (plain_text))))
+
+==================
+Invalid: Backslash does not escape delimiter
+==================
+
+This is \*not bold\* text.
+
+---
+
+(inline
+  (title_only
+    (title
+      (plain_text))))
+
+==================
+Valid: Multiple separate emphasis on same line
+==================
+
+This *bold* and /italic/ and _underline_ work.
+
+---
+
+(inline
+  (title_only
+    (title
+      (plain_text)
+      (text_markup
+        (bold
+          (plain_text)))
+      (plain_text)
+      (text_markup
+        (italic
+          (plain_text)))
+      (plain_text)
+      (text_markup
+        (underline
+          (plain_text)))
+      (plain_text))))
+
+==================
+Invalid: Opening delimiter with no following content before newline
+==================
+
+This is *
+
+---
+
+(inline
+  (title_only
+    (title
+      (plain_text))))
+
+==================
+Invalid: Opening delimiter immediately followed by newline
+==================
+
+Text *
+more text
+
+---
+
+(inline
+  (title_only
+    (title
+      (plain_text))))
+
+==================
+Valid: Long content in emphasis
+==================
+
+This is *very long bold text that goes on and on and has many words in it* here.
+
+---
+
+(inline
+  (title_only
+    (title
+      (plain_text)
+      (text_markup
+        (bold
+          (plain_text)))
+      (plain_text))))
+
+==================
+Invalid: Delimiter in middle of word (no PRE)
+==================
+
+word*text*word
+
+---
+
+(inline
+  (title_only
+    (title
+      (plain_text))))
+
+==================
+Valid: Delimiter with PRE and POST but in word context
+==================
+
+word-*text*-word
+
+---
+
+(inline
+  (title_only
+    (title
+      (plain_text)
+      (text_markup
+        (bold))
+      (plain_text))))
+
+==================
+Invalid: Multiple delimiters scattered
+==================
+
+This * has * random * delimiters * everywhere
+
+---
+
+(inline
+  (title_only
+    (title
+      (plain_text))))
+
+==================
+Valid: Properly paired despite multiple candidates
+==================
+
+This *first* has *second* proper pairs.
+
+---
+
+(inline
+  (title_only
+    (title
+      (plain_text)
+      (text_markup
+        (bold
+          (plain_text)))
+      (plain_text)
+      (text_markup
+        (bold
+          (plain_text)))
+      (plain_text))))
+
+==================
+Invalid: Emphasis marker at EOF with no closing
+==================
+
+Text *bold
+
+---
+
+(inline
+  (title_only
+    (title
+      (plain_text))))
