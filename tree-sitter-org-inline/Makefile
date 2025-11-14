@@ -130,4 +130,8 @@ test-lookahead: src/scanner.c test/scanner/test_lookahead.c
 	cc -Isrc -std=c11 test/scanner/test_lookahead.c -o test/scanner/test_lookahead
 	./test/scanner/test_lookahead
 
-.PHONY: all install uninstall clean test test-scanner-state test-scanner-lifecycle test-scanner-serialization test-boundaries test-lookahead
+test-valid-symbols: src/scanner.c test/scanner/test_valid_symbols.c
+	cc -Isrc -std=c11 test/scanner/test_valid_symbols.c -o test/scanner/test_valid_symbols
+	./test/scanner/test_valid_symbols
+
+.PHONY: all install uninstall clean test test-scanner-state test-scanner-lifecycle test-scanner-serialization test-boundaries test-lookahead test-valid-symbols
