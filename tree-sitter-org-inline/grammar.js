@@ -150,9 +150,8 @@ function build_choices_array(context, exclude_emphasis = null) {
     );
   }
 
-  // Plain text and whitespace always allowed
+  // Plain text always allowed
   choices.push('plain_text');
-  choices.push('_whitespace');  // Emits context token for PRE validation
 
   return choices;
 }
@@ -180,10 +179,6 @@ module.exports = grammar({
     $._verbatim_close,
     $._strike_open,
     $._strike_close,
-
-    // Context tokens (never emitted, communicate previous character class to scanner)
-    // Pattern from tree-sitter-markdown: append optional($._context_token) after matching content
-    $._last_token_whitespace,  // Previous character was whitespace
   ],
 
   extras: $ => ['\n'],
@@ -420,13 +415,9 @@ module.exports = grammar({
     // ========================================================================
 
     // Plain text: fallback for any characters not matched by other rules
-    // Excludes: markup delimiters, brackets, special chars, underscore (for underline), whitespace
-    // NOTE: Changed to exclude whitespace so _whitespace can emit context token
-    plain_text: $ => prec(PRECEDENCE.PLAIN_TEXT, /[^*\/~=+_:@\[\]<>\\\{\}\n\s]+/),
-
-    // Whitespace token with context emission (pattern from tree-sitter-markdown)
-    // This allows scanner to know when previous token was whitespace (valid PRE for emphasis)
-    _whitespace: $ => seq(/[ \t]+/, optional($._last_token_whitespace)),
+    // Excludes: markup delimiters, brackets, special chars, underscore (for underline)
+    // NOTE: Includes whitespace - scanner will validate emphasis boundaries
+    plain_text: $ => prec(PRECEDENCE.PLAIN_TEXT, /[^*\/~=+_:@\[\]<>\\\{\}\n]+/),
 
     // ========================================================================
     // CONTEXT-SPECIFIC RULES

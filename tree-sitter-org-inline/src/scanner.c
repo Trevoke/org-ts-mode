@@ -57,9 +57,6 @@ enum TokenType {
     VERBATIM_CLOSE,
     STRIKE_OPEN,
     STRIKE_CLOSE,
-
-    // Context tokens (never emitted, only for scanner-grammar communication)
-    LAST_TOKEN_WHITESPACE,  // Previous character was whitespace
 };
 
 /**
@@ -624,7 +621,20 @@ static bool is_valid_emphasis(
  */
 static unsigned serialize(Scanner *scanner, char *buffer) {
     if (scanner == NULL || buffer == NULL) {
+        fprintf(stderr, "DEBUG SERIALIZE: NULL scanner or buffer\n");
         return 0;
+    }
+
+    fprintf(stderr, "DEBUG SERIALIZE: stack_depth=%d, state_flags=0x%02x\n",
+            scanner->stack_depth, scanner->state_flags);
+
+    // Print delimiter stack contents
+    if (scanner->stack_depth > 0) {
+        fprintf(stderr, "DEBUG SERIALIZE: stack contents: ");
+        for (int i = 0; i < scanner->stack_depth; i++) {
+            fprintf(stderr, "'%c' ", scanner->delimiter_stack[i]);
+        }
+        fprintf(stderr, "\n");
     }
 
     unsigned size = 0;
@@ -648,6 +658,7 @@ static unsigned serialize(Scanner *scanner, char *buffer) {
     // Verify we wrote exactly SERIALIZATION_SIZE bytes
     assert(size == SERIALIZATION_SIZE);
 
+    fprintf(stderr, "DEBUG SERIALIZE: Wrote %u bytes\n", size);
     return size;
 }
 
@@ -664,8 +675,11 @@ static unsigned serialize(Scanner *scanner, char *buffer) {
  */
 static void deserialize(Scanner *scanner, const char *buffer, unsigned length) {
     if (scanner == NULL) {
+        fprintf(stderr, "DEBUG DESERIALIZE: NULL scanner\n");
         return;
     }
+
+    fprintf(stderr, "DEBUG DESERIALIZE: Called with length=%u\n", length);
 
     // Initialize to clean state (defensive programming)
     scanner->stack_depth = 0;
@@ -675,12 +689,16 @@ static void deserialize(Scanner *scanner, const char *buffer, unsigned length) {
 
     // Validate minimum length
     if (buffer == NULL || length < 4) {
+        fprintf(stderr, "DEBUG DESERIALIZE: Invalid buffer (buffer=%p, length=%u), using clean state\n",
+                (void*)buffer, length);
         return;  // Invalid buffer, use clean state
     }
 
     // Validate version
     uint8_t version = (uint8_t)buffer[0];
     if (version != SERIALIZATION_VERSION) {
+        fprintf(stderr, "DEBUG DESERIALIZE: Version mismatch (got 0x%02x, expected 0x%02x), using clean state\n",
+                version, SERIALIZATION_VERSION);
         return;  // Version mismatch, use clean state
     }
 
@@ -689,6 +707,8 @@ static void deserialize(Scanner *scanner, const char *buffer, unsigned length) {
 
     // Validate stack depth
     if (scanner->stack_depth > MAX_EMPHASIS_DEPTH) {
+        fprintf(stderr, "DEBUG DESERIALIZE: Invalid stack_depth=%d > MAX=%d, using clean state\n",
+                scanner->stack_depth, MAX_EMPHASIS_DEPTH);
         // Corrupted data, reset to clean state
         scanner->stack_depth = 0;
         return;
@@ -700,6 +720,18 @@ static void deserialize(Scanner *scanner, const char *buffer, unsigned length) {
     // Read delimiter stack (if buffer is large enough)
     if (length >= SERIALIZATION_SIZE) {
         memcpy(scanner->delimiter_stack, buffer + 4, MAX_EMPHASIS_DEPTH);
+    }
+
+    fprintf(stderr, "DEBUG DESERIALIZE: Restored stack_depth=%d, state_flags=0x%02x\n",
+            scanner->stack_depth, scanner->state_flags);
+
+    // Print restored delimiter stack contents
+    if (scanner->stack_depth > 0) {
+        fprintf(stderr, "DEBUG DESERIALIZE: stack contents: ");
+        for (int i = 0; i < scanner->stack_depth; i++) {
+            fprintf(stderr, "'%c' ", scanner->delimiter_stack[i]);
+        }
+        fprintf(stderr, "\n");
     }
 
     // Padding is intentionally not restored (not used)
@@ -809,16 +841,16 @@ static bool is_valid_tag_char(int32_t c) {
 // ============================================================================
 
 /**
- * Scan emphasis delimiter
+ * Scan emphasis delimiter with state tracking
  *
- * Tries to scan an emphasis delimiter (*, /, _, +, ~, =) and emit the
- * appropriate OPEN or CLOSE token.
+ * Uses scanner state to make consistent open/close decisions and prevent
+ * invalid nesting (e.g., *bold *inside* bold* is invalid).
  *
  * Strategy:
- * 1. Check current character is an emphasis marker
- * 2. Try closing first (precedence: close before open)
- * 3. Try opening if closing fails
- * 4. Use boundary validation and lookahead
+ * 1. Check if delimiter is currently open (on stack)
+ * 2. If open: try CLOSE (with validation)
+ * 3. If not open: try OPEN (with validation)
+ * 4. Update stack on success
  *
  * @param ctx Scanning context
  * @return true if token emitted, false otherwise
@@ -835,7 +867,8 @@ static bool scan_emphasis(ScanContext *ctx) {
     // Determine which delimiter we're looking at
     char delimiter = (char)lexer->lookahead;
 
-    fprintf(stderr, "DEBUG: scan_emphasis called, delimiter='%c'\n", delimiter);
+    fprintf(stderr, "DEBUG: scan_emphasis delimiter='%c', stack_depth=%d\n",
+            delimiter, scanner->stack_depth);
 
     // Check if it's an emphasis marker
     if (!is_emphasis_marker(delimiter)) {
@@ -870,68 +903,79 @@ static bool scan_emphasis(ScanContext *ctx) {
             close_token = VERBATIM_CLOSE;
             break;
         default:
-            fprintf(stderr, "DEBUG: Unknown delimiter '%c'\n", delimiter);
             return false;
     }
 
-    fprintf(stderr, "DEBUG: Mapped delimiter '%c' to open=%d, close=%d. valid_open=%d, valid_close=%d\n",
-            delimiter, open_token, close_token,
-            valid_symbols[open_token], valid_symbols[close_token]);
+    // Check if this delimiter is currently open
+    bool is_open = is_delimiter_on_stack(scanner, delimiter);
 
-    // Decide whether this is an opening or closing delimiter based on context
-    // Following org-syntax.md and markdown pattern:
-    // - If LAST_TOKEN_WHITESPACE is valid, likely an opening (whitespace before = valid PRE)
-    // - If not valid, likely a closing (non-whitespace before)
-    bool has_whitespace_before = valid_symbols[LAST_TOKEN_WHITESPACE];
-    bool at_line_start = (lexer->get_column(lexer) == 0);
+    fprintf(stderr, "DEBUG: is_open=%d, valid_open=%d, valid_close=%d\n",
+            is_open, valid_symbols[open_token], valid_symbols[close_token]);
 
-    // Try CLOSING if both are valid and we DON'T have whitespace before
-    // (close markers come after content, which is non-whitespace)
-    if (valid_symbols[close_token] && !has_whitespace_before && !at_line_start) {
-        fprintf(stderr, "DEBUG: Trying close (no whitespace before)\n");
-        // Consume the delimiter
+    // CASE 1: Delimiter is OPEN → Try to CLOSE it
+    if (is_open && valid_symbols[close_token]) {
+        fprintf(stderr, "DEBUG: Trying CLOSE (delimiter on stack)\n");
+
+        // Consume delimiter
         lexer->advance(lexer, false);
         lexer->mark_end(lexer);
 
-        // POST validation: Character after closing delimiter must be valid POST
+        // POST validation: character after must be valid POST
         bool at_line_end = at_line_boundary(lexer);
         if (!is_post_char(lexer->lookahead, at_line_end)) {
-            fprintf(stderr, "DEBUG: Invalid POST char after close\n");
-            return false;  // Invalid POST character
+            fprintf(stderr, "DEBUG: Invalid POST char '%c'\n", (char)lexer->lookahead);
+            return false;
         }
 
-        fprintf(stderr, "DEBUG: Emitting CLOSE token\n");
+        // Pop delimiter from stack
+        if (!pop_delimiter(scanner, delimiter)) {
+            fprintf(stderr, "DEBUG: Failed to pop delimiter (shouldn't happen)\n");
+            return false;
+        }
+
+        fprintf(stderr, "DEBUG: Emitting CLOSE, new_depth=%d\n", scanner->stack_depth);
         lexer->result_symbol = close_token;
         return true;
     }
 
-    // Try OPENING if valid and we have whitespace before OR at line start
-    if (valid_symbols[open_token] && (has_whitespace_before || at_line_start)) {
-        fprintf(stderr, "DEBUG: Trying open (whitespace before or BOL)\n");
+    // CASE 2: Delimiter is NOT OPEN → Try to OPEN it
+    if (!is_open && valid_symbols[open_token]) {
+        fprintf(stderr, "DEBUG: Trying OPEN (delimiter not on stack)\n");
 
-        // Consume the delimiter
+        // NOTE: Simplified PRE validation - we don't validate what came before
+        // The grammar's context (what's valid_symbols[OPEN] is true) handles most cases
+        // In the future, we could add stricter PRE validation if needed
+
+        // Consume delimiter
         lexer->advance(lexer, false);
         lexer->mark_end(lexer);
 
-        // CONTENTS validation: Character after opening delimiter must NOT be whitespace
+        // CONTENTS validation: no whitespace after OPEN
         if (is_whitespace(lexer->lookahead)) {
-            fprintf(stderr, "DEBUG: Whitespace after open marker\n");
-            return false;  // Invalid: whitespace after opening marker
+            fprintf(stderr, "DEBUG: Whitespace after OPEN\n");
+            return false;
         }
 
         // Cannot be at EOF
         if (lexer->eof(lexer)) {
-            fprintf(stderr, "DEBUG: EOF after open marker\n");
+            fprintf(stderr, "DEBUG: EOF after OPEN\n");
             return false;
         }
 
-        fprintf(stderr, "DEBUG: Emitting OPEN token\n");
+        // Push delimiter to stack
+        if (!push_delimiter(scanner, delimiter)) {
+            fprintf(stderr, "DEBUG: Failed to push delimiter (stack full?)\n");
+            return false;
+        }
+
+        fprintf(stderr, "DEBUG: Emitting OPEN, new_depth=%d\n", scanner->stack_depth);
         lexer->result_symbol = open_token;
         return true;
     }
 
-    fprintf(stderr, "DEBUG: No valid open/close decision (open_valid=%d, close_valid=%d, ws_before=%d, BOL=%d)\n",
-            valid_symbols[open_token], valid_symbols[close_token], has_whitespace_before, at_line_start);
+    // CASE 3: Can't make valid decision
+    fprintf(stderr, "DEBUG: No valid decision (is_open=%d, open_valid=%d, close_valid=%d)\n",
+            is_open, valid_symbols[open_token], valid_symbols[close_token]);
     return false;
 }
 
@@ -958,12 +1002,11 @@ bool tree_sitter_org_inline_external_scanner_scan(
 ) {
     Scanner *scanner = (Scanner *)payload;
 
-    fprintf(stderr, "MAIN_SCAN: lookahead='%c' (0x%02x), TAGS=%d, BOLD_OPEN=%d, LAST_TOKEN_WS=%d\n",
+    fprintf(stderr, "MAIN_SCAN: lookahead='%c' (0x%02x), TAGS=%d, BOLD_OPEN=%d\n",
             (lexer->lookahead >= 32 && lexer->lookahead < 127) ? lexer->lookahead : '?',
             lexer->lookahead,
             valid_symbols[TAGS],
-            valid_symbols[BOLD_OPEN],
-            valid_symbols[LAST_TOKEN_WHITESPACE]);
+            valid_symbols[BOLD_OPEN]);
 
     // Create scanning context
     ScanContext ctx = {
