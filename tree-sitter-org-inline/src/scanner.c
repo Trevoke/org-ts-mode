@@ -56,6 +56,9 @@ enum TokenType {
     VERBATIM_CLOSE,
     STRIKE_OPEN,
     STRIKE_CLOSE,
+
+    // Context tokens (never emitted, only for scanner-grammar communication)
+    LAST_TOKEN_WHITESPACE,  // Previous character was whitespace
 };
 
 /**
@@ -872,15 +875,49 @@ static bool scan_emphasis(ScanContext *ctx) {
         // Consume the delimiter
         lexer->advance(lexer, false);
         lexer->mark_end(lexer);
+
+        // POST validation: Character after closing delimiter must be valid POST
+        bool at_line_end = at_line_boundary(lexer);
+        if (!is_post_char(lexer->lookahead, at_line_end)) {
+            return false;  // Invalid POST character
+        }
+
         lexer->result_symbol = close_token;
         return true;
     }
 
     // Priority 2: Try opening
     if (valid_symbols[open_token]) {
+        // PRE validation: Check if previous character was valid PRE
+        // If LAST_TOKEN_WHITESPACE is valid, previous token was whitespace (valid PRE!)
+        // If not valid, previous was NOT whitespace - could be invalid PRE
+        // For now, accept if:  // 1. We have whitespace context (previous was whitespace), OR
+        // 2. We're at beginning of line (column 0)
+        bool has_whitespace_pre = valid_symbols[LAST_TOKEN_WHITESPACE];
+        bool at_line_start = (lexer->get_column(lexer) == 0);
+
+        if (!has_whitespace_pre && !at_line_start) {
+            // Previous char was NOT whitespace and we're NOT at line start
+            // This could be invalid PRE (e.g., "word*bold")
+            // TODO: Check for other valid PRE characters (-, (, {, ', ")
+            // For now, reject to be safe
+            return false;
+        }
+
         // Consume the delimiter
         lexer->advance(lexer, false);
         lexer->mark_end(lexer);
+
+        // CONTENTS validation: Character after opening delimiter must NOT be whitespace
+        if (is_whitespace(lexer->lookahead)) {
+            return false;  // Invalid: whitespace after opening marker
+        }
+
+        // Cannot be at EOF
+        if (lexer->eof(lexer)) {
+            return false;
+        }
+
         lexer->result_symbol = open_token;
         return true;
     }
