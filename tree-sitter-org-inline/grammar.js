@@ -124,11 +124,10 @@ function build_choices_array(context, exclude_emphasis = null) {
   }
 
   // Emphasis (if allowed)
+  // All types share _emphasis_content which allows recursive nesting
+  // Scanner state prevents same-delimiter nesting
   if (context.allow_emphasis) {
-    if (exclude_emphasis !== 'bold') choices.push('bold');
-    if (exclude_emphasis !== 'italic') choices.push('italic');
-    if (exclude_emphasis !== 'underline') choices.push('underline');
-    if (exclude_emphasis !== 'strike') choices.push('strike_through');
+    choices.push('bold', 'italic', 'underline', 'strike_through');
   }
 
   // Code (if allowed)
@@ -248,30 +247,39 @@ module.exports = grammar({
       $.strike_through
     ),
 
-    // Bold: *text*
-    // Scanner validates PRE/POST/CONTENTS boundaries
-    // TEMPORARY: Using regex like code to test if grammar rule is the problem
-    bold: $ => prec.dynamic(PRECEDENCE.EMPHASIS, seq(
-      $._bold_open,
-      /[^\s*][^*\n]*[^\s*]|[^\s*\n]/,  // Temporary regex (like code)
-      $._bold_close
-    )),
+    // Unified emphasis implementation
+    // Scanner determines type via delimiter and validates boundaries
+    // Scanner state prevents same-delimiter nesting (*bold *invalid* bold*)
+    // Grammar allows different-delimiter nesting via _emphasis_content recursion
 
-    // Italic: /text/
-    // Scanner validates PRE/POST/CONTENTS boundaries
-    italic: $ => prec.dynamic(PRECEDENCE.EMPHASIS, seq(
-      $._italic_open,
-      /[^\s\/][^\/\n]*[^\s\/]|[^\s\/\n]/,  // Regex content (no nesting)
-      $._italic_close
-    )),
+    bold: $ => prec.dynamic(PRECEDENCE.EMPHASIS,
+      seq($._bold_open, repeat1($._emphasis_content), $._bold_close)
+    ),
 
-    // Underline: _text_
-    // Scanner validates PRE/POST/CONTENTS boundaries
-    underline: $ => prec.dynamic(PRECEDENCE.EMPHASIS, seq(
-      $._underline_open,
-      /[^\s_][^_\n]*[^\s_]|[^\s_\n]/,  // Regex content (no nesting)
-      $._underline_close
-    )),
+    italic: $ => prec.dynamic(PRECEDENCE.EMPHASIS,
+      seq($._italic_open, repeat1($._emphasis_content), $._italic_close)
+    ),
+
+    underline: $ => prec.dynamic(PRECEDENCE.EMPHASIS,
+      seq($._underline_open, repeat1($._emphasis_content), $._underline_close)
+    ),
+
+    strike_through: $ => prec.dynamic(PRECEDENCE.EMPHASIS,
+      seq($._strike_open, repeat1($._emphasis_content), $._strike_close)
+    ),
+
+    // Content allowed inside emphasis (shared by all types)
+    // Recursive to allow nesting different emphasis types
+    _emphasis_content: $ => choice(
+      $.bold,          // Allows *bold /italic/ nested*
+      $.italic,
+      $.underline,
+      $.strike_through,
+      $.plain_text,
+      $.entity,
+      $.code,
+      $.verbatim
+    ),
 
     // Code: ~text~
     // Content is opaque - no parsing inside
@@ -289,14 +297,6 @@ module.exports = grammar({
       $._verbatim_open,
       /[^\s=][^=\n]*[^\s=]|[^\s=\n]/,  // Scanner validates, but regex ensures no leading/trailing ws
       $._verbatim_close
-    )),
-
-    // Strike-through: +text+
-    // Scanner validates PRE/POST/CONTENTS boundaries
-    strike_through: $ => prec.dynamic(PRECEDENCE.EMPHASIS, seq(
-      $._strike_open,
-      /[^\s+][^+\n]*[^\s+]|[^\s+\n]/,  // Regex content (no nesting)
-      $._strike_close
     )),
 
     // ========================================================================
@@ -439,21 +439,7 @@ module.exports = grammar({
     // Code content context: only plain text (no parsing)
     _inline_element_code_content: $ => $.plain_text,
 
-    // Emphasis contexts: prevent nesting same delimiter
-    _inline_element_no_bold: $ => choice(
-      ...build_choices_array(CONTEXTS.EMPHASIS, 'bold').map(name => $[name])
-    ),
-
-    _inline_element_no_italic: $ => choice(
-      ...build_choices_array(CONTEXTS.EMPHASIS, 'italic').map(name => $[name])
-    ),
-
-    _inline_element_no_underline: $ => choice(
-      ...build_choices_array(CONTEXTS.EMPHASIS, 'underline').map(name => $[name])
-    ),
-
-    _inline_element_no_strike: $ => choice(
-      ...build_choices_array(CONTEXTS.EMPHASIS, 'strike').map(name => $[name])
-    ),
+    // NOTE: Removed _inline_element_no_bold/italic/underline/strike rules
+    // Now using unified emphasis rule with recursion + scanner state for nesting prevention
   }
 });
