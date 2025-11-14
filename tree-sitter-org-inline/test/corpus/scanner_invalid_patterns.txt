@@ -154,10 +154,12 @@ This is *bold* /italic/ text.
     (title
       (plain_text)
       (text_markup
-        (bold))
+        (bold
+          (plain_text)))
       (plain_text)
       (text_markup
-        (italic))
+        (italic
+          (plain_text)))
       (plain_text))))
 
 ==================
@@ -232,8 +234,8 @@ This is *bold /italic/ bold* text.
       (text_markup
         (bold
           (plain_text)
-          (text_markup
-            (italic))
+          (italic
+            (plain_text))
           (plain_text)))
       (plain_text))))
 
@@ -252,8 +254,8 @@ This is /italic *bold* italic/ text.
       (text_markup
         (italic
           (plain_text)
-          (text_markup
-            (bold))
+          (bold
+            (plain_text))
           (plain_text)))
       (plain_text))))
 
@@ -395,12 +397,11 @@ This is *bold /italic _underline_ italic/ bold* text.
       (text_markup
         (bold
           (plain_text)
-          (text_markup
-            (italic
-              (plain_text)
-              (text_markup
-                (underline))
-              (plain_text)))
+          (italic
+            (plain_text)
+            (underline
+              (plain_text))
+            (plain_text))
           (plain_text)))
       (plain_text))))
 
@@ -466,7 +467,8 @@ This is *abc123xyz* text.
     (title
       (plain_text)
       (text_markup
-        (bold))
+        (bold
+          (plain_text)))
       (plain_text))))
 
 ==================
@@ -543,13 +545,16 @@ This *bold* and /italic/ and _underline_ work.
     (title
       (plain_text)
       (text_markup
-        (bold))
+        (bold
+          (plain_text)))
       (plain_text)
       (text_markup
-        (italic))
+        (italic
+          (plain_text)))
       (plain_text)
       (text_markup
-        (underline))
+        (underline
+          (plain_text)))
       (plain_text))))
 
 ==================
@@ -592,7 +597,8 @@ This is *very long bold text that goes on and on and has many words in it* here.
     (title
       (plain_text)
       (text_markup
-        (bold))
+        (bold
+          (plain_text)))
       (plain_text))))
 
 ==================
@@ -650,10 +656,12 @@ This *first* has *second* proper pairs.
     (title
       (plain_text)
       (text_markup
-        (bold))
+        (bold
+          (plain_text)))
       (plain_text)
       (text_markup
-        (bold))
+        (bold
+          (plain_text)))
       (plain_text))))
 
 ==================

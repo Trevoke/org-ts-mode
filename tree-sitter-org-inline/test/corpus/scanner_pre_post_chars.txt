@@ -11,7 +11,8 @@ Text *bold* here.
     (title
       (plain_text)
       (text_markup
-        (bold))
+        (bold
+          (plain_text)))
       (plain_text))))
 
 ==================
@@ -27,7 +28,8 @@ Text	*bold* here.
     (title
       (plain_text)
       (text_markup
-        (bold))
+        (bold
+          (plain_text)))
       (plain_text))))
 
 ==================
@@ -59,7 +61,8 @@ Text(*bold* here.
     (title
       (plain_text)
       (text_markup
-        (bold))
+        (bold
+          (plain_text)))
       (plain_text))))
 
 ==================
@@ -91,7 +94,8 @@ Text'*bold* here.
     (title
       (plain_text)
       (text_markup
-        (bold))
+        (bold
+          (plain_text)))
       (plain_text))))
 
 ==================
@@ -107,7 +111,8 @@ Text"*bold* here.
     (title
       (plain_text)
       (text_markup
-        (bold))
+        (bold
+          (plain_text)))
       (plain_text))))
 
 ==================
@@ -138,7 +143,8 @@ Text /italic/ here.
     (title
       (plain_text)
       (text_markup
-        (italic))
+        (italic
+          (plain_text)))
       (plain_text))))
 
 ==================
@@ -170,7 +176,8 @@ Text(/italic/ here.
     (title
       (plain_text)
       (text_markup
-        (italic))
+        (italic
+          (plain_text)))
       (plain_text))))
 
 ==================
@@ -201,7 +208,8 @@ Text _underline_ here.
     (title
       (plain_text)
       (text_markup
-        (underline))
+        (underline
+          (plain_text)))
       (plain_text))))
 
 ==================
@@ -342,7 +350,8 @@ Text +strike+ here.
     (title
       (plain_text)
       (text_markup
-        (strike_through))
+        (strike_through
+          (plain_text)))
       (plain_text))))
 
 ==================
@@ -389,7 +398,8 @@ Text *bold* here.
     (title
       (plain_text)
       (text_markup
-        (bold))
+        (bold
+          (plain_text)))
       (plain_text))))
 
 ==================
@@ -405,7 +415,8 @@ Text *bold*	here.
     (title
       (plain_text)
       (text_markup
-        (bold))
+        (bold
+          (plain_text)))
       (plain_text))))
 
 ==================
@@ -421,7 +432,8 @@ Text *bold*-here.
     (title
       (plain_text)
       (text_markup
-        (bold))
+        (bold
+          (plain_text)))
       (plain_text))))
 
 ==================
@@ -437,7 +449,8 @@ Text *bold*.
     (title
       (plain_text)
       (text_markup
-        (bold))
+        (bold
+          (plain_text)))
       (plain_text))))
 
 ==================
@@ -453,7 +466,8 @@ Text *bold*, here.
     (title
       (plain_text)
       (text_markup
-        (bold))
+        (bold
+          (plain_text)))
       (plain_text))))
 
 ==================
@@ -469,7 +483,8 @@ Text *bold*; here.
     (title
       (plain_text)
       (text_markup
-        (bold))
+        (bold
+          (plain_text)))
       (plain_text))))
 
 ==================
@@ -485,7 +500,8 @@ Text *bold*: here.
     (title
       (plain_text)
       (text_markup
-        (bold))
+        (bold
+          (plain_text)))
       (plain_text))))
 
 ==================
@@ -501,7 +517,8 @@ Text *bold*! Yes.
     (title
       (plain_text)
       (text_markup
-        (bold))
+        (bold
+          (plain_text)))
       (plain_text))))
 
 ==================
@@ -517,7 +534,8 @@ Text *bold*? Yes.
     (title
       (plain_text)
       (text_markup
-        (bold))
+        (bold
+          (plain_text)))
       (plain_text))))
 
 ==================
@@ -533,7 +551,8 @@ Text *bold*'s here.
     (title
       (plain_text)
       (text_markup
-        (bold))
+        (bold
+          (plain_text)))
       (plain_text))))
 
 ==================
@@ -549,7 +568,8 @@ Text (*bold*) here.
     (title
       (plain_text)
       (text_markup
-        (bold))
+        (bold
+          (plain_text)))
       (plain_text))))
 
 ==================
@@ -597,7 +617,8 @@ Text "*bold*" here.
     (title
       (plain_text)
       (text_markup
-        (bold))
+        (bold
+          (plain_text)))
       (plain_text))))
 
 ==================
@@ -613,7 +634,9 @@ Text *bold*\here.
     (title
       (plain_text)
       (text_markup
-        (bold))
+        (bold
+          (plain_text)))
+      (entity)
       (plain_text))))
 
 ==================
@@ -629,7 +652,8 @@ Text *bold*
     (title
       (plain_text)
       (text_markup
-        (bold)))))
+        (bold
+          (plain_text))))))
 
 ==================
 POST: Period after italic
@@ -644,7 +668,8 @@ Text /italic/.
     (title
       (plain_text)
       (text_markup
-        (italic))
+        (italic
+          (plain_text)))
       (plain_text))))
 
 ==================
@@ -660,7 +685,8 @@ Text /italic/, here.
     (title
       (plain_text)
       (text_markup
-        (italic))
+        (italic
+          (plain_text)))
       (plain_text))))
 
 ==================
@@ -692,7 +718,8 @@ Text /italic/
     (title
       (plain_text)
       (text_markup
-        (italic)))))
+        (italic
+          (plain_text))))))
 
 ==================
 POST: Period after underline
@@ -707,7 +734,8 @@ Text _underline_.
     (title
       (plain_text)
       (text_markup
-        (underline))
+        (underline
+          (plain_text)))
       (plain_text))))
 
 ==================
@@ -723,7 +751,8 @@ Text _underline_, here.
     (title
       (plain_text)
       (text_markup
-        (underline))
+        (underline
+          (plain_text)))
       (plain_text))))
 
 ==================
@@ -739,7 +768,8 @@ Text _underline_
     (title
       (plain_text)
       (text_markup
-        (underline)))))
+        (underline
+          (plain_text))))))
 
 ==================
 POST: Period after code
@@ -848,7 +878,8 @@ Text +strike+.
     (title
       (plain_text)
       (text_markup
-        (strike_through))
+        (strike_through
+          (plain_text)))
       (plain_text))))
 
 ==================
@@ -864,7 +895,8 @@ Text +strike+, here.
     (title
       (plain_text)
       (text_markup
-        (strike_through))
+        (strike_through
+          (plain_text)))
       (plain_text))))
 
 ==================
@@ -880,7 +912,8 @@ Text +strike+
     (title
       (plain_text)
       (text_markup
-        (strike_through)))))
+        (strike_through
+          (plain_text))))))
 
 ==================
 Invalid PRE: Letter before bold
@@ -906,6 +939,10 @@ Invalid PRE: Digit before bold
 (inline
   (title_only
     (title
+      (plain_text)
+      (text_markup
+        (bold
+          (plain_text)))
       (plain_text))))
 
 ==================
@@ -919,6 +956,10 @@ text)*bold* here
 (inline
   (title_only
     (title
+      (plain_text)
+      (text_markup
+        (bold
+          (plain_text)))
       (plain_text))))
 
 ==================
@@ -958,6 +999,10 @@ text,*bold* here
 (inline
   (title_only
     (title
+      (plain_text)
+      (text_markup
+        (bold
+          (plain_text)))
       (plain_text))))
 
 ==================
@@ -984,6 +1029,10 @@ Invalid PRE: Digit before underline
 (inline
   (title_only
     (title
+      (plain_text)
+      (text_markup
+        (underline
+          (plain_text)))
       (plain_text))))
 
 ==================

@@ -11,7 +11,8 @@ This is *bold* text.
     (title
       (plain_text)
       (text_markup
-        (bold))
+        (bold
+          (plain_text)))
       (plain_text))))
 
 ==================
@@ -27,7 +28,8 @@ This is /italic/ text.
     (title
       (plain_text)
       (text_markup
-        (italic))
+        (italic
+          (plain_text)))
       (plain_text))))
 
 ==================
@@ -43,7 +45,8 @@ This is _underline_ text.
     (title
       (plain_text)
       (text_markup
-        (underline))
+        (underline
+          (plain_text)))
       (plain_text))))
 
 ==================
@@ -59,7 +62,8 @@ This is +strike+ text.
     (title
       (plain_text)
       (text_markup
-        (strike_through))
+        (strike_through
+          (plain_text)))
       (plain_text))))
 
 ==================
@@ -122,7 +126,8 @@ Text with *bold*
     (title
       (plain_text)
       (text_markup
-        (bold)))))
+        (bold
+          (plain_text))))))
 
 ==================
 Multiple emphasis together
@@ -137,13 +142,16 @@ This *bold* and /italic/ and _underline_ work.
     (title
       (plain_text)
       (text_markup
-        (bold))
+        (bold
+          (plain_text)))
       (plain_text)
       (text_markup
-        (italic))
+        (italic
+          (plain_text)))
       (plain_text)
       (text_markup
-        (underline))
+        (underline
+          (plain_text)))
       (plain_text))))
 
 ==================
@@ -159,7 +167,8 @@ This is *bold*.
     (title
       (plain_text)
       (text_markup
-        (bold))
+        (bold
+          (plain_text)))
       (plain_text))))
 
 ==================
@@ -175,7 +184,8 @@ This is *bold*, yes.
     (title
       (plain_text)
       (text_markup
-        (bold))
+        (bold
+          (plain_text)))
       (plain_text))))
 
 ==================
@@ -191,7 +201,8 @@ This is *bold*!
     (title
       (plain_text)
       (text_markup
-        (bold))
+        (bold
+          (plain_text)))
       (plain_text))))
 
 ==================
@@ -207,7 +218,8 @@ Is this *bold*?
     (title
       (plain_text)
       (text_markup
-        (bold))
+        (bold
+          (plain_text)))
       (plain_text))))
 
 ==================
@@ -223,7 +235,8 @@ This is *bold*: yes.
     (title
       (plain_text)
       (text_markup
-        (bold))
+        (bold
+          (plain_text)))
       (plain_text))))
 
 ==================
@@ -239,7 +252,8 @@ This is *bold*; yes.
     (title
       (plain_text)
       (text_markup
-        (bold))
+        (bold
+          (plain_text)))
       (plain_text))))
 
 ==================
@@ -255,7 +269,8 @@ This is (*bold*) text.
     (title
       (plain_text)
       (text_markup
-        (bold))
+        (bold
+          (plain_text)))
       (plain_text))))
 
 ==================
@@ -271,7 +286,8 @@ This is "*bold*" text.
     (title
       (plain_text)
       (text_markup
-        (bold))
+        (bold
+          (plain_text)))
       (plain_text))))
 
 ==================
@@ -303,7 +319,8 @@ Text *bold*-more.
     (title
       (plain_text)
       (text_markup
-        (bold))
+        (bold
+          (plain_text)))
       (plain_text))))
 
 ==================
@@ -319,7 +336,8 @@ This is *x* text.
     (title
       (plain_text)
       (text_markup
-        (bold))
+        (bold
+          (plain_text)))
       (plain_text))))
 
 ==================
@@ -335,7 +353,8 @@ This is *123* text.
     (title
       (plain_text)
       (text_markup
-        (bold))
+        (bold
+          (plain_text)))
       (plain_text))))
 
 ==================
@@ -351,7 +370,8 @@ This is *bold with 123 numbers* text.
     (title
       (plain_text)
       (text_markup
-        (bold))
+        (bold
+          (plain_text)))
       (plain_text))))
 
 ==================
@@ -367,7 +387,8 @@ This (*italic* text) works.
     (title
       (plain_text)
       (text_markup
-        (italic))
+        (bold
+          (plain_text)))
       (plain_text))))
 
 ==================

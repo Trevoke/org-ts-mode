@@ -10,11 +10,9 @@ This is *bold* text.
   (title_only
     (title
       (plain_text)
-      (_whitespace)
       (text_markup
         (bold
           (plain_text)))
-      (_whitespace)
       (plain_text))))
 
 ==================
@@ -61,9 +59,7 @@ Text *bold* more
   (title_only
     (title
       (plain_text)
-      (_whitespace)
       (text_markup
         (bold
           (plain_text)))
-      (_whitespace)
       (plain_text))))

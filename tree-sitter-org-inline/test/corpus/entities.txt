@@ -73,4 +73,3 @@ Entity mixed with markup
       (plain_text)
       (text_markup
         (italic)))))
-
