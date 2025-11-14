@@ -469,28 +469,6 @@ module.exports = grammar({
     plain_text: $ => prec.right(PRECEDENCE.PLAIN_TEXT, repeat1(choice(
       /[^*\/~=+_:@\[\]<>\\\{\}\n]+/,  // Regular text
       $._delimiter_char                 // Invalid emphasis delimiter
-    ))),
-
-    // ========================================================================
-    // CONTEXT-SPECIFIC RULES
-    // ========================================================================
-    // These rules define what objects are allowed in different contexts
-    // to prevent invalid nesting (e.g., links inside links)
-
-    // Normal context: all objects allowed
-    _inline_element: $ => choice(
-      ...build_choices_array(CONTEXTS.NORMAL).map(name => $[name])
-    ),
-
-    // Link description context: no nested links
-    _inline_element_no_link: $ => choice(
-      ...build_choices_array(CONTEXTS.LINK_DESCRIPTION).map(name => $[name])
-    ),
-
-    // Code content context: only plain text (no parsing)
-    _inline_element_code_content: $ => $.plain_text,
-
-    // NOTE: Removed _inline_element_no_bold/italic/underline/strike rules
-    // Now using unified emphasis rule with recursion + scanner state for nesting prevention
+    )))
   }
 });

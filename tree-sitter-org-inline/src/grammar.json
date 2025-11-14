@@ -1152,10 +1152,6 @@
           ]
         }
       }
-    },
-    "_inline_element_code_content": {
-      "type": "SYMBOL",
-      "name": "plain_text"
     }
   },
   "extras": [
