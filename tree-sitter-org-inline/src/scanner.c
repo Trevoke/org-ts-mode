@@ -830,6 +830,9 @@ bool tree_sitter_org_inline_external_scanner_scan(
 ) {
     Scanner *scanner = (Scanner *)payload;
 
+    // Update at_line_start tracking based on current lexer column position
+    scanner->at_line_start = (lexer->get_column(lexer) == 0);
+
     // Create scanning context
     ScanContext ctx = {
         .scanner = scanner,
