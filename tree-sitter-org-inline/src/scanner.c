@@ -57,6 +57,9 @@ enum TokenType {
     VERBATIM_CLOSE,
     STRIKE_OPEN,
     STRIKE_CLOSE,
+
+    // Delimiter fallback - emitted when emphasis is invalid
+    DELIMITER_CHAR,
 };
 
 /**
@@ -923,8 +926,10 @@ static bool scan_emphasis(ScanContext *ctx) {
         // POST validation: character after must be valid POST
         bool at_line_end = at_line_boundary(lexer);
         if (!is_post_char(lexer->lookahead, at_line_end)) {
-            fprintf(stderr, "DEBUG: Invalid POST char '%c'\n", (char)lexer->lookahead);
-            return false;
+            fprintf(stderr, "DEBUG: Invalid POST char '%c' - emitting DELIMITER_CHAR\n", (char)lexer->lookahead);
+            // Invalid emphasis - emit closing delimiter as plain character
+            lexer->result_symbol = DELIMITER_CHAR;
+            return true;
         }
 
         // Pop delimiter from stack
@@ -952,14 +957,18 @@ static bool scan_emphasis(ScanContext *ctx) {
 
         // CONTENTS validation: no whitespace after OPEN
         if (is_whitespace(lexer->lookahead)) {
-            fprintf(stderr, "DEBUG: Whitespace after OPEN\n");
-            return false;
+            fprintf(stderr, "DEBUG: Whitespace after OPEN - emitting DELIMITER_CHAR\n");
+            // Invalid emphasis - emit as plain delimiter character
+            lexer->result_symbol = DELIMITER_CHAR;
+            return true;
         }
 
         // Cannot be at EOF
         if (lexer->eof(lexer)) {
-            fprintf(stderr, "DEBUG: EOF after OPEN\n");
-            return false;
+            fprintf(stderr, "DEBUG: EOF after OPEN - emitting DELIMITER_CHAR\n");
+            // Invalid emphasis - emit as plain delimiter character
+            lexer->result_symbol = DELIMITER_CHAR;
+            return true;
         }
 
         // Push delimiter to stack
@@ -973,9 +982,19 @@ static bool scan_emphasis(ScanContext *ctx) {
         return true;
     }
 
-    // CASE 3: Can't make valid decision
+    // CASE 3: Can't make valid decision - emit as delimiter if allowed
     fprintf(stderr, "DEBUG: No valid decision (is_open=%d, open_valid=%d, close_valid=%d)\n",
             is_open, valid_symbols[open_token], valid_symbols[close_token]);
+
+    // If DELIMITER_CHAR is valid, emit it so this becomes plain text
+    if (valid_symbols[DELIMITER_CHAR]) {
+        lexer->advance(lexer, false);
+        lexer->mark_end(lexer);
+        lexer->result_symbol = DELIMITER_CHAR;
+        fprintf(stderr, "DEBUG: Emitting DELIMITER_CHAR\n");
+        return true;
+    }
+
     return false;
 }
 

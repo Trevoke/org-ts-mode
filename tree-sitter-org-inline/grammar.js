@@ -178,6 +178,10 @@ module.exports = grammar({
     $._verbatim_close,
     $._strike_open,
     $._strike_close,
+
+    // Delimiter fallback - for when scanner rejects invalid emphasis
+    // Allows invalid emphasis delimiters to be treated as plain text
+    $._delimiter_char,
   ],
 
   extras: $ => ['\n'],
@@ -416,9 +420,12 @@ module.exports = grammar({
     // ========================================================================
 
     // Plain text: fallback for any characters not matched by other rules
-    // Excludes: markup delimiters, brackets, special chars, underscore (for underline)
-    // NOTE: Includes whitespace - scanner will validate emphasis boundaries
-    plain_text: $ => prec(PRECEDENCE.PLAIN_TEXT, /[^*\/~=+_:@\[\]<>\\\{\}\n]+/),
+    // Includes DELIMITER_CHAR for invalid emphasis delimiters (e.g., * in "* text*")
+    // Excludes: brackets, special chars for objects (links, entities, macros, etc.)
+    plain_text: $ => prec.right(PRECEDENCE.PLAIN_TEXT, repeat1(choice(
+      /[^*\/~=+_:@\[\]<>\\\{\}\n]+/,  // Regular text
+      $._delimiter_char                 // Invalid emphasis delimiter
+    ))),
 
     // ========================================================================
     // CONTEXT-SPECIFIC RULES
