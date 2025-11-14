@@ -254,6 +254,43 @@ static inline bool at_line_boundary(TSLexer *lexer) {
 // ============================================================================
 
 /**
+ * PRE boundary validation (simple form for testing)
+ *
+ * Valid PRE characters: whitespace | - | ( | { | ' | " | BOL
+ * Source: org-syntax.md lines 1756-1757
+ *
+ * @param ch Character to check (int32_t for unicode support)
+ * @param at_bol true if at beginning of line
+ * @return true if valid PRE character
+ */
+static bool is_valid_pre_char(int32_t ch, bool at_bol) {
+    if (at_bol) return true;
+    if (iswspace(ch)) return true;
+    if (ch == '-' || ch == '(' || ch == '{' ||
+        ch == '\'' || ch == '"') return true;
+    return false;
+}
+
+/**
+ * POST boundary validation (simple form for testing)
+ *
+ * Valid POST characters: whitespace | - | . | , | ; | : | ! | ? | ' | ) | } | [ | " | \ | EOL
+ * Source: org-syntax.md lines 1768-1769
+ *
+ * @param ch Character to check
+ * @return true if valid POST character
+ */
+static bool is_valid_post_char(int32_t ch) {
+    if (ch == 0 || ch == '\n') return true;  // EOL
+    if (iswspace(ch)) return true;
+    if (ch == '-' || ch == '.' || ch == ',' || ch == ';' ||
+        ch == ':' || ch == '!' || ch == '?' || ch == '\'' ||
+        ch == ')' || ch == '}' || ch == '[' || ch == '"' ||
+        ch == '\\') return true;
+    return false;
+}
+
+/**
  * Validate opening boundary for emphasis
  *
  * Rules (org-syntax.md):
