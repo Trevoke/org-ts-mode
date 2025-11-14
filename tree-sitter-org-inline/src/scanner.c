@@ -144,7 +144,6 @@ static inline bool is_emphasis_marker(int32_t c);
 static inline bool at_line_boundary(TSLexer *lexer);
 
 // State management
-static bool is_delimiter_on_stack(Scanner *scanner, char delimiter);
 static bool push_delimiter(Scanner *scanner, char delimiter);
 static bool pop_delimiter(Scanner *scanner, char delimiter);
 static void clear_delimiter_stack(Scanner *scanner);
@@ -252,31 +251,6 @@ static inline bool at_line_boundary(TSLexer *lexer) {
 // ============================================================================
 // STATE MANAGEMENT FUNCTIONS
 // ============================================================================
-
-/**
- * Check if delimiter is on the stack
- *
- * Used to prevent same-delimiter nesting (e.g., *bold *nested* bold* is invalid).
- *
- * @param scanner Scanner state
- * @param delimiter Delimiter to check
- * @return true if delimiter is currently open
- */
-static bool is_delimiter_on_stack(Scanner *scanner, char delimiter) {
-    // Validate inputs
-    if (scanner == NULL) {
-        return false;
-    }
-
-    // Linear search (stack is small, typically 1-3 elements, max 16)
-    for (uint8_t i = 0; i < scanner->stack_depth; i++) {
-        if (scanner->delimiter_stack[i] == delimiter) {
-            return true;
-        }
-    }
-
-    return false;
-}
 
 /**
  * Push delimiter onto stack
