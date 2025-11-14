@@ -750,6 +750,18 @@ static bool scan_emphasis(ScanContext *ctx) {
         return false;  // Neither valid here
     }
 
+    // Validate PRE boundary before consuming delimiter (only for OPEN, not CLOSE)
+    if (can_open && !is_pre_char(scanner->last_char, scanner->at_line_start)) {
+        #ifdef DEBUG_SCANNER
+        fprintf(stderr, "PRE validation failed: last_char=%d (%c), at_line_start=%d, delimiter=%c\n",
+                scanner->last_char,
+                (scanner->last_char >= 32 && scanner->last_char < 127) ? scanner->last_char : '?',
+                scanner->at_line_start,
+                delimiter);
+        #endif
+        return false;  // Invalid PRE character
+    }
+
     // Consume delimiter
     lexer->advance(lexer, false);
     lexer->mark_end(lexer);  // Mark token boundary at delimiter
