@@ -109,4 +109,9 @@ clean:
 test:
 	$(TS) test
 
-.PHONY: all install uninstall clean test
+test-scanner-state: src/scanner.c test/scanner/test_state_size.c
+	mkdir -p test/scanner
+	cc -Isrc -std=c11 test/scanner/test_state_size.c -o test/scanner/test_state_size
+	./test/scanner/test_state_size
+
+.PHONY: all install uninstall clean test test-scanner-state
