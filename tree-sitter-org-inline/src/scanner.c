@@ -1100,15 +1100,12 @@ bool tree_sitter_org_inline_external_scanner_scan(
  * @return Pointer to new scanner, or NULL on allocation failure
  */
 void *tree_sitter_org_inline_external_scanner_create() {
-    Scanner *scanner = (Scanner *)calloc(1, sizeof(Scanner));
-
-    if (scanner != NULL) {
-        // Initialize to clean state
-        clear_delimiter_stack(scanner);
-        scanner->state_flags = STATE_FLAG_NONE;
-        memset(scanner->padding, 0, sizeof(scanner->padding));
+    Scanner *scanner = calloc(1, sizeof(Scanner));
+    if (scanner) {
+        scanner->last_char = 0;
+        scanner->at_line_start = true;
+        scanner->state_flags = 0;
     }
-
     return scanner;
 }
 
