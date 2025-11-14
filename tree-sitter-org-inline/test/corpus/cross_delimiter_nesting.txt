@@ -1,0 +1,39 @@
+==================
+Cross-delimiter nesting allowed
+==================
+
+Text *bold /italic/ bold* here.
+
+---
+
+(inline
+  (title_only
+    (title
+      (plain_text)
+      (text_markup
+        (bold
+          (plain_text)
+          (italic
+            (plain_text))
+          (plain_text)))
+      (plain_text))))
+
+==================
+Different delimiters mix freely
+==================
+
+Text _underline +strike+ underline_ here.
+
+---
+
+(inline
+  (title_only
+    (title
+      (plain_text)
+      (text_markup
+        (underline
+          (plain_text)
+          (strike_through
+            (plain_text))
+          (plain_text)))
+      (plain_text))))
