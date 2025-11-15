@@ -303,36 +303,23 @@ module.exports = grammar({
 
     // Unified emphasis implementation
     // Scanner determines type via delimiter and validates boundaries
-    // Scanner state prevents same-delimiter nesting (*bold *invalid* bold*)
-    // Grammar allows different-delimiter nesting via _emphasis_content recursion
+    // Grammar prevents same-delimiter nesting via _inline_element_no_* variants
+    // Grammar allows different-delimiter nesting via recursive inline elements
 
     bold: $ => prec.dynamic(PRECEDENCE.EMPHASIS,
-      seq($._bold_open, repeat1($._emphasis_content), $._bold_close)
+      seq($._bold_open, repeat1($._inline_element_no_bold), $._bold_close)
     ),
 
     italic: $ => prec.dynamic(PRECEDENCE.EMPHASIS,
-      seq($._italic_open, repeat1($._emphasis_content), $._italic_close)
+      seq($._italic_open, repeat1($._inline_element_no_italic), $._italic_close)
     ),
 
     underline: $ => prec.dynamic(PRECEDENCE.EMPHASIS,
-      seq($._underline_open, repeat1($._emphasis_content), $._underline_close)
+      seq($._underline_open, repeat1($._inline_element_no_underline), $._underline_close)
     ),
 
     strike_through: $ => prec.dynamic(PRECEDENCE.EMPHASIS,
-      seq($._strike_open, repeat1($._emphasis_content), $._strike_close)
-    ),
-
-    // Content allowed inside emphasis (shared by all types)
-    // Recursive to allow nesting different emphasis types
-    _emphasis_content: $ => choice(
-      $.bold,          // Allows *bold /italic/ nested*
-      $.italic,
-      $.underline,
-      $.strike_through,
-      $.plain_text,
-      $.entity,
-      $.code,
-      $.verbatim
+      seq($._strike_open, repeat1($._inline_element_no_strike), $._strike_close)
     ),
 
     // Code: ~text~

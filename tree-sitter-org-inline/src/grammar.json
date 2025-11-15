@@ -402,7 +402,7 @@
             "type": "REPEAT1",
             "content": {
               "type": "SYMBOL",
-              "name": "_emphasis_content"
+              "name": "_inline_element_no_bold"
             }
           },
           {
@@ -426,7 +426,7 @@
             "type": "REPEAT1",
             "content": {
               "type": "SYMBOL",
-              "name": "_emphasis_content"
+              "name": "_inline_element_no_italic"
             }
           },
           {
@@ -450,7 +450,7 @@
             "type": "REPEAT1",
             "content": {
               "type": "SYMBOL",
-              "name": "_emphasis_content"
+              "name": "_inline_element_no_underline"
             }
           },
           {
@@ -474,7 +474,7 @@
             "type": "REPEAT1",
             "content": {
               "type": "SYMBOL",
-              "name": "_emphasis_content"
+              "name": "_inline_element_no_strike"
             }
           },
           {
@@ -483,43 +483,6 @@
           }
         ]
       }
-    },
-    "_emphasis_content": {
-      "type": "CHOICE",
-      "members": [
-        {
-          "type": "SYMBOL",
-          "name": "bold"
-        },
-        {
-          "type": "SYMBOL",
-          "name": "italic"
-        },
-        {
-          "type": "SYMBOL",
-          "name": "underline"
-        },
-        {
-          "type": "SYMBOL",
-          "name": "strike_through"
-        },
-        {
-          "type": "SYMBOL",
-          "name": "plain_text"
-        },
-        {
-          "type": "SYMBOL",
-          "name": "entity"
-        },
-        {
-          "type": "SYMBOL",
-          "name": "code"
-        },
-        {
-          "type": "SYMBOL",
-          "name": "verbatim"
-        }
-      ]
     },
     "code": {
       "type": "PREC_DYNAMIC",
