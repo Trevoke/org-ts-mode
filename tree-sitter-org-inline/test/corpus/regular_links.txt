@@ -35,7 +35,8 @@ Link with description
 (inline
   (title_only
     (title
-      (regular_link))))
+      (regular_link
+        (plain_text)))))
 
 ==================
 File link
@@ -61,7 +62,8 @@ File link with description
 (inline
   (title_only
     (title
-      (regular_link))))
+      (regular_link
+        (plain_text)))))
 
 ==================
 ID link
@@ -114,7 +116,8 @@ Visit [[https://example.com][the site]] today
   (title_only
     (title
       (plain_text)
-      (regular_link)
+      (regular_link
+        (plain_text))
       (plain_text))))
 
 ==================
@@ -128,7 +131,8 @@ Link with text after
 (inline
   (title_only
     (title
-      (regular_link)
+      (regular_link
+        (plain_text))
       (plain_text))))
 
 ==================
@@ -142,9 +146,11 @@ Multiple links
 (inline
   (title_only
     (title
-      (regular_link)
+      (regular_link
+        (plain_text))
       (plain_text)
-      (regular_link))))
+      (regular_link
+        (plain_text)))))
 
 ==================
 Link with markup
@@ -160,7 +166,8 @@ Link with markup
       (text_markup
         (bold))
       (plain_text)
-      (regular_link)
+      (regular_link
+        (plain_text))
       (plain_text)
       (text_markup
         (italic)))))
@@ -178,7 +185,8 @@ Link with target
     (title
       (target)
       (plain_text)
-      (regular_link))))
+      (regular_link
+        (plain_text)))))
 
 ==================
 Link with angle link
@@ -191,7 +199,8 @@ Link with angle link
 (inline
   (title_only
     (title
-      (regular_link)
+      (regular_link
+        (plain_text))
       (plain_text)
       (angle_link))))
 
@@ -206,7 +215,8 @@ Link with statistics cookie
 (inline
   (title_only
     (title
-      (regular_link)
+      (regular_link
+        (plain_text))
       (plain_text)
       (statistics_cookie))))
 
@@ -234,4 +244,5 @@ Link with path and query
 (inline
   (title_only
     (title
-      (regular_link))))
+      (regular_link
+        (plain_text)))))

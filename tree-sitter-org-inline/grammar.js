@@ -95,13 +95,14 @@ const CONTEXTS = {
     allow_all_objects: false,
   },
 
-  // Inside emphasis: all except same delimiter
+  // Inside emphasis: restricted to emphasis, code, entity only
   // (handled per-emphasis-type in generate_emphasis_rules)
   EMPHASIS: {
-    allow_links: true,
-    allow_emphasis: true,  // but filtered per delimiter
-    allow_code: true,
-    allow_all_objects: true,
+    allow_links: false,         // no links in emphasis
+    allow_emphasis: true,        // but filtered per delimiter
+    allow_code: true,            // code/verbatim allowed
+    allow_all_objects: false,    // we'll handle entity specially
+    allow_entity_only: true,     // entity is the only object allowed
   },
 };
 
@@ -111,11 +112,11 @@ const CONTEXTS = {
 
 /**
  * Build choice array for a context
- * This returns an array of rule references, not a choice() call
+ * @param {object} context - CONTEXTS entry defining allowed elements
+ * @param {string|null} exclude_emphasis - Emphasis type to exclude
+ * @returns {Array<string>} Array of rule name strings
  */
 function build_choices_array(context, exclude_emphasis = null) {
-  // Return array of rule name strings
-  // These will be converted to $.rule in the grammar rules section
   const choices = [];
 
   // Links (if allowed)
@@ -123,11 +124,16 @@ function build_choices_array(context, exclude_emphasis = null) {
     choices.push('plain_link', 'angle_link', 'regular_link');
   }
 
-  // Emphasis (if allowed)
-  // All types share _emphasis_content which allows recursive nesting
-  // Scanner state prevents same-delimiter nesting
+  // Emphasis (if allowed, excluding specified type)
   if (context.allow_emphasis) {
-    choices.push('bold', 'italic', 'underline', 'strike_through');
+    const all_emphasis = ['bold', 'italic', 'underline', 'strike_through'];
+
+    // Filter out excluded emphasis type if specified
+    const allowed_emphasis = exclude_emphasis
+      ? all_emphasis.filter(e => e !== exclude_emphasis)
+      : all_emphasis;
+
+    choices.push(...allowed_emphasis);
   }
 
   // Code (if allowed)
@@ -149,10 +155,67 @@ function build_choices_array(context, exclude_emphasis = null) {
     );
   }
 
+  // Special case: entity is allowed in emphasis context
+  if (context.allow_entity_only) {
+    choices.push('entity');
+  }
+
   // Plain text always allowed
   choices.push('plain_text');
 
   return choices;
+}
+
+/**
+ * Create an inline element variant from a context
+ * @param {object} $ - Grammar rule references
+ * @param {string} name - Variant name (for debugging)
+ * @param {object} context - CONTEXTS entry defining allowed elements
+ * @param {string|null} exclude_emphasis - Emphasis type to exclude (for same-delimiter prevention)
+ * @returns {object} Tree-sitter choice() rule
+ */
+function create_inline_variant($, name, context, exclude_emphasis = null) {
+  // Get array of allowed rule names
+  const choices_array = build_choices_array(context, exclude_emphasis);
+
+  // Convert string names to $ rule references
+  const choices_refs = choices_array.map(choice_name => $[choice_name]);
+
+  // Return choice() rule
+  return choice(...choices_refs);
+}
+
+/**
+ * Generate all 7 inline element variants
+ * @returns {object} Map of variant name → grammar rule function
+ */
+function generate_all_inline_variants() {
+  return {
+    // 1. NORMAL - Everything allowed (default context)
+    _inline_element: $ =>
+      create_inline_variant($, 'normal', CONTEXTS.NORMAL),
+
+    // 2. NO_LINK - Inside link descriptions (prevent nesting)
+    _inline_element_no_link: $ =>
+      create_inline_variant($, 'no_link', CONTEXTS.LINK_DESCRIPTION),
+
+    // 3. NO_MARKUP - Inside code/verbatim (plain text only)
+    _inline_element_no_markup: $ =>
+      create_inline_variant($, 'no_markup', CONTEXTS.CODE_CONTENT),
+
+    // 4-7. NO_EMPHASIS - Inside each emphasis type (prevent same-delimiter nesting)
+    _inline_element_no_bold: $ =>
+      create_inline_variant($, 'no_bold', CONTEXTS.EMPHASIS, 'bold'),
+
+    _inline_element_no_italic: $ =>
+      create_inline_variant($, 'no_italic', CONTEXTS.EMPHASIS, 'italic'),
+
+    _inline_element_no_underline: $ =>
+      create_inline_variant($, 'no_underline', CONTEXTS.EMPHASIS, 'underline'),
+
+    _inline_element_no_strike: $ =>
+      create_inline_variant($, 'no_strike', CONTEXTS.EMPHASIS, 'strike_through'),
+  };
 }
 
 // ============================================================================
@@ -197,6 +260,21 @@ module.exports = grammar({
       prec.dynamic(PRECEDENCE.TITLE_ONLY, $.title_only)
     ),
 
+    // ========================================================================
+    // INLINE ELEMENT VARIANTS (Generated)
+    // ========================================================================
+    // 7 variants for different nesting contexts:
+    // - _inline_element: All elements allowed (normal context)
+    // - _inline_element_no_link: No links (inside link descriptions)
+    // - _inline_element_no_markup: Plain text only (inside code/verbatim)
+    // - _inline_element_no_bold/italic/underline/strike: Exclude same delimiter
+
+    ...generate_all_inline_variants(),
+
+    // ========================================================================
+    // TITLE RULES
+    // ========================================================================
+
     // Title with tags
     title_with_tags: $ => seq(
       field('title', optional($.title)),
@@ -208,35 +286,7 @@ module.exports = grammar({
 
     // Title: sequence of inline objects
     // Right-associative to greedily consume all content
-    title: $ => prec.right(repeat1(choice(
-      // Links (highest precedence - contain special chars)
-      prec.dynamic(PRECEDENCE.PLAIN_LINK, $.plain_link),
-      prec.dynamic(PRECEDENCE.ANGLE_LINK, $.angle_link),
-      prec.dynamic(PRECEDENCE.REGULAR_LINK, $.regular_link),
-
-      // References
-      prec.dynamic(PRECEDENCE.FOOTNOTE_REFERENCE, $.footnote_reference),
-
-      // Time and counting
-      prec.dynamic(PRECEDENCE.STATISTICS_COOKIE, $.statistics_cookie),
-      prec.dynamic(PRECEDENCE.TIMESTAMP, $.timestamp),
-
-      // Standard objects
-      prec.dynamic(PRECEDENCE.EXPORT_SNIPPET, $.export_snippet),
-      prec.dynamic(PRECEDENCE.RADIO_TARGET, $.radio_target),
-      prec.dynamic(PRECEDENCE.TARGET, $.target),
-      prec.dynamic(PRECEDENCE.MACRO, $.macro),
-      prec.dynamic(PRECEDENCE.ENTITY, $.entity),
-
-      // Formatting
-      prec.dynamic(PRECEDENCE.CODE, $.text_markup),
-
-      // Structural
-      prec.dynamic(PRECEDENCE.COLON, ':'),
-
-      // Fallback
-      prec.dynamic(PRECEDENCE.PLAIN_TEXT, $.plain_text)
-    ))),
+    title: $ => prec.right(repeat1($._inline_element)),  // Uses normal variant
 
     // ========================================================================
     // TEXT MARKUP (Emphasis)
@@ -253,36 +303,23 @@ module.exports = grammar({
 
     // Unified emphasis implementation
     // Scanner determines type via delimiter and validates boundaries
-    // Scanner state prevents same-delimiter nesting (*bold *invalid* bold*)
-    // Grammar allows different-delimiter nesting via _emphasis_content recursion
+    // Grammar prevents same-delimiter nesting via _inline_element_no_* variants
+    // Grammar allows different-delimiter nesting via recursive inline elements
 
     bold: $ => prec.dynamic(PRECEDENCE.EMPHASIS,
-      seq($._bold_open, repeat1($._emphasis_content), $._bold_close)
+      seq($._bold_open, repeat1($._inline_element_no_bold), $._bold_close)
     ),
 
     italic: $ => prec.dynamic(PRECEDENCE.EMPHASIS,
-      seq($._italic_open, repeat1($._emphasis_content), $._italic_close)
+      seq($._italic_open, repeat1($._inline_element_no_italic), $._italic_close)
     ),
 
     underline: $ => prec.dynamic(PRECEDENCE.EMPHASIS,
-      seq($._underline_open, repeat1($._emphasis_content), $._underline_close)
+      seq($._underline_open, repeat1($._inline_element_no_underline), $._underline_close)
     ),
 
     strike_through: $ => prec.dynamic(PRECEDENCE.EMPHASIS,
-      seq($._strike_open, repeat1($._emphasis_content), $._strike_close)
-    ),
-
-    // Content allowed inside emphasis (shared by all types)
-    // Recursive to allow nesting different emphasis types
-    _emphasis_content: $ => choice(
-      $.bold,          // Allows *bold /italic/ nested*
-      $.italic,
-      $.underline,
-      $.strike_through,
-      $.plain_text,
-      $.entity,
-      $.code,
-      $.verbatim
+      seq($._strike_open, repeat1($._inline_element_no_strike), $._strike_close)
     ),
 
     // Code: ~text~
@@ -313,7 +350,7 @@ module.exports = grammar({
       field('path', /[^\]]+/),
       optional(seq(
         '][',
-        field('description', /[^\]]+/)
+        field('description', repeat1($._inline_element_no_link))
       )),
       ']]'
     )),
@@ -425,28 +462,6 @@ module.exports = grammar({
     plain_text: $ => prec.right(PRECEDENCE.PLAIN_TEXT, repeat1(choice(
       /[^*\/~=+_:@\[\]<>\\\{\}\n]+/,  // Regular text
       $._delimiter_char                 // Invalid emphasis delimiter
-    ))),
-
-    // ========================================================================
-    // CONTEXT-SPECIFIC RULES
-    // ========================================================================
-    // These rules define what objects are allowed in different contexts
-    // to prevent invalid nesting (e.g., links inside links)
-
-    // Normal context: all objects allowed
-    _inline_element: $ => choice(
-      ...build_choices_array(CONTEXTS.NORMAL).map(name => $[name])
-    ),
-
-    // Link description context: no nested links
-    _inline_element_no_link: $ => choice(
-      ...build_choices_array(CONTEXTS.LINK_DESCRIPTION).map(name => $[name])
-    ),
-
-    // Code content context: only plain text (no parsing)
-    _inline_element_code_content: $ => $.plain_text,
-
-    // NOTE: Removed _inline_element_no_bold/italic/underline/strike rules
-    // Now using unified emphasis rule with recursion + scanner state for nesting prevention
+    )))
   }
 });

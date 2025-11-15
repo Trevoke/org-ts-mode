@@ -870,6 +870,28 @@ bool tree_sitter_org_inline_external_scanner_scan(
          valid_symbols[VERBATIM_OPEN] || valid_symbols[VERBATIM_CLOSE] ||
          valid_symbols[STRIKE_OPEN] || valid_symbols[STRIKE_CLOSE] ||
          valid_symbols[DELIMITER_CHAR])) {
+
+        // Special case: Inside code/verbatim, all emphasis markers except the closer are invalid
+        // When CODE_CLOSE is valid, we're inside ~code~, so reject other emphasis markers
+        // When VERBATIM_CLOSE is valid, we're inside =verbatim=, so reject other emphasis markers
+        bool inside_code = valid_symbols[CODE_CLOSE];
+        bool inside_verbatim = valid_symbols[VERBATIM_CLOSE];
+
+        if (inside_code || inside_verbatim) {
+            // Check if this is the expected closer
+            bool is_code_closer = (inside_code && lexer->lookahead == '~');
+            bool is_verbatim_closer = (inside_verbatim && lexer->lookahead == '=');
+
+            if (!is_code_closer && !is_verbatim_closer) {
+                // This is a different emphasis marker inside code/verbatim - treat as plain text
+                lexer->advance(lexer, false);
+                lexer->mark_end(lexer);
+                lexer->result_symbol = DELIMITER_CHAR;
+                scanner->last_char = 0;  // Reset to unknown
+                return true;
+            }
+        }
+
         bool result = scan_emphasis(&ctx);
         if (result) {
             // Successfully emitted a token

@@ -1,0 +1,76 @@
+==================
+Same delimiter cannot nest (bold)
+==================
+
+*outer *inner* outer*
+
+---
+
+(inline
+  (title_only
+    (title
+      (bold
+        (plain_text))
+      (plain_text))))
+
+==================
+Same delimiter cannot nest (italic)
+==================
+
+/outer /inner/ outer/
+
+---
+
+(inline
+  (title_only
+    (title
+      (italic
+        (plain_text))
+      (plain_text))))
+
+==================
+Same delimiter cannot nest (underline)
+==================
+
+_outer _inner_ outer_
+
+---
+
+(inline
+  (title_only
+    (title
+      (underline
+        (plain_text))
+      (plain_text))))
+
+==================
+Same delimiter cannot nest (strike)
+==================
+
++outer +inner+ outer+
+
+---
+
+(inline
+  (title_only
+    (title
+      (strike_through
+        (plain_text))
+      (plain_text))))
+
+==================
+Different delimiters CAN nest
+==================
+
+*bold /italic/ bold*
+
+---
+
+(inline
+  (title_only
+    (title
+      (bold
+        (plain_text)
+        (italic
+          (plain_text))
+        (plain_text)))))

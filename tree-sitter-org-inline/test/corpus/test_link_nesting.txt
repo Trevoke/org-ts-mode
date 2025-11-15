@@ -1,0 +1,30 @@
+==================
+Regular links do not contain nested links
+==================
+
+[[path-to-file][See reference to other-file here]]
+
+---
+
+(inline
+  (title_only
+    (title
+      (regular_link
+        (plain_text)))))
+
+==================
+Markup allowed in link description
+==================
+
+[[/path/to/file][description with *bold* text]]
+
+---
+
+(inline
+  (title_only
+    (title
+      (regular_link
+        (plain_text)
+        (bold
+          (plain_text))
+        (plain_text)))))
