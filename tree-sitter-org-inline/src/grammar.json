@@ -558,8 +558,11 @@
                     "type": "FIELD",
                     "name": "description",
                     "content": {
-                      "type": "PATTERN",
-                      "value": "[^\\]]+"
+                      "type": "REPEAT1",
+                      "content": {
+                        "type": "SYMBOL",
+                        "name": "_inline_element_no_link"
+                      }
                     }
                   }
                 ]

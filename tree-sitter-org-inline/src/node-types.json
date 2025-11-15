@@ -13,10 +13,6 @@
       "required": true,
       "types": [
         {
-          "type": "bold",
-          "named": true
-        },
-        {
           "type": "code",
           "named": true
         },
@@ -108,10 +104,6 @@
           "named": true
         },
         {
-          "type": "italic",
-          "named": true
-        },
-        {
           "type": "plain_text",
           "named": true
         },
@@ -167,7 +159,74 @@
   {
     "type": "regular_link",
     "named": true,
-    "fields": {}
+    "fields": {
+      "description": {
+        "multiple": true,
+        "required": false,
+        "types": [
+          {
+            "type": "bold",
+            "named": true
+          },
+          {
+            "type": "code",
+            "named": true
+          },
+          {
+            "type": "entity",
+            "named": true
+          },
+          {
+            "type": "export_snippet",
+            "named": true
+          },
+          {
+            "type": "footnote_reference",
+            "named": true
+          },
+          {
+            "type": "italic",
+            "named": true
+          },
+          {
+            "type": "macro",
+            "named": true
+          },
+          {
+            "type": "plain_text",
+            "named": true
+          },
+          {
+            "type": "radio_target",
+            "named": true
+          },
+          {
+            "type": "statistics_cookie",
+            "named": true
+          },
+          {
+            "type": "strike_through",
+            "named": true
+          },
+          {
+            "type": "target",
+            "named": true
+          },
+          {
+            "type": "timestamp",
+            "named": true
+          },
+          {
+            "type": "underline",
+            "named": true
+          },
+          {
+            "type": "verbatim",
+            "named": true
+          }
+        ]
+      }
+    }
   },
   {
     "type": "statistics_cookie",
@@ -200,10 +259,6 @@
         },
         {
           "type": "plain_text",
-          "named": true
-        },
-        {
-          "type": "strike_through",
           "named": true
         },
         {
@@ -382,10 +437,6 @@
         },
         {
           "type": "strike_through",
-          "named": true
-        },
-        {
-          "type": "underline",
           "named": true
         },
         {

@@ -1,0 +1,47 @@
+==================
+Code cannot contain markup
+==================
+
+This is ~code with *bold* text~ here
+
+---
+
+(inline
+  (title_only
+    (title
+      (plain_text)
+      (code
+        (plain_text))
+      (plain_text))))
+
+==================
+Verbatim cannot contain markup
+==================
+
+This is =verbatim with /italic/ text= here
+
+---
+
+(inline
+  (title_only
+    (title
+      (plain_text)
+      (verbatim
+        (plain_text))
+      (plain_text))))
+
+==================
+Code can contain delimiter characters as text
+==================
+
+This is ~code with * and / characters~ here
+
+---
+
+(inline
+  (title_only
+    (title
+      (plain_text)
+      (code
+        (plain_text))
+      (plain_text))))
