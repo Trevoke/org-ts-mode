@@ -350,7 +350,7 @@ module.exports = grammar({
       field('path', /[^\]]+/),
       optional(seq(
         '][',
-        field('description', /[^\]]+/)
+        field('description', repeat1($._inline_element_no_link))
       )),
       ']]'
     )),

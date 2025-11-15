@@ -158,7 +158,8 @@ Macro with link
       (macro
         (macro_name))
       (plain_text)
-      (regular_link))))
+      (regular_link
+        (plain_text)))))
 
 ==================
 Macro with tags

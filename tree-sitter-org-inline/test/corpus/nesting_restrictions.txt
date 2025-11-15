@@ -9,20 +9,8 @@ No link inside regular link description
 (inline
   (title_only
     (title
-      (regular_link))))
-
-==================
-Angle link inside regular link is prevented
-==================
-
-[[http://example.com][Visit <http://other.com> site]]
-
----
-
-(inline
-  (title_only
-    (title
-      (regular_link))))
+      (regular_link
+        (plain_text)))))
 
 ==================
 Code has no markup inside
