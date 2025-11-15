@@ -95,13 +95,14 @@ const CONTEXTS = {
     allow_all_objects: false,
   },
 
-  // Inside emphasis: all except same delimiter
+  // Inside emphasis: restricted to emphasis, code, entity only
   // (handled per-emphasis-type in generate_emphasis_rules)
   EMPHASIS: {
-    allow_links: true,
-    allow_emphasis: true,  // but filtered per delimiter
-    allow_code: true,
-    allow_all_objects: true,
+    allow_links: false,         // no links in emphasis
+    allow_emphasis: true,        // but filtered per delimiter
+    allow_code: true,            // code/verbatim allowed
+    allow_all_objects: false,    // we'll handle entity specially
+    allow_entity_only: true,     // entity is the only object allowed
   },
 };
 
@@ -152,6 +153,11 @@ function build_choices_array(context, exclude_emphasis = null) {
       'statistics_cookie',
       'footnote_reference'
     );
+  }
+
+  // Special case: entity is allowed in emphasis context
+  if (context.allow_entity_only) {
+    choices.push('entity');
   }
 
   // Plain text always allowed
