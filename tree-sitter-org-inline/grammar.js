@@ -42,6 +42,9 @@ const PRECEDENCE = {
   // Minimal set objects
   ENTITY: 20,          // \alpha, \nbsp
 
+  // LaTeX (after entity - entities like \alpha take priority over \commands)
+  LATEX_FRAGMENT: 22,
+
   // Standard objects
   TARGET: 30,          // <<target>>
   RADIO_TARGET: 31,    // <<<radio>>>
@@ -145,6 +148,7 @@ function build_choices_array(context, exclude_emphasis = null) {
   if (context.allow_all_objects) {
     choices.push(
       'entity',
+      'latex_fragment',
       'target',
       'radio_target',
       'macro',
@@ -382,6 +386,13 @@ module.exports = grammar({
       optional('{}')  // Optional braces for explicit termination
     )),
 
+    // LaTeX fragment: $$content$$, \(...\), \[...\], \command{...}
+    // Note: Entity takes precedence for known entities like \alpha
+    latex_fragment: $ => prec.dynamic(PRECEDENCE.LATEX_FRAGMENT, choice(
+      // $$CONTENTS$$ - TeX display math
+      seq(token('$$'), /[^$]+/, token('$$')),
+    )),
+
     // Target: <<target>>
     target: $ => prec.dynamic(PRECEDENCE.TARGET, seq(
       '<<',
@@ -460,7 +471,7 @@ module.exports = grammar({
     // Includes DELIMITER_CHAR for invalid emphasis delimiters (e.g., * in "* text*")
     // Excludes: brackets, special chars for objects (links, entities, macros, etc.)
     plain_text: $ => prec.right(PRECEDENCE.PLAIN_TEXT, repeat1(choice(
-      /[^*\/~=+_:@\[\]<>\\\{\}\n]+/,  // Regular text
+      /[^*\/~=+_:@\[\]<>\\\{\}\$^\n]+/,  // Regular text (exclude $ and ^ for LaTeX/sub/super)
       $._delimiter_char                 // Invalid emphasis delimiter
     )))
   }
