@@ -154,6 +154,7 @@ function build_choices_array(context, exclude_emphasis = null) {
       'entity',
       'latex_fragment',
       'superscript',
+      'subscript',
       'target',
       'radio_target',
       'macro',
@@ -456,7 +457,26 @@ module.exports = grammar({
         seq('(', /[^()\n]*/, ')'),             // Parenthesized
         seq(                                    // Pattern: SIGN? CHARS FINAL
           optional(/[+-]/),                    // SIGN
-          /[a-zA-Z0-9,\\.]*[a-zA-Z0-9]/        // CHARS + FINAL (must end alphanumeric)
+          /[,\\.]*/,                           // CHARS (zero or more comma/backslash/dot only)
+          /[a-zA-Z0-9]/                        // FINAL (exactly one alphanumeric)
+        )
+      )
+    ))),
+
+    // Subscript: CHAR_SCRIPT
+    // Note: Underline emphasis (_text_) has HIGHER precedence (10 vs 23)
+    // So _text_ is underline, x_2 is subscript
+    subscript: $ => prec.dynamic(PRECEDENCE.SUBSCRIPT, token(seq(
+      /[a-zA-Z0-9]/,  // CHAR - single alphanumeric (same as superscript)
+      '_',
+      choice(
+        '*',                                    // Single asterisk
+        seq('{', /[^{}\n]*/, '}'),             // Braced content
+        seq('(', /[^()\n]*/, ')'),             // Parenthesized
+        seq(                                    // Pattern: SIGN? CHARS FINAL
+          optional(/[+-]/),                    // SIGN
+          /[,\\.]*/,                           // CHARS (zero or more comma/backslash/dot only)
+          /[a-zA-Z0-9]/                        // FINAL (exactly one alphanumeric)
         )
       )
     ))),
