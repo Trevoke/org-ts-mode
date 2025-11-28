@@ -60,6 +60,9 @@ enum TokenType {
 
     // Delimiter fallback - emitted when emphasis is invalid
     DELIMITER_CHAR,
+
+    // Plain colon - colon not part of valid tags
+    PLAIN_COLON,
 };
 
 /**
@@ -845,13 +848,26 @@ bool tree_sitter_org_inline_external_scanner_scan(
 ) {
     Scanner *scanner = (Scanner *)payload;
 
+    // Skip leading newlines and update at_line_start tracking
+    // This handles the case where content starts after a newline (like in test corpus)
+    while (lexer->lookahead == '\n' && !lexer->eof(lexer)) {
+        lexer->advance(lexer, true);  // true = skip (don't include in token)
+    }
+
     // Update at_line_start tracking based on current lexer column position
-    scanner->at_line_start = (lexer->get_column(lexer) == 0);
+    uint32_t col = lexer->get_column(lexer);
+    scanner->at_line_start = (col == 0);
 
     // Update last_char at the start of each scan
     // This tracks the character at the current position (before we advance)
     // After we emit a token and advance, this becomes the "last character" for the next scan
     int32_t current_char = lexer->lookahead;
+
+    // DEBUG: Print valid_symbols when at colon
+    if (current_char == ':') {
+        fprintf(stderr, "DEBUG: At colon, valid_symbols[TAGS]=%d, valid_symbols[PLAIN_COLON]=%d\n",
+                valid_symbols[TAGS], valid_symbols[PLAIN_COLON]);
+    }
 
     // Create scanning context
     ScanContext ctx = {
@@ -910,12 +926,43 @@ bool tree_sitter_org_inline_external_scanner_scan(
     }
 
     // Priority 2: Tag scanning (only if not emphasis)
+    // Note: We check for colon BEFORE calling scan_tags because scan_tags
+    // may advance past it on failure. If we started at colon and TAGS fails,
+    // we emit PLAIN_COLON instead.
+    bool started_at_colon = (lexer->lookahead == ':');
+    bool started_at_space_before_colon = false;
+
+    // Check for space followed by colon (tags can start with " :")
+    if (lexer->lookahead == ' ') {
+        // Peek ahead to see if there's a colon
+        // Unfortunately we can't easily peek, so we'll handle this in scan_tags
+        started_at_space_before_colon = true;
+    }
+
     if (valid_symbols[TAGS]) {
         bool result = scan_tags(&ctx);
         if (result) {
             scanner->last_char = current_char;
+            return true;
         }
-        return result;
+        // TAGS failed - if we started at colon, emit PLAIN_COLON
+        if (started_at_colon && valid_symbols[PLAIN_COLON]) {
+            lexer->advance(lexer, false);
+            lexer->mark_end(lexer);
+            lexer->result_symbol = PLAIN_COLON;
+            scanner->last_char = ':';
+            return true;
+        }
+    }
+
+    // Priority 3: Plain colon (colon not part of valid tags)
+    // This handles colons when TAGS wasn't even valid
+    if (valid_symbols[PLAIN_COLON] && lexer->lookahead == ':') {
+        lexer->advance(lexer, false);
+        lexer->mark_end(lexer);
+        lexer->result_symbol = PLAIN_COLON;
+        scanner->last_char = ':';
+        return true;
     }
 
     return false;

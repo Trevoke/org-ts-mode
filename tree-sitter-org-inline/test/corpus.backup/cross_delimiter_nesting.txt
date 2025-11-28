@@ -10,11 +10,12 @@ Text *bold /italic/ bold* here.
   (title_only
     (title
       (plain_text)
-      (bold
-        (plain_text)
-        (italic
-          (plain_text))
-        (plain_text))
+      (text_markup
+        (bold
+          (plain_text)
+          (italic
+            (plain_text))
+          (plain_text)))
       (plain_text))))
 
 ==================
@@ -29,9 +30,10 @@ Text _underline +strike+ underline_ here.
   (title_only
     (title
       (plain_text)
-      (underline
-        (plain_text)
-        (strike_through
-          (plain_text))
-        (plain_text))
+      (text_markup
+        (underline
+          (plain_text)
+          (strike_through
+            (plain_text))
+          (plain_text)))
       (plain_text))))

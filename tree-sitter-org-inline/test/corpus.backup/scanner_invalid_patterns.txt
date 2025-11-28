@@ -153,11 +153,13 @@ This is *bold* /italic/ text.
   (title_only
     (title
       (plain_text)
-      (bold
-        (plain_text))
+      (text_markup
+        (bold
+          (plain_text)))
       (plain_text)
-      (italic
-        (plain_text))
+      (text_markup
+        (italic
+          (plain_text)))
       (plain_text))))
 
 ==================
@@ -172,8 +174,9 @@ This is *outer *inner* outer* text.
   (title_only
     (title
       (plain_text)
-      (bold
-        (plain_text))
+      (text_markup
+        (bold
+          (plain_text)))
       (plain_text))))
 
 ==================
@@ -188,8 +191,9 @@ This is /outer /inner/ outer/ text.
   (title_only
     (title
       (plain_text)
-      (italic
-        (plain_text))
+      (text_markup
+        (italic
+          (plain_text)))
       (plain_text))))
 
 ==================
@@ -204,7 +208,8 @@ This is ~outer ~inner~ outer~ text.
   (title_only
     (title
       (plain_text)
-      (code)
+      (text_markup
+        (code))
       (plain_text))))
 
 ==================
@@ -219,11 +224,12 @@ This is *bold /italic/ bold* text.
   (title_only
     (title
       (plain_text)
-      (bold
-        (plain_text)
-        (italic
-          (plain_text))
-        (plain_text))
+      (text_markup
+        (bold
+          (plain_text)
+          (italic
+            (plain_text))
+          (plain_text)))
       (plain_text))))
 
 ==================
@@ -238,11 +244,12 @@ This is /italic *bold* italic/ text.
   (title_only
     (title
       (plain_text)
-      (italic
-        (plain_text)
-        (bold
-          (plain_text))
-        (plain_text))
+      (text_markup
+        (italic
+          (plain_text)
+          (bold
+            (plain_text))
+          (plain_text)))
       (plain_text))))
 
 ==================
@@ -257,8 +264,9 @@ This is **bold* text.
   (title_only
     (title
       (plain_text)
-      (bold
-        (plain_text))
+      (text_markup
+        (bold
+          (plain_text)))
       (plain_text))))
 
 ==================
@@ -273,8 +281,9 @@ This is *bold** text.
   (title_only
     (title
       (plain_text)
-      (bold
-        (plain_text))
+      (text_markup
+        (bold
+          (plain_text)))
       (plain_text))))
 
 ==================
@@ -315,8 +324,9 @@ This is *first *second* text.
   (title_only
     (title
       (plain_text)
-      (bold
-        (plain_text))
+      (text_markup
+        (bold
+          (plain_text)))
       (plain_text))))
 
 ==================
@@ -331,8 +341,9 @@ This is *first* second* text.
   (title_only
     (title
       (plain_text)
-      (bold
-        (plain_text))
+      (text_markup
+        (bold
+          (plain_text)))
       (plain_text))))
 
 ==================
@@ -386,14 +397,15 @@ This is *bold /italic _underline_ italic/ bold* text.
   (title_only
     (title
       (plain_text)
-      (bold
-        (plain_text)
-        (italic
+      (text_markup
+        (bold
           (plain_text)
-          (underline
+          (italic
+            (plain_text)
+            (underline
+              (plain_text))
             (plain_text))
-          (plain_text))
-        (plain_text))
+          (plain_text)))
       (plain_text))))
 
 ==================
@@ -408,8 +420,9 @@ This is *bold /italic* bold/ text.
   (title_only
     (title
       (plain_text)
-      (bold
-        (plain_text))
+      (text_markup
+        (bold
+          (plain_text)))
       (plain_text))))
 
 ==================
@@ -424,7 +437,8 @@ This is ~code *bold* code~ text.
   (title_only
     (title
       (plain_text)
-      (code)
+      (text_markup
+        (code))
       (plain_text))))
 
 ==================
@@ -439,7 +453,8 @@ This is =verbatim /italic/ verbatim= text.
   (title_only
     (title
       (plain_text)
-      (verbatim)
+      (text_markup
+        (verbatim))
       (plain_text))))
 
 ==================
@@ -454,8 +469,9 @@ This is *abc123xyz* text.
   (title_only
     (title
       (plain_text)
-      (bold
-        (plain_text))
+      (text_markup
+        (bold
+          (plain_text)))
       (plain_text))))
 
 ==================
@@ -470,7 +486,8 @@ This is *snake_case_var* text.
   (title_only
     (title
       (plain_text)
-      (bold)
+      (text_markup
+        (bold))
       (plain_text))))
 
 ==================
@@ -485,7 +502,8 @@ This is ~*not bold*~ text.
   (title_only
     (title
       (plain_text)
-      (code)
+      (text_markup
+        (code))
       (plain_text))))
 
 ==================
@@ -500,7 +518,8 @@ This is =/not italic/= text.
   (title_only
     (title
       (plain_text)
-      (verbatim)
+      (text_markup
+        (verbatim))
       (plain_text))))
 
 ==================
@@ -528,14 +547,17 @@ This *bold* and /italic/ and _underline_ work.
   (title_only
     (title
       (plain_text)
-      (bold
-        (plain_text))
+      (text_markup
+        (bold
+          (plain_text)))
       (plain_text)
-      (italic
-        (plain_text))
+      (text_markup
+        (italic
+          (plain_text)))
       (plain_text)
-      (underline
-        (plain_text))
+      (text_markup
+        (underline
+          (plain_text)))
       (plain_text))))
 
 ==================
@@ -577,8 +599,9 @@ This is *very long bold text that goes on and on and has many words in it* here.
   (title_only
     (title
       (plain_text)
-      (bold
-        (plain_text))
+      (text_markup
+        (bold
+          (plain_text)))
       (plain_text))))
 
 ==================
@@ -606,7 +629,8 @@ word-*text*-word
   (title_only
     (title
       (plain_text)
-      (bold)
+      (text_markup
+        (bold))
       (plain_text))))
 
 ==================
@@ -634,11 +658,13 @@ This *first* has *second* proper pairs.
   (title_only
     (title
       (plain_text)
-      (bold
-        (plain_text))
+      (text_markup
+        (bold
+          (plain_text)))
       (plain_text)
-      (bold
-        (plain_text))
+      (text_markup
+        (bold
+          (plain_text)))
       (plain_text))))
 
 ==================

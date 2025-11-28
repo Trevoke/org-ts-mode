@@ -144,13 +144,13 @@ Angle link with markup
 (inline
   (title_only
     (title
-      (bold
-        (plain_text))
+      (text_markup
+        (bold))
       (plain_text)
       (angle_link)
       (plain_text)
-      (italic
-        (plain_text)))))
+      (text_markup
+        (italic)))))
 
 ==================
 Angle link with target

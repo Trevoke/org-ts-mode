@@ -128,8 +128,8 @@ Export snippet with markup
 (inline
   (title_only
     (title
-      (bold
-        (plain_text))
+      (text_markup
+        (bold))
       (plain_text)
       (export_snippet))))
 

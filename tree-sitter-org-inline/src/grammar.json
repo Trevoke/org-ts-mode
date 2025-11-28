@@ -627,50 +627,56 @@
       "type": "PREC_DYNAMIC",
       "value": 61,
       "content": {
-        "type": "SEQ",
-        "members": [
-          {
-            "type": "STRING",
-            "value": "<"
-          },
-          {
-            "type": "PATTERN",
-            "value": "[a-zA-Z][a-zA-Z0-9+.-]*"
-          },
-          {
-            "type": "STRING",
-            "value": ":"
-          },
-          {
-            "type": "PATTERN",
-            "value": "[^>\\n]+"
-          },
-          {
-            "type": "STRING",
-            "value": ">"
-          }
-        ]
+        "type": "TOKEN",
+        "content": {
+          "type": "SEQ",
+          "members": [
+            {
+              "type": "STRING",
+              "value": "<"
+            },
+            {
+              "type": "PATTERN",
+              "value": "[a-zA-Z][a-zA-Z0-9+.-]*"
+            },
+            {
+              "type": "STRING",
+              "value": ":"
+            },
+            {
+              "type": "PATTERN",
+              "value": "[^>\\n]+"
+            },
+            {
+              "type": "STRING",
+              "value": ">"
+            }
+          ]
+        }
       }
     },
     "plain_link": {
       "type": "PREC_DYNAMIC",
       "value": 60,
       "content": {
-        "type": "SEQ",
-        "members": [
-          {
-            "type": "PATTERN",
-            "value": "[a-zA-Z][a-zA-Z0-9+.-]*"
-          },
-          {
-            "type": "STRING",
-            "value": ":"
-          },
-          {
-            "type": "PATTERN",
-            "value": "\\/\\/[^\\s\\[\\]<>()]+|[^\\s\\[\\]<>()]+"
-          }
-        ]
+        "type": "TOKEN",
+        "content": {
+          "type": "SEQ",
+          "members": [
+            {
+              "type": "PATTERN",
+              "value": "[a-zA-Z][a-zA-Z0-9+.-]*"
+            },
+            {
+              "type": "STRING",
+              "value": ":"
+            },
+            {
+              "type": "PATTERN",
+              "value": "\\/\\/[^\\s\\[\\]<>()]+|[^\\s\\[\\]<>()]+"
+            }
+          ]
+        }
       }
     },
     "entity": {
@@ -1421,6 +1427,10 @@
             {
               "type": "SYMBOL",
               "name": "_delimiter_char"
+            },
+            {
+              "type": "SYMBOL",
+              "name": "_plain_colon"
             }
           ]
         }
@@ -1441,6 +1451,10 @@
             {
               "type": "SYMBOL",
               "name": "_delimiter_char"
+            },
+            {
+              "type": "SYMBOL",
+              "name": "_plain_colon"
             }
           ]
         }
@@ -1516,6 +1530,10 @@
     {
       "type": "SYMBOL",
       "name": "_delimiter_char"
+    },
+    {
+      "type": "SYMBOL",
+      "name": "_plain_colon"
     }
   ],
   "inline": [],

@@ -118,14 +118,14 @@ Macro mixed with markup
 (inline
   (title_only
     title: (title
-      (bold
-        (plain_text))
+      (text_markup
+        (bold))
       (plain_text)
       (macro
         (macro_name))
       (plain_text)
-      (italic
-        (plain_text)))))
+      (text_markup
+        (italic)))))
 
 ==================
 Macro with entity

@@ -1,0 +1,198 @@
+==================
+Simple active timestamp in title
+==================
+
+Meeting scheduled for <2024-01-15 Mon> today
+
+---
+
+(inline
+  (title_only
+    (title
+      (plain_text)
+      (timestamp)
+      (plain_text))))
+
+==================
+Simple inactive timestamp in title
+==================
+
+Event was on [2024-01-15 Mon] last week
+
+---
+
+(inline
+  (title_only
+    (title
+      (plain_text)
+      (timestamp)
+      (plain_text))))
+
+==================
+Active timestamp with time in title
+==================
+
+Call at <2024-01-15 Mon 14:30> tomorrow
+
+---
+
+(inline
+  (title_only
+    (title
+      (plain_text)
+      (timestamp)
+      (plain_text))))
+
+==================
+Inactive timestamp with time in title
+==================
+
+Completed [2024-01-15 Mon 14:30] yesterday
+
+---
+
+(inline
+  (title_only
+    (title
+      (plain_text)
+      (timestamp)
+      (plain_text))))
+
+==================
+Timestamp at start of title
+==================
+
+<2024-01-15 Mon> is the deadline
+
+---
+
+(inline
+  (title_only
+    (title
+      (timestamp)
+      (plain_text))))
+
+==================
+Timestamp at end of title
+==================
+
+Project deadline <2024-01-15 Mon>
+
+---
+
+(inline
+  (title_only
+    (title
+      (plain_text)
+      (timestamp))))
+
+==================
+Multiple timestamps in title
+==================
+
+From <2024-01-15 Mon> to [2024-01-20 Sat] period
+
+---
+
+(inline
+  (title_only
+    (title
+      (plain_text)
+      (timestamp)
+      (plain_text)
+      (timestamp)
+      (plain_text))))
+
+==================
+Timestamp with angle link distinction
+==================
+
+Visit <https://example.com> on <2024-01-15 Mon> please
+
+---
+
+(inline
+  (title_only
+    (title
+      (plain_text)
+      (angle_link)
+      (plain_text)
+      (timestamp)
+      (plain_text))))
+
+==================
+Inactive timestamp vs statistics cookie
+==================
+
+Progress [50%] by [2024-01-15 Mon] target
+
+---
+
+(inline
+  (title_only
+    (title
+      (plain_text)
+      (statistics_cookie)
+      (plain_text)
+      (timestamp)
+      (plain_text))))
+
+==================
+Timestamp with date range
+==================
+
+Conference <2024-01-15 Mon>--<2024-01-18 Thu> dates
+
+---
+
+(inline
+  (title_only
+    (title
+      (plain_text)
+      (timestamp)
+      (plain_text)
+      (timestamp)
+      (plain_text))))
+
+==================
+Timestamp with repeater
+==================
+
+Weekly meeting <2024-01-15 Mon 14:00 +1w> recurring
+
+---
+
+(inline
+  (title_only
+    (title
+      (plain_text)
+      (timestamp)
+      (plain_text))))
+
+==================
+Timestamp with time range
+==================
+
+Office hours <2024-01-15 Mon 09:00-17:00> available
+
+---
+
+(inline
+  (title_only
+    (title
+      (plain_text)
+      (timestamp)
+      (plain_text))))
+
+==================
+Inactive timestamp at very start
+==================
+
+[2024-01-15 Mon]
+
+---
+
+(inline
+  (title_only
+    (title
+      (timestamp))))

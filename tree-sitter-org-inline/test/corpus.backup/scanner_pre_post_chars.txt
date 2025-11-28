@@ -10,8 +10,9 @@ Text *bold* here.
   (title_only
     (title
       (plain_text)
-      (bold
-        (plain_text))
+      (text_markup
+        (bold
+          (plain_text)))
       (plain_text))))
 
 ==================
@@ -26,8 +27,9 @@ Text	*bold* here.
   (title_only
     (title
       (plain_text)
-      (bold
-        (plain_text))
+      (text_markup
+        (bold
+          (plain_text)))
       (plain_text))))
 
 ==================
@@ -42,8 +44,8 @@ Text-*bold* here.
   (title_only
     (title
       (plain_text)
-      (bold
-        (plain_text))
+      (text_markup
+        (bold))
       (plain_text))))
 
 ==================
@@ -58,8 +60,9 @@ Text(*bold* here.
   (title_only
     (title
       (plain_text)
-      (bold
-        (plain_text))
+      (text_markup
+        (bold
+          (plain_text)))
       (plain_text))))
 
 ==================
@@ -74,9 +77,8 @@ Text{*bold* here.
   (title_only
     (title
       (plain_text)
-      (ERROR)
-      (bold
-        (plain_text))
+      (text_markup
+        (bold))
       (plain_text))))
 
 ==================
@@ -91,8 +93,9 @@ Text'*bold* here.
   (title_only
     (title
       (plain_text)
-      (bold
-        (plain_text))
+      (text_markup
+        (bold
+          (plain_text)))
       (plain_text))))
 
 ==================
@@ -107,8 +110,9 @@ Text"*bold* here.
   (title_only
     (title
       (plain_text)
-      (bold
-        (plain_text))
+      (text_markup
+        (bold
+          (plain_text)))
       (plain_text))))
 
 ==================
@@ -122,8 +126,8 @@ PRE: Beginning of line (bold)
 (inline
   (title_only
     (title
-      (bold
-        (plain_text))
+      (text_markup
+        (bold))
       (plain_text))))
 
 ==================
@@ -138,8 +142,9 @@ Text /italic/ here.
   (title_only
     (title
       (plain_text)
-      (italic
-        (plain_text))
+      (text_markup
+        (italic
+          (plain_text)))
       (plain_text))))
 
 ==================
@@ -154,8 +159,8 @@ Text-/italic/ here.
   (title_only
     (title
       (plain_text)
-      (italic
-        (plain_text))
+      (text_markup
+        (italic))
       (plain_text))))
 
 ==================
@@ -170,8 +175,9 @@ Text(/italic/ here.
   (title_only
     (title
       (plain_text)
-      (italic
-        (plain_text))
+      (text_markup
+        (italic
+          (plain_text)))
       (plain_text))))
 
 ==================
@@ -185,8 +191,8 @@ PRE: Beginning of line (italic)
 (inline
   (title_only
     (title
-      (italic
-        (plain_text))
+      (text_markup
+        (italic))
       (plain_text))))
 
 ==================
@@ -201,8 +207,9 @@ Text _underline_ here.
   (title_only
     (title
       (plain_text)
-      (underline
-        (plain_text))
+      (text_markup
+        (underline
+          (plain_text)))
       (plain_text))))
 
 ==================
@@ -217,8 +224,8 @@ Text-_underline_ here.
   (title_only
     (title
       (plain_text)
-      (underline
-        (plain_text))
+      (text_markup
+        (underline))
       (plain_text))))
 
 ==================
@@ -232,8 +239,8 @@ _underline_ text here.
 (inline
   (title_only
     (title
-      (underline
-        (plain_text))
+      (text_markup
+        (underline))
       (plain_text))))
 
 ==================
@@ -248,7 +255,8 @@ Text ~code~ here.
   (title_only
     (title
       (plain_text)
-      (code)
+      (text_markup
+        (code))
       (plain_text))))
 
 ==================
@@ -263,7 +271,8 @@ Text-~code~ here.
   (title_only
     (title
       (plain_text)
-      (code)
+      (text_markup
+        (code))
       (plain_text))))
 
 ==================
@@ -277,7 +286,8 @@ PRE: Beginning of line (code)
 (inline
   (title_only
     (title
-      (code)
+      (text_markup
+        (code))
       (plain_text))))
 
 ==================
@@ -292,7 +302,8 @@ Text =verbatim= here.
   (title_only
     (title
       (plain_text)
-      (verbatim)
+      (text_markup
+        (verbatim))
       (plain_text))))
 
 ==================
@@ -307,7 +318,8 @@ Text-=verbatim= here.
   (title_only
     (title
       (plain_text)
-      (verbatim)
+      (text_markup
+        (verbatim))
       (plain_text))))
 
 ==================
@@ -321,7 +333,8 @@ PRE: Beginning of line (verbatim)
 (inline
   (title_only
     (title
-      (verbatim)
+      (text_markup
+        (verbatim))
       (plain_text))))
 
 ==================
@@ -336,8 +349,9 @@ Text +strike+ here.
   (title_only
     (title
       (plain_text)
-      (strike_through
-        (plain_text))
+      (text_markup
+        (strike_through
+          (plain_text)))
       (plain_text))))
 
 ==================
@@ -352,8 +366,8 @@ Text-+strike+ here.
   (title_only
     (title
       (plain_text)
-      (strike_through
-        (plain_text))
+      (text_markup
+        (strike_through))
       (plain_text))))
 
 ==================
@@ -367,8 +381,8 @@ PRE: Beginning of line (strike)
 (inline
   (title_only
     (title
-      (strike_through
-        (plain_text))
+      (text_markup
+        (strike_through))
       (plain_text))))
 
 ==================
@@ -383,8 +397,9 @@ Text *bold* here.
   (title_only
     (title
       (plain_text)
-      (bold
-        (plain_text))
+      (text_markup
+        (bold
+          (plain_text)))
       (plain_text))))
 
 ==================
@@ -399,8 +414,9 @@ Text *bold*	here.
   (title_only
     (title
       (plain_text)
-      (bold
-        (plain_text))
+      (text_markup
+        (bold
+          (plain_text)))
       (plain_text))))
 
 ==================
@@ -415,8 +431,9 @@ Text *bold*-here.
   (title_only
     (title
       (plain_text)
-      (bold
-        (plain_text))
+      (text_markup
+        (bold
+          (plain_text)))
       (plain_text))))
 
 ==================
@@ -431,8 +448,9 @@ Text *bold*.
   (title_only
     (title
       (plain_text)
-      (bold
-        (plain_text))
+      (text_markup
+        (bold
+          (plain_text)))
       (plain_text))))
 
 ==================
@@ -447,8 +465,9 @@ Text *bold*, here.
   (title_only
     (title
       (plain_text)
-      (bold
-        (plain_text))
+      (text_markup
+        (bold
+          (plain_text)))
       (plain_text))))
 
 ==================
@@ -463,8 +482,9 @@ Text *bold*; here.
   (title_only
     (title
       (plain_text)
-      (bold
-        (plain_text))
+      (text_markup
+        (bold
+          (plain_text)))
       (plain_text))))
 
 ==================
@@ -479,8 +499,9 @@ Text *bold*: here.
   (title_only
     (title
       (plain_text)
-      (bold
-        (plain_text))
+      (text_markup
+        (bold
+          (plain_text)))
       (plain_text))))
 
 ==================
@@ -495,8 +516,9 @@ Text *bold*! Yes.
   (title_only
     (title
       (plain_text)
-      (bold
-        (plain_text))
+      (text_markup
+        (bold
+          (plain_text)))
       (plain_text))))
 
 ==================
@@ -511,8 +533,9 @@ Text *bold*? Yes.
   (title_only
     (title
       (plain_text)
-      (bold
-        (plain_text))
+      (text_markup
+        (bold
+          (plain_text)))
       (plain_text))))
 
 ==================
@@ -527,8 +550,9 @@ Text *bold*'s here.
   (title_only
     (title
       (plain_text)
-      (bold
-        (plain_text))
+      (text_markup
+        (bold
+          (plain_text)))
       (plain_text))))
 
 ==================
@@ -543,8 +567,9 @@ Text (*bold*) here.
   (title_only
     (title
       (plain_text)
-      (bold
-        (plain_text))
+      (text_markup
+        (bold
+          (plain_text)))
       (plain_text))))
 
 ==================
@@ -559,12 +584,9 @@ Text {*bold*} here.
   (title_only
     (title
       (plain_text)
-      (ERROR)
-      (bold
-        (plain_text))))
-  (ERROR
-    (ERROR)
-    (ERROR)))
+      (text_markup
+        (bold))
+      (plain_text))))
 
 ==================
 POST: Left bracket after bold
@@ -578,11 +600,9 @@ Text *bold*[1] here.
   (title_only
     (title
       (plain_text)
-      (bold
-        (plain_text))))
-  (ERROR
-    (ERROR)
-    (ERROR)))
+      (text_markup
+        (bold))
+      (plain_text))))
 
 ==================
 POST: Double quote after bold
@@ -596,8 +616,9 @@ Text "*bold*" here.
   (title_only
     (title
       (plain_text)
-      (bold
-        (plain_text))
+      (text_markup
+        (bold
+          (plain_text)))
       (plain_text))))
 
 ==================
@@ -612,8 +633,9 @@ Text *bold*\here.
   (title_only
     (title
       (plain_text)
-      (bold
-        (plain_text))
+      (text_markup
+        (bold
+          (plain_text)))
       (entity)
       (plain_text))))
 
@@ -629,8 +651,9 @@ Text *bold*
   (title_only
     (title
       (plain_text)
-      (bold
-        (plain_text)))))
+      (text_markup
+        (bold
+          (plain_text))))))
 
 ==================
 POST: Period after italic
@@ -644,8 +667,9 @@ Text /italic/.
   (title_only
     (title
       (plain_text)
-      (italic
-        (plain_text))
+      (text_markup
+        (italic
+          (plain_text)))
       (plain_text))))
 
 ==================
@@ -660,8 +684,9 @@ Text /italic/, here.
   (title_only
     (title
       (plain_text)
-      (italic
-        (plain_text))
+      (text_markup
+        (italic
+          (plain_text)))
       (plain_text))))
 
 ==================
@@ -675,6 +700,9 @@ Text /italic*! Yes.
 (inline
   (title_only
     (title
+      (plain_text)
+      (text_markup
+        (italic))
       (plain_text))))
 
 ==================
@@ -689,8 +717,9 @@ Text /italic/
   (title_only
     (title
       (plain_text)
-      (italic
-        (plain_text)))))
+      (text_markup
+        (italic
+          (plain_text))))))
 
 ==================
 POST: Period after underline
@@ -704,8 +733,9 @@ Text _underline_.
   (title_only
     (title
       (plain_text)
-      (underline
-        (plain_text))
+      (text_markup
+        (underline
+          (plain_text)))
       (plain_text))))
 
 ==================
@@ -720,8 +750,9 @@ Text _underline_, here.
   (title_only
     (title
       (plain_text)
-      (underline
-        (plain_text))
+      (text_markup
+        (underline
+          (plain_text)))
       (plain_text))))
 
 ==================
@@ -736,8 +767,9 @@ Text _underline_
   (title_only
     (title
       (plain_text)
-      (underline
-        (plain_text)))))
+      (text_markup
+        (underline
+          (plain_text))))))
 
 ==================
 POST: Period after code
@@ -751,7 +783,8 @@ Text ~code~.
   (title_only
     (title
       (plain_text)
-      (code)
+      (text_markup
+        (code))
       (plain_text))))
 
 ==================
@@ -766,7 +799,8 @@ Text ~code~, here.
   (title_only
     (title
       (plain_text)
-      (code)
+      (text_markup
+        (code))
       (plain_text))))
 
 ==================
@@ -781,7 +815,8 @@ Text ~code~
   (title_only
     (title
       (plain_text)
-      (code))))
+      (text_markup
+        (code)))))
 
 ==================
 POST: Period after verbatim
@@ -795,7 +830,8 @@ Text =verbatim=.
   (title_only
     (title
       (plain_text)
-      (verbatim)
+      (text_markup
+        (verbatim))
       (plain_text))))
 
 ==================
@@ -810,7 +846,8 @@ Text =verbatim=, here.
   (title_only
     (title
       (plain_text)
-      (verbatim)
+      (text_markup
+        (verbatim))
       (plain_text))))
 
 ==================
@@ -825,7 +862,8 @@ Text =verbatim=
   (title_only
     (title
       (plain_text)
-      (verbatim))))
+      (text_markup
+        (verbatim)))))
 
 ==================
 POST: Period after strike
@@ -839,8 +877,9 @@ Text +strike+.
   (title_only
     (title
       (plain_text)
-      (strike_through
-        (plain_text))
+      (text_markup
+        (strike_through
+          (plain_text)))
       (plain_text))))
 
 ==================
@@ -855,8 +894,9 @@ Text +strike+, here.
   (title_only
     (title
       (plain_text)
-      (strike_through
-        (plain_text))
+      (text_markup
+        (strike_through
+          (plain_text)))
       (plain_text))))
 
 ==================
@@ -871,8 +911,9 @@ Text +strike+
   (title_only
     (title
       (plain_text)
-      (strike_through
-        (plain_text)))))
+      (text_markup
+        (strike_through
+          (plain_text))))))
 
 ==================
 Invalid PRE: Letter before bold
@@ -899,8 +940,9 @@ Invalid PRE: Digit before bold
   (title_only
     (title
       (plain_text)
-      (bold
-        (plain_text))
+      (text_markup
+        (bold
+          (plain_text)))
       (plain_text))))
 
 ==================
@@ -915,8 +957,9 @@ text)*bold* here
   (title_only
     (title
       (plain_text)
-      (bold
-        (plain_text))
+      (text_markup
+        (bold
+          (plain_text)))
       (plain_text))))
 
 ==================
@@ -957,8 +1000,9 @@ text,*bold* here
   (title_only
     (title
       (plain_text)
-      (bold
-        (plain_text))
+      (text_markup
+        (bold
+          (plain_text)))
       (plain_text))))
 
 ==================
@@ -986,8 +1030,9 @@ Invalid PRE: Digit before underline
   (title_only
     (title
       (plain_text)
-      (underline
-        (plain_text))
+      (text_markup
+        (underline
+          (plain_text)))
       (plain_text))))
 
 ==================

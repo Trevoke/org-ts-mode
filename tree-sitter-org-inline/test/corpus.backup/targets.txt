@@ -105,13 +105,13 @@ Target with markup
 (inline
   (title_only
     (title
-      (bold
-        (plain_text))
+      (text_markup
+        (bold))
       (plain_text)
       (target)
       (plain_text)
-      (italic
-        (plain_text)))))
+      (text_markup
+        (italic)))))
 
 ==================
 Target with statistics cookie

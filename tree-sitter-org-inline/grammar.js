@@ -287,6 +287,10 @@ module.exports = grammar({
     // Delimiter fallback - for when scanner rejects invalid emphasis
     // Allows invalid emphasis delimiters to be treated as plain text
     $._delimiter_char,
+
+    // Plain colon - colon that's not part of valid tags
+    // Allows colons to appear in text (e.g., "word: more text")
+    $._plain_colon,
   ],
 
   conflicts: $ => [
@@ -404,20 +408,16 @@ module.exports = grammar({
     )),
 
     // Angle link: <protocol:path>
-    angle_link: $ => prec.dynamic(PRECEDENCE.ANGLE_LINK, seq(
-      '<',
-      /[a-zA-Z][a-zA-Z0-9+.-]*/,  // protocol
-      ':',
-      /[^>\n]+/,  // path
-      '>'
-    )),
+    // Use token() to make this atomic - prevents protocol regex from being extracted
+    angle_link: $ => prec.dynamic(PRECEDENCE.ANGLE_LINK,
+      token(seq('<', /[a-zA-Z][a-zA-Z0-9+.-]*/, ':', /[^>\n]+/, '>'))
+    ),
 
     // Plain link: protocol:path
-    plain_link: $ => prec.dynamic(PRECEDENCE.PLAIN_LINK, seq(
-      /[a-zA-Z][a-zA-Z0-9+.-]*/,  // protocol
-      ':',
-      /\/\/[^\s\[\]<>()]+|[^\s\[\]<>()]+/  // path with or without //
-    )),
+    // Use token() to make this atomic - prevents protocol regex from being extracted
+    plain_link: $ => prec.dynamic(PRECEDENCE.PLAIN_LINK,
+      token(seq(/[a-zA-Z][a-zA-Z0-9+.-]*/, ':', /\/\/[^\s\[\]<>()]+|[^\s\[\]<>()]+/))
+    ),
 
     // ========================================================================
     // OBJECTS
@@ -590,16 +590,19 @@ module.exports = grammar({
     // Plain text: fallback for any characters not matched by other rules
     // Excludes: brackets, special chars for objects (links, entities, macros, etc.)
     // Also excludes $ and ^ for LaTeX/superscript/subscript matching
+    // Note: `:` is handled by _plain_colon external scanner token
     plain_text: $ => prec.right(PRECEDENCE.PLAIN_TEXT, repeat1(choice(
-      /[^*\/~=+_:@\[\]<>\\\{\}\$^\n]+/,  // Regular text (exclude $ and ^ for LaTeX/sub/super)
-      $._delimiter_char                 // Invalid emphasis delimiter
+      /[^*\/~=+_:@\[\]<>\\\{\}\$^\n]+/,  // Regular text (exclude $ and ^)
+      $._delimiter_char,                 // Invalid emphasis delimiter
+      $._plain_colon                     // Colon not part of tags
     ))),
 
     // Plain text for emphasis contexts: allows $ and ^ since LaTeX/sub/super
     // aren't available in emphasis (they would cause ERROR nodes otherwise)
     plain_text_emphasis: $ => prec.right(PRECEDENCE.PLAIN_TEXT, repeat1(choice(
       /[^*\/~=+_:@\[\]<>\\\{\}\n]+/,    // Regular text (INCLUDES $ and ^)
-      $._delimiter_char                 // Invalid emphasis delimiter
+      $._delimiter_char,                 // Invalid emphasis delimiter
+      $._plain_colon                     // Colon not part of tags
     )))
   }
 });

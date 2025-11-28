@@ -10,8 +10,9 @@ This is *bold* text.
   (title_only
     (title
       (plain_text)
-      (bold
-        (plain_text))
+      (text_markup
+        (bold
+          (plain_text)))
       (plain_text))))
 
 ==================
@@ -38,8 +39,9 @@ Test 3: Valid PRE - beginning of line
 (inline
   (title_only
     (title
-      (bold
-        (plain_text))
+      (text_markup
+        (bold
+          (plain_text)))
       (_whitespace)
       (plain_text)
       (_whitespace)
@@ -57,6 +59,7 @@ Text *bold* more
   (title_only
     (title
       (plain_text)
-      (bold
-        (plain_text))
+      (text_markup
+        (bold
+          (plain_text)))
       (plain_text))))

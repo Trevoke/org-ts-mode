@@ -1,14 +1,12 @@
 ==================
-Debug: Bold at BOL
+Just asterisk
 ==================
 
-*bold* text
+*
 
 ---
 
 (inline
   (title_only
     (title
-      (bold
-        (plain_text))
       (plain_text))))
