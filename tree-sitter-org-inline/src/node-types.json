@@ -123,6 +123,11 @@
     }
   },
   {
+    "type": "latex_fragment",
+    "named": true,
+    "fields": {}
+  },
+  {
     "type": "macro",
     "named": true,
     "fields": {},
@@ -189,6 +194,10 @@
             "named": true
           },
           {
+            "type": "latex_fragment",
+            "named": true
+          },
+          {
             "type": "macro",
             "named": true
           },
@@ -206,6 +215,14 @@
           },
           {
             "type": "strike_through",
+            "named": true
+          },
+          {
+            "type": "subscript",
+            "named": true
+          },
+          {
+            "type": "superscript",
             "named": true
           },
           {
@@ -273,6 +290,16 @@
     }
   },
   {
+    "type": "subscript",
+    "named": true,
+    "fields": {}
+  },
+  {
+    "type": "superscript",
+    "named": true,
+    "fields": {}
+  },
+  {
     "type": "target",
     "named": true,
     "fields": {}
@@ -319,6 +346,10 @@
           "named": true
         },
         {
+          "type": "latex_fragment",
+          "named": true
+        },
+        {
           "type": "macro",
           "named": true
         },
@@ -344,6 +375,14 @@
         },
         {
           "type": "strike_through",
+          "named": true
+        },
+        {
+          "type": "subscript",
+          "named": true
+        },
+        {
+          "type": "superscript",
           "named": true
         },
         {
@@ -452,6 +491,10 @@
     "fields": {}
   },
   {
+    "type": "$$",
+    "named": false
+  },
+  {
     "type": "%",
     "named": false
   },
@@ -516,6 +559,22 @@
     "named": false
   },
   {
+    "type": "\\(",
+    "named": false
+  },
+  {
+    "type": "\\)",
+    "named": false
+  },
+  {
+    "type": "\\[",
+    "named": false
+  },
+  {
+    "type": "\\]",
+    "named": false
+  },
+  {
     "type": "]",
     "named": false
   },
@@ -540,11 +599,19 @@
     "named": true
   },
   {
+    "type": "{",
+    "named": false
+  },
+  {
     "type": "{{{",
     "named": false
   },
   {
     "type": "{}",
+    "named": false
+  },
+  {
+    "type": "}",
     "named": false
   },
   {
