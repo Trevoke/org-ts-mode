@@ -40,10 +40,10 @@ const PRECEDENCE = {
   CODE: 15,            // code, verbatim
 
   // Minimal set objects
-  ENTITY: 20,          // \alpha, \nbsp
+  ENTITY: 22,          // \alpha, \nbsp (higher precedence than LaTeX)
 
-  // LaTeX (after entity - entities like \alpha take priority over \commands)
-  LATEX_FRAGMENT: 22,
+  // LaTeX (lower precedence - entity wins for ambiguous cases like \alpha)
+  LATEX_FRAGMENT: 20,
 
   // Standard objects
   TARGET: 30,          // <<target>>
@@ -251,6 +251,12 @@ module.exports = grammar({
     $._delimiter_char,
   ],
 
+  conflicts: $ => [
+    // Entity vs LaTeX fragment: both can match \NAME
+    // Entity has higher precedence (22) to win for known entities
+    [$.entity, $.latex_fragment],
+  ],
+
   extras: $ => ['\n'],
 
   rules: {
@@ -386,8 +392,8 @@ module.exports = grammar({
       optional('{}')  // Optional braces for explicit termination
     )),
 
-    // LaTeX fragment: $$content$$, \(...\), \[...\], $...$
-    // Note: Entity takes precedence for known entities like \alpha
+    // LaTeX fragment: $$...$$, \(...\), \[...\], $...$, \command{...}
+    // Note: Entity (\alpha etc) has higher precedence and wins for known names
     latex_fragment: $ => prec.dynamic(PRECEDENCE.LATEX_FRAGMENT, choice(
       // $$CONTENTS$$ - TeX display math (must come before single $)
       seq(token('$$'), /[^$]+/, token('$$')),
@@ -413,6 +419,22 @@ module.exports = grammar({
           )
         )
       )),
+      // \NAME BRACKETS - LaTeX commands
+      // NAME is alphabetic, BRACKETS is optional [...] or {...}
+      // Note: Entity has higher precedence (22 vs 20), so for ambiguous patterns
+      // like \alpha, entity will win. LaTeX pattern catches everything else.
+      seq(
+        '\\',
+        /[a-zA-Z]+/,
+        optional(choice(
+          // [optional] followed by {required}
+          seq('[', /[^\[\]{}\n]*/, ']', seq('{', /[^\{\}\n]*/, '}')),
+          // {...} with content (can be empty)
+          seq('{', /[^\{\}\n]*/, '}'),
+          // [...] standalone
+          seq('[', /[^\[\]{}\n]*/, ']')
+        ))
+      ),
     )),
 
     // Target: <<target>>
