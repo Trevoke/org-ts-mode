@@ -386,10 +386,10 @@ module.exports = grammar({
       optional('{}')  // Optional braces for explicit termination
     )),
 
-    // LaTeX fragment: $$content$$, \(...\), \[...\], \command{...}
+    // LaTeX fragment: $$content$$, \(...\), \[...\], $...$
     // Note: Entity takes precedence for known entities like \alpha
     latex_fragment: $ => prec.dynamic(PRECEDENCE.LATEX_FRAGMENT, choice(
-      // $$CONTENTS$$ - TeX display math
+      // $$CONTENTS$$ - TeX display math (must come before single $)
       seq(token('$$'), /[^$]+/, token('$$')),
       // \(CONTENTS\) - Inline math
       // Content: anything except \) sequence
@@ -397,6 +397,22 @@ module.exports = grammar({
       // \[CONTENTS\] - Display math
       // Content: anything except \] sequence
       seq(token('\\['), repeat(choice(/[^\\\]]+/, /\\[^\]]/)), token('\\]')),
+      // $CHAR$ or $BORDER1 BODY BORDER2$ - TeX inline math
+      // CHAR: non-whitespace, not . , ? ; " and not digits
+      // BORDER1: non-whitespace, not . , ; $
+      // BORDER2: non-whitespace, not . , $
+      token(seq(
+        '$',
+        choice(
+          seq(/[^\s.,?;"0-9\n$]/, '$'),  // Single CHAR followed by $
+          seq(
+            /[^\s.,;$\n]/,    // BORDER1
+            /[^$\n]*/,        // BODY (can be empty per spec)
+            /[^\s.,$\n]/,     // BORDER2
+            '$'
+          )
+        )
+      )),
     )),
 
     // Target: <<target>>
