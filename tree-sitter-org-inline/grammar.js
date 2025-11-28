@@ -130,6 +130,7 @@ const CONTEXTS = {
     allow_code: true,            // code/verbatim allowed
     allow_all_objects: false,    // we'll handle entity specially
     allow_entity_only: true,     // entity is the only object allowed
+    use_emphasis_plain_text: true,  // use plain_text variant that allows $ and ^
   },
 };
 
@@ -190,8 +191,13 @@ function build_choices_array(context, exclude_emphasis = null) {
     choices.push('entity');
   }
 
-  // Plain text always allowed
-  choices.push('plain_text');
+  // Plain text always allowed - use emphasis variant if in emphasis context
+  // (emphasis variant allows $ and ^ which aren't matchable as objects there)
+  if (context.use_emphasis_plain_text) {
+    choices.push('plain_text_emphasis');
+  } else {
+    choices.push('plain_text');
+  }
 
   return choices;
 }
@@ -209,7 +215,13 @@ function create_inline_variant($, name, context, exclude_emphasis = null) {
   const choices_array = build_choices_array(context, exclude_emphasis);
 
   // Convert string names to $ rule references
-  const choices_refs = choices_array.map(choice_name => $[choice_name]);
+  // Alias plain_text_emphasis as plain_text so parse tree looks the same
+  const choices_refs = choices_array.map(choice_name => {
+    if (choice_name === 'plain_text_emphasis') {
+      return alias($.plain_text_emphasis, $.plain_text);
+    }
+    return $[choice_name];
+  });
 
   // Return choice() rule
   return choice(...choices_refs);
@@ -577,8 +589,16 @@ module.exports = grammar({
 
     // Plain text: fallback for any characters not matched by other rules
     // Excludes: brackets, special chars for objects (links, entities, macros, etc.)
+    // Also excludes $ and ^ for LaTeX/superscript/subscript matching
     plain_text: $ => prec.right(PRECEDENCE.PLAIN_TEXT, repeat1(choice(
       /[^*\/~=+_:@\[\]<>\\\{\}\$^\n]+/,  // Regular text (exclude $ and ^ for LaTeX/sub/super)
+      $._delimiter_char                 // Invalid emphasis delimiter
+    ))),
+
+    // Plain text for emphasis contexts: allows $ and ^ since LaTeX/sub/super
+    // aren't available in emphasis (they would cause ERROR nodes otherwise)
+    plain_text_emphasis: $ => prec.right(PRECEDENCE.PLAIN_TEXT, repeat1(choice(
+      /[^*\/~=+_:@\[\]<>\\\{\}\n]+/,    // Regular text (INCLUDES $ and ^)
       $._delimiter_char                 // Invalid emphasis delimiter
     )))
   }
