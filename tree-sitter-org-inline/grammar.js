@@ -73,6 +73,26 @@ const PRECEDENCE = {
 };
 
 // ============================================================================
+// KNOWN LIMITATION (Phase 3):
+// ============================================================================
+// LaTeX fragments, subscript, and superscript are NOT available inside
+// emphasis content (bold/italic/underline/strike) to avoid parser state
+// explosion. Org-mode spec allows these ("standard set of objects"), but
+// we restrict for performance. Phase 1 testing showed that allowing all
+// objects in EMPHASIS causes state explosion (182 → 382 states).
+//
+// Examples that WON'T work:
+//   *bold with x^2*      - superscript NOT parsed
+//   /italic with $\alpha$/ - LaTeX NOT parsed
+//
+// Examples that WILL work:
+//   Text with x^2        - in normal context
+//   [[url][H_2O desc]]   - in link description
+//
+// This limitation may be addressed in a future optimization phase.
+// ============================================================================
+
+// ============================================================================
 // CONTEXT DEFINITIONS
 // ============================================================================
 // Define which objects are allowed in which contexts
