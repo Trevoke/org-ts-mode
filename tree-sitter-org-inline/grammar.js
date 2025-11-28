@@ -45,6 +45,10 @@ const PRECEDENCE = {
   // LaTeX (lower precedence - entity wins for ambiguous cases like \alpha)
   LATEX_FRAGMENT: 20,
 
+  // Subscript and superscript (lower precedence than underline emphasis)
+  SUBSCRIPT: 23,
+  SUPERSCRIPT: 24,
+
   // Standard objects
   TARGET: 30,          // <<target>>
   RADIO_TARGET: 31,    // <<<radio>>>
@@ -149,6 +153,7 @@ function build_choices_array(context, exclude_emphasis = null) {
     choices.push(
       'entity',
       'latex_fragment',
+      'superscript',
       'target',
       'radio_target',
       'macro',
@@ -437,6 +442,25 @@ module.exports = grammar({
       ),
     )),
 
+    // Superscript: CHAR^SCRIPT
+    // CHAR is single alphanumeric character before ^ (spec says "any non-whitespace",
+    //   but we use alphanumeric for practical parsing without scanner)
+    // SCRIPT is: * | {content} | (content) | SIGN?CHARS FINAL
+    // LIMITATION: Using token() means "mc^2" won't parse - must be "m c^2" or use scanner
+    superscript: $ => prec.dynamic(PRECEDENCE.SUPERSCRIPT, token(seq(
+      /[a-zA-Z0-9]/,  // CHAR - single alphanumeric
+      '^',
+      choice(
+        '*',                                    // Single asterisk
+        seq('{', /[^{}\n]*/, '}'),             // Braced content
+        seq('(', /[^()\n]*/, ')'),             // Parenthesized
+        seq(                                    // Pattern: SIGN? CHARS FINAL
+          optional(/[+-]/),                    // SIGN
+          /[a-zA-Z0-9,\\.]*[a-zA-Z0-9]/        // CHARS + FINAL (must end alphanumeric)
+        )
+      )
+    ))),
+
     // Target: <<target>>
     target: $ => prec.dynamic(PRECEDENCE.TARGET, seq(
       '<<',
@@ -512,7 +536,6 @@ module.exports = grammar({
     // ========================================================================
 
     // Plain text: fallback for any characters not matched by other rules
-    // Includes DELIMITER_CHAR for invalid emphasis delimiters (e.g., * in "* text*")
     // Excludes: brackets, special chars for objects (links, entities, macros, etc.)
     plain_text: $ => prec.right(PRECEDENCE.PLAIN_TEXT, repeat1(choice(
       /[^*\/~=+_:@\[\]<>\\\{\}\$^\n]+/,  // Regular text (exclude $ and ^ for LaTeX/sub/super)
