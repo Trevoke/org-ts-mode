@@ -391,6 +391,12 @@ module.exports = grammar({
     latex_fragment: $ => prec.dynamic(PRECEDENCE.LATEX_FRAGMENT, choice(
       // $$CONTENTS$$ - TeX display math
       seq(token('$$'), /[^$]+/, token('$$')),
+      // \(CONTENTS\) - Inline math
+      // Content: anything except \) sequence
+      seq(token('\\('), repeat(choice(/[^\\)]+/, /\\[^)]/)), token('\\)')),
+      // \[CONTENTS\] - Display math
+      // Content: anything except \] sequence
+      seq(token('\\['), repeat(choice(/[^\\\]]+/, /\\[^\]]/)), token('\\]')),
     )),
 
     // Target: <<target>>
