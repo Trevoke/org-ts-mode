@@ -73,6 +73,9 @@ enum TokenType {
     // Code and verbatim - scanner emits entire construct as single token
     CODE,       // ~content~
     VERBATIM,   // =content=
+
+    // Line break - scanner validates PRE (not backslash)
+    LINE_BREAK,  // \\ at end of line
 };
 
 /**
@@ -1495,6 +1498,44 @@ bool tree_sitter_org_inline_external_scanner_scan(
             return false;
         }
         // PRE boundary failed - fall through to Priority 1
+    }
+
+    // Priority 0.5: Line break scanning
+    // Pattern: PRE \\ SPACE \n where PRE is not backslash
+    // We check: lookahead is '\', last_char is not '\', then verify \\ + optional space + newline
+    if (lexer->lookahead == '\\' && valid_symbols[LINE_BREAK]) {
+        // PRE check: last_char must not be backslash
+        // Also reject if last_char is unknown (0) - the unknown char might be backslash
+        // Exception: at_line_start means no PRE needed (beginning of line is valid PRE)
+        bool pre_valid = scanner->at_line_start ||
+                         (scanner->last_char != 0 && scanner->last_char != '\\');
+        if (pre_valid) {
+            // Look for \\ followed by optional spaces and newline
+            lexer->advance(lexer, false);  // Consume first backslash
+            if (lexer->lookahead == '\\') {
+                lexer->advance(lexer, false);  // Consume second backslash
+                // Skip optional trailing spaces/tabs
+                while (lexer->lookahead == ' ' || lexer->lookahead == '\t') {
+                    lexer->advance(lexer, false);
+                }
+                // Must end with newline
+                if (lexer->lookahead == '\n' || lexer->eof(lexer)) {
+                    if (lexer->lookahead == '\n') {
+                        lexer->advance(lexer, false);  // Consume newline
+                    }
+                    lexer->mark_end(lexer);
+                    lexer->result_symbol = LINE_BREAK;
+                    scanner->last_char = '\n';
+                    scanner->at_line_start = true;
+                    return true;
+                }
+            }
+            // Not a valid line break - return false to let grammar try other rules
+            // Note: We've advanced past the first backslash, which may cause issues.
+            // Tree-sitter will reset lexer position on false return.
+            return false;
+        }
+        // PRE is backslash - not a valid line break, fall through
     }
 
     // Priority 1: Emphasis scanning (MUST come before TAGS!)

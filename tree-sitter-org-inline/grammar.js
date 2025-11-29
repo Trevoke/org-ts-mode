@@ -62,6 +62,9 @@ const PRECEDENCE = {
   // References
   FOOTNOTE_REFERENCE: 50,  // [fn:label]
 
+  // Line break (must be high to beat entity/latex)
+  LINE_BREAK: 55,          // \\ at end of line
+
   // Links (high precedence)
   PLAIN_LINK: 60,      // http://example.com
   ANGLE_LINK: 61,      // <http://example.com>
@@ -185,7 +188,8 @@ function build_choices_array(context, exclude_emphasis = null) {
       'export_snippet',
       'timestamp',
       'statistics_cookie',
-      'footnote_reference'
+      'footnote_reference',
+      'line_break'
     );
   }
 
@@ -200,7 +204,8 @@ function build_choices_array(context, exclude_emphasis = null) {
       'export_snippet',
       'timestamp',
       'statistics_cookie',
-      'footnote_reference'
+      'footnote_reference',
+      'line_break'
     );
   }
 
@@ -316,6 +321,9 @@ module.exports = grammar({
     // (handles internal ~ or = that aren't valid closers)
     $._code,
     $._verbatim,
+
+    // Line break - scanner validates PRE (not backslash)
+    $._line_break,
   ],
 
   conflicts: $ => [
@@ -447,6 +455,11 @@ module.exports = grammar({
     // ========================================================================
     // OBJECTS
     // ========================================================================
+
+    // Line break: \\ at end of line
+    // Pattern: PRE \\ SPACE \n where PRE is not backslash
+    // Scanner validates PRE boundary and emits entire construct
+    line_break: $ => $._line_break,
 
     // Entity: \alpha, \nbsp, etc.
     entity: $ => prec.dynamic(PRECEDENCE.ENTITY, seq(

@@ -1,0 +1,134 @@
+==================
+Valid: Simple line break at end of line
+==================
+
+text\\
+more text
+
+---
+
+(inline
+  (title_only
+    (title
+      (plain_text)
+      (line_break)
+      (plain_text))))
+
+==================
+Valid: Line break with trailing spaces
+==================
+
+text\\
+more text
+
+---
+
+(inline
+  (title_only
+    (title
+      (plain_text)
+      (line_break)
+      (plain_text))))
+
+==================
+Valid: Line break after punctuation
+==================
+
+Hello world.\\
+Next line.
+
+---
+
+(inline
+  (title_only
+    (title
+      (plain_text)
+      (line_break)
+      (plain_text))))
+
+==================
+Known limitation: Backslash before line break not detected
+==================
+
+text\\\\
+more
+
+---
+
+; KNOWN LIMITATION: Scanner can't see grammar-consumed chars (ERROR).
+; The first \\ becomes ERROR, then the second \\ matches line_break
+; because last_char is stale. Same root cause as emphasis PRE issue.
+(inline
+  (title_only
+    (title
+      (plain_text)
+      (ERROR)
+      (line_break)
+      (plain_text))))
+
+==================
+Single backslash at EOL becomes entity (not line break)
+==================
+
+text\
+more
+
+---
+
+; The \ at EOL combines with "more" on next line to form entity
+; because newline is an extra (skipped between tokens)
+(inline
+  (title_only
+    (title
+      (plain_text)
+      (entity))))
+
+==================
+Invalid: Double backslash not at end of line (ERROR + entity, not line_break)
+==================
+
+text\\more on same line
+
+---
+
+(inline
+  (title_only
+    (title
+      (plain_text)
+      (ERROR)
+      (entity)
+      (plain_text))))
+
+==================
+Valid: Line break at start of content (beginning of line is valid PRE)
+==================
+
+\\
+text
+
+---
+
+(inline
+  (title_only
+    (title
+      (line_break)
+      (plain_text))))
+
+==================
+Valid: Multiple line breaks
+==================
+
+line one\\
+line two\\
+line three
+
+---
+
+(inline
+  (title_only
+    (title
+      (plain_text)
+      (line_break)
+      (plain_text)
+      (line_break)
+      (plain_text))))

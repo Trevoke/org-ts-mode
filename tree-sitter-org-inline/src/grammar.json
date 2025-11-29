@@ -108,6 +108,10 @@
         },
         {
           "type": "SYMBOL",
+          "name": "line_break"
+        },
+        {
+          "type": "SYMBOL",
           "name": "plain_text"
         }
       ]
@@ -182,6 +186,10 @@
         {
           "type": "SYMBOL",
           "name": "footnote_reference"
+        },
+        {
+          "type": "SYMBOL",
+          "name": "line_break"
         },
         {
           "type": "SYMBOL",
@@ -266,6 +274,10 @@
           "name": "footnote_reference"
         },
         {
+          "type": "SYMBOL",
+          "name": "line_break"
+        },
+        {
           "type": "ALIAS",
           "content": {
             "type": "SYMBOL",
@@ -342,6 +354,10 @@
         {
           "type": "SYMBOL",
           "name": "footnote_reference"
+        },
+        {
+          "type": "SYMBOL",
+          "name": "line_break"
         },
         {
           "type": "ALIAS",
@@ -422,6 +438,10 @@
           "name": "footnote_reference"
         },
         {
+          "type": "SYMBOL",
+          "name": "line_break"
+        },
+        {
           "type": "ALIAS",
           "content": {
             "type": "SYMBOL",
@@ -498,6 +518,10 @@
         {
           "type": "SYMBOL",
           "name": "footnote_reference"
+        },
+        {
+          "type": "SYMBOL",
+          "name": "line_break"
         },
         {
           "type": "ALIAS",
@@ -836,6 +860,10 @@
     "plain_link": {
       "type": "SYMBOL",
       "name": "_plain_link"
+    },
+    "line_break": {
+      "type": "SYMBOL",
+      "name": "_line_break"
     },
     "entity": {
       "type": "PREC_DYNAMIC",
@@ -1708,6 +1736,10 @@
     {
       "type": "SYMBOL",
       "name": "_verbatim"
+    },
+    {
+      "type": "SYMBOL",
+      "name": "_line_break"
     }
   ],
   "inline": [],

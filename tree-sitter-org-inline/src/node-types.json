@@ -37,6 +37,10 @@
           "named": true
         },
         {
+          "type": "line_break",
+          "named": true
+        },
+        {
           "type": "macro",
           "named": true
         },
@@ -156,6 +160,10 @@
           "named": true
         },
         {
+          "type": "line_break",
+          "named": true
+        },
+        {
           "type": "macro",
           "named": true
         },
@@ -204,6 +212,11 @@
   },
   {
     "type": "latex_fragment",
+    "named": true,
+    "fields": {}
+  },
+  {
+    "type": "line_break",
     "named": true,
     "fields": {}
   },
@@ -275,6 +288,10 @@
           },
           {
             "type": "latex_fragment",
+            "named": true
+          },
+          {
+            "type": "line_break",
             "named": true
           },
           {
@@ -364,6 +381,10 @@
         },
         {
           "type": "italic",
+          "named": true
+        },
+        {
+          "type": "line_break",
           "named": true
         },
         {
@@ -467,6 +488,10 @@
         },
         {
           "type": "latex_fragment",
+          "named": true
+        },
+        {
+          "type": "line_break",
           "named": true
         },
         {
@@ -600,6 +625,10 @@
         },
         {
           "type": "italic",
+          "named": true
+        },
+        {
+          "type": "line_break",
           "named": true
         },
         {
