@@ -69,6 +69,10 @@ enum TokenType {
 
     // Plain text - scanner handles subscript/superscript boundary detection
     PLAIN_TEXT,
+
+    // Code and verbatim - scanner emits entire construct as single token
+    CODE,       // ~content~
+    VERBATIM,   // =content=
 };
 
 /**
@@ -452,14 +456,38 @@ static bool validate_closing_boundary(
  * @param marker Delimiter to find
  * @return true if valid closing delimiter found
  */
+/**
+ * Check if a character at current position could be a valid closer for parent emphasis
+ *
+ * This is a quick check - we verify:
+ * 1. The previous character is not whitespace (no trailing whitespace in CONTENTS)
+ * 2. We're not at distance 0 (not empty CONTENTS)
+ *
+ * We don't fully validate POST here (would require another lookahead),
+ * but this is conservative - if it MIGHT be a valid closer, we stop.
+ */
+static inline bool could_be_valid_closer(int32_t prev_char, int distance) {
+    return distance > 0 && !is_whitespace(prev_char);
+}
+
 static bool find_closing_delimiter(ScanContext *ctx, char marker) {
     if (ctx == NULL || ctx->lexer == NULL) {
         return false;
     }
 
     TSLexer *lexer = ctx->lexer;
+    const bool *valid_symbols = ctx->valid_symbols;
     int32_t prev_char = 0;
     int distance = 0;
+
+    // Determine which parent emphasis we're nested inside (if any)
+    // If a CLOSE token is valid, we're inside that emphasis type
+    // We must not cross that parent's closing boundary
+    bool inside_bold = valid_symbols[BOLD_CLOSE] && marker != '*';
+    bool inside_italic = valid_symbols[ITALIC_CLOSE] && marker != '/';
+    bool inside_underline = valid_symbols[UNDERLINE_CLOSE] && marker != '_';
+    bool inside_strike = valid_symbols[STRIKE_CLOSE] && marker != '+';
+    // Note: code/verbatim don't allow nested emphasis, handled separately
 
     // Track previous character for boundary validation
     // Start with whatever came after opening marker
@@ -472,10 +500,32 @@ static bool find_closing_delimiter(ScanContext *ctx, char marker) {
     while (!lexer->eof(lexer) && distance < MAX_LOOKAHEAD_DISTANCE) {
         int32_t current = lexer->lookahead;
 
-        // Stop at line end (emphasis cannot span lines)
-        // Source: org-syntax.md - emphasis is line-scoped
-        if (current == '\n' || current == '\r') {
-            return false;  // No valid closing found before line end
+        // Note: Emphasis CAN span newlines per org-syntax.md line 1186:
+        // "while many objects may contain newlines"
+        // The constraint is only that CONTENTS cannot begin/end with whitespace.
+        // Blank lines terminate the paragraph (handled by grammar), not the scanner.
+        //
+        // EXCEPTION: Code (~) and verbatim (=) are opaque and contain "a string"
+        // per org-syntax.md line 1765-1766. They should be line-scoped to avoid
+        // capturing too much content. This matches practical org-mode behavior.
+        if ((current == '\n' || current == '\r') && (marker == '~' || marker == '=')) {
+            return false;  // Code/verbatim cannot span lines
+        }
+
+        // Check if we've hit a parent emphasis's closing boundary
+        // If so, we cannot find a valid closer for our marker within scope
+        // This prevents crossing emphasis boundaries (org-syntax requirement)
+        if (inside_bold && current == '*' && could_be_valid_closer(prev_char, distance)) {
+            return false;  // Would cross bold boundary
+        }
+        if (inside_italic && current == '/' && could_be_valid_closer(prev_char, distance)) {
+            return false;  // Would cross italic boundary
+        }
+        if (inside_underline && current == '_' && could_be_valid_closer(prev_char, distance)) {
+            return false;  // Would cross underline boundary
+        }
+        if (inside_strike && current == '+' && could_be_valid_closer(prev_char, distance)) {
+            return false;  // Would cross strike boundary
         }
 
         // Found potential closing marker
@@ -483,6 +533,17 @@ static bool find_closing_delimiter(ScanContext *ctx, char marker) {
             // Validate closing boundary
             // Need to check that previous char is not whitespace (no trailing whitespace)
             // and that next char (after marker) is valid POST char
+
+            // Check for EMPTY CONTENTS (org-syntax: CONTENTS may not be empty)
+            // If distance == 0, we found the closer immediately after opener = empty CONTENTS
+            if (distance == 0) {
+                // Empty CONTENTS is invalid per spec
+                // The marker becomes part of potential content, continue looking
+                prev_char = current;
+                lexer->advance(lexer, false);
+                distance++;
+                continue;
+            }
 
             // Check CONTENTS boundary (no trailing whitespace before closer)
             if (is_whitespace(prev_char)) {
@@ -1083,6 +1144,119 @@ static bool is_valid_tag_char(int32_t c) {
 }
 
 // ============================================================================
+// CODE AND VERBATIM SCANNING
+// ============================================================================
+
+/**
+ * Scan entire code or verbatim construct as a single token
+ *
+ * For code (~content~) and verbatim (=content=), we emit the entire construct
+ * as a single token because:
+ * 1. Content is opaque (no parsing inside)
+ * 2. Content may contain the marker character (e.g., ~outer ~inner~)
+ *    when that character isn't at a valid closing position
+ *
+ * @param ctx Scanning context
+ * @param marker The delimiter character ('~' for code, '=' for verbatim)
+ * @param token_type The token type to emit (CODE or VERBATIM)
+ * @return true if token emitted, false otherwise
+ */
+static bool scan_code_or_verbatim(ScanContext *ctx, char marker, enum TokenType token_type) {
+    if (ctx == NULL || ctx->lexer == NULL) {
+        return false;
+    }
+
+    TSLexer *lexer = ctx->lexer;
+    Scanner *scanner = ctx->scanner;
+
+    // Mark the start position - if we fail, this ensures tree-sitter knows
+    // we didn't consume anything
+    lexer->mark_end(lexer);
+
+    // Must start with marker
+    if (lexer->lookahead != marker) {
+        return false;
+    }
+
+    // Check PRE boundary
+    if (!is_pre_char(scanner->last_char, scanner->at_line_start)) {
+        return false;
+    }
+
+    // Consume opening marker
+    lexer->advance(lexer, false);
+
+    // Mark end after marker - if we fail later, caller can emit DELIMITER_CHAR for just the marker
+    lexer->mark_end(lexer);
+
+    // Check CONTENTS boundary (no leading whitespace)
+    if (is_whitespace(lexer->lookahead) || lexer->eof(lexer)) {
+        return false;  // Invalid: leading whitespace or empty
+    }
+
+    // Track previous character for boundary validation
+    int32_t prev_char = lexer->lookahead;
+    int distance = 0;
+
+    // Scan content looking for valid closing marker
+    while (!lexer->eof(lexer) && distance < MAX_LOOKAHEAD_DISTANCE) {
+        int32_t current = lexer->lookahead;
+
+        // Code/verbatim cannot span lines
+        if (current == '\n' || current == '\r') {
+            return false;
+        }
+
+        // Found potential closing marker
+        if (current == marker) {
+            // Check EMPTY CONTENTS
+            if (distance == 0) {
+                // Empty contents - marker becomes content, continue
+                prev_char = current;
+                lexer->advance(lexer, false);
+                distance++;
+                continue;
+            }
+
+            // Check CONTENTS boundary (no trailing whitespace)
+            if (is_whitespace(prev_char)) {
+                // Invalid closer, continue looking
+                prev_char = current;
+                lexer->advance(lexer, false);
+                distance++;
+                continue;
+            }
+
+            // Advance past closing marker to check POST
+            lexer->advance(lexer, false);
+            distance++;
+
+            // Check POST boundary
+            bool at_line_end = at_line_boundary(lexer);
+            if (is_post_char(lexer->lookahead, at_line_end)) {
+                // Valid code/verbatim construct!
+                lexer->mark_end(lexer);
+                lexer->result_symbol = token_type;
+                scanner->last_char = marker;  // The closing marker
+                return true;
+            }
+
+            // Invalid POST, continue looking
+            prev_char = marker;
+            continue;
+        }
+
+        // Regular character - consume it
+        prev_char = current;
+        lexer->advance(lexer, false);
+        distance++;
+    }
+
+    // No valid closing found
+    return false;
+}
+
+// ============================================================================
 // MAIN SCAN FUNCTION
 // ============================================================================
 
@@ -1282,8 +1456,51 @@ bool tree_sitter_org_inline_external_scanner_scan(
     // fprintf(stderr, "DEBUG SCAN: at '%c' valid_symbols: PLAIN_TEXT=%d\n",
     //         current_char, valid_symbols[PLAIN_TEXT]);
 
+    // Priority 0: Code and verbatim scanning (entire construct as single token)
+    // Check for ~ (code) or = (verbatim) and emit full construct
+    // The scan_code_or_verbatim function handles same-delimiter nesting correctly
+    // by scanning the full content and finding the proper closing position.
+    //
+    // IMPORTANT: We check PRE boundary first. If PRE fails, skip to DELIMITER_CHAR
+    // handling to avoid scan_code_or_verbatim corrupting lexer position.
+    if (lexer->lookahead == '~' && valid_symbols[CODE]) {
+        // Check PRE boundary before trying scan_code_or_verbatim
+        if (is_pre_char(scanner->last_char, scanner->at_line_start)) {
+            if (scan_code_or_verbatim(&ctx, '~', CODE)) {
+                return true;
+            }
+            // CODE failed - if DELIMITER_CHAR is valid, emit it for just the marker
+            // scan_code_or_verbatim has already called mark_end after the marker
+            if (valid_symbols[DELIMITER_CHAR]) {
+                lexer->result_symbol = DELIMITER_CHAR;
+                scanner->last_char = '~';
+                return true;
+            }
+            return false;
+        }
+        // PRE boundary failed - fall through to Priority 1 emphasis handling
+        // which will emit DELIMITER_CHAR if valid
+    }
+    if (lexer->lookahead == '=' && valid_symbols[VERBATIM]) {
+        if (is_pre_char(scanner->last_char, scanner->at_line_start)) {
+            if (scan_code_or_verbatim(&ctx, '=', VERBATIM)) {
+                return true;
+            }
+            // VERBATIM failed - emit DELIMITER_CHAR for just the marker
+            if (valid_symbols[DELIMITER_CHAR]) {
+                lexer->result_symbol = DELIMITER_CHAR;
+                scanner->last_char = '=';
+                return true;
+            }
+            return false;
+        }
+        // PRE boundary failed - fall through to Priority 1
+    }
+
     // Priority 1: Emphasis scanning (MUST come before TAGS!)
     // Only try if we're at an emphasis marker character
+    // Note: ~ and = are handled by code/verbatim above, but still check here for
+    // cases where CODE/VERBATIM isn't valid (e.g., partial matches or closers)
     if (is_emphasis_marker(lexer->lookahead) &&
         (valid_symbols[BOLD_OPEN] || valid_symbols[BOLD_CLOSE] ||
          valid_symbols[ITALIC_OPEN] || valid_symbols[ITALIC_CLOSE] ||
@@ -1314,6 +1531,9 @@ bool tree_sitter_org_inline_external_scanner_scan(
             }
         }
 
+        // Track position before scan_emphasis to detect if delimiter was consumed
+        uint32_t col_before = lexer->get_column(lexer);
+
         bool result = scan_emphasis(&ctx);
         if (result) {
             // Successfully emitted a token
@@ -1321,13 +1541,27 @@ bool tree_sitter_org_inline_external_scanner_scan(
             // between scanner invocations, making the delimiter position stale
             scanner->last_char = 0;
         } else if (valid_symbols[DELIMITER_CHAR]) {
-            // Invalid emphasis - emit DELIMITER_CHAR fallback
-            lexer->advance(lexer, false);
-            lexer->mark_end(lexer);
-            lexer->result_symbol = DELIMITER_CHAR;
+            // scan_emphasis failed - emit DELIMITER_CHAR as fallback
+            // This allows emphasis markers to appear as plain text when:
+            // - Invalid opening position (PRE boundary fails)
+            // - No valid closing delimiter found
+            // - Invalid closing position (POST boundary fails)
+            // - Inside code/verbatim content (marker not at valid closing position)
+            // Check if scan_emphasis consumed the delimiter (position changed)
+            uint32_t col_after = lexer->get_column(lexer);
+            if (col_after > col_before) {
+                // Delimiter was consumed by scan_emphasis, just emit
+                lexer->result_symbol = DELIMITER_CHAR;
+            } else {
+                // Delimiter was NOT consumed - advance and emit
+                lexer->advance(lexer, false);
+                lexer->mark_end(lexer);
+                lexer->result_symbol = DELIMITER_CHAR;
+            }
             scanner->last_char = 0;  // Reset to unknown
             return true;
         }
+        // DELIMITER_CHAR not valid - return false and let grammar handle it
         return result;
     }
 

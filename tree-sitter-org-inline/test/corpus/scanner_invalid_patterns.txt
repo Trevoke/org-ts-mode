@@ -291,7 +291,7 @@ This is *bold
       (plain_text))))
 
 ==================
-Invalid: Three stars in a row
+Valid: Three stars in a row (bold containing asterisk)
 ==================
 
 This is *** text.
@@ -301,6 +301,9 @@ This is *** text.
 (inline
   (title_only
     (title
+      (plain_text)
+      (bold
+        (plain_text))
       (plain_text))))
 
 ==================

@@ -311,6 +311,11 @@ module.exports = grammar({
     // Plain text - scanner handles subscript/superscript boundary detection
     // Stops before alphanumeric + _ or ^ patterns to let sub/superscript match
     $._plain_text,
+
+    // Code and verbatim - scanner emits entire construct as single token
+    // (handles internal ~ or = that aren't valid closers)
+    $._code,
+    $._verbatim,
   ],
 
   conflicts: $ => [
@@ -397,19 +402,21 @@ module.exports = grammar({
     // Code: ~text~
     // Content is opaque - no parsing inside
     // Scanner validates PRE/POST/CONTENTS boundaries
-    code: $ => prec.dynamic(PRECEDENCE.CODE, seq(
-      $._code_open,
-      /[^\s~][^~\n]*[^\s~]|[^\s~\n]/,  // Scanner validates, but regex ensures no leading/trailing ws
-      $._code_close
+    // Primary: single CODE token for entire construct (handles internal ~ correctly)
+    // Fallback: CODE_OPEN + regex + CODE_CLOSE (for simple cases when CODE fails)
+    code: $ => prec.dynamic(PRECEDENCE.CODE, choice(
+      $._code,  // Scanner emits entire ~content~ as single token
+      seq($._code_open, /[^\s~][^~\n]*[^\s~]|[^\s~\n]/, $._code_close)  // Fallback
     )),
 
     // Verbatim: =text=
     // Content is opaque - no parsing inside
     // Scanner validates PRE/POST/CONTENTS boundaries
-    verbatim: $ => prec.dynamic(PRECEDENCE.CODE, seq(
-      $._verbatim_open,
-      /[^\s=][^=\n]*[^\s=]|[^\s=\n]/,  // Scanner validates, but regex ensures no leading/trailing ws
-      $._verbatim_close
+    // Primary: single VERBATIM token for entire construct (handles internal = correctly)
+    // Fallback: VERBATIM_OPEN + regex + VERBATIM_CLOSE (for simple cases when VERBATIM fails)
+    verbatim: $ => prec.dynamic(PRECEDENCE.CODE, choice(
+      $._verbatim,  // Scanner emits entire =content= as single token
+      seq($._verbatim_open, /[^\s=][^=\n]*[^\s=]|[^\s=\n]/, $._verbatim_close)  // Fallback
     )),
 
     // ========================================================================
