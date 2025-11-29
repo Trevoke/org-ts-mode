@@ -37,7 +37,6 @@ Review PR: Add new feature :review:code:
 (inline
   (title_with_tags
     (title
-      (plain_text)
       (plain_text))
     (tags)))
 
@@ -65,7 +64,6 @@ Read the book: "The Great Gatsby"
 (inline
   (title_only
     (title
-      (plain_text)
       (plain_text))))
 
 ==================

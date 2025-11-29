@@ -159,7 +159,7 @@ Macro with link
         (macro_name))
       (plain_text)
       (regular_link
-        (plain_text)))))
+        description: (plain_text)))))
 
 ==================
 Macro with tags

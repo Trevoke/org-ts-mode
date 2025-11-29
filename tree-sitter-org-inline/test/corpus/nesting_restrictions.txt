@@ -253,6 +253,8 @@ This *bold with http://example.com inside* works
     (title
       (plain_text)
       (bold
+        (plain_text)
+        (plain_link)
         (plain_text))
       (plain_text))))
 

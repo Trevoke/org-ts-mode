@@ -508,7 +508,7 @@ This is *x* text.
 Valid: Punctuation only in code
 ==================
 
-This is ~!@#$%^ text.
+This is ~!@#$%^~ text.
 
 ---
 

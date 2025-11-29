@@ -40,9 +40,6 @@ Test 3: Valid PRE - beginning of line
     (title
       (bold
         (plain_text))
-      (_whitespace)
-      (plain_text)
-      (_whitespace)
       (plain_text))))
 
 ==================

@@ -470,7 +470,8 @@ This is *snake_case_var* text.
   (title_only
     (title
       (plain_text)
-      (bold)
+      (bold
+        (plain_text))
       (plain_text))))
 
 ==================
@@ -606,7 +607,8 @@ word-*text*-word
   (title_only
     (title
       (plain_text)
-      (bold)
+      (bold
+        (plain_text))
       (plain_text))))
 
 ==================

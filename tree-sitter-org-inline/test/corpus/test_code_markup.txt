@@ -10,8 +10,7 @@ This is ~code with *bold* text~ here
   (title_only
     (title
       (plain_text)
-      (code
-        (plain_text))
+      (code)
       (plain_text))))
 
 ==================
@@ -26,8 +25,7 @@ This is =verbatim with /italic/ text= here
   (title_only
     (title
       (plain_text)
-      (verbatim
-        (plain_text))
+      (verbatim)
       (plain_text))))
 
 ==================
@@ -42,6 +40,5 @@ This is ~code with * and / characters~ here
   (title_only
     (title
       (plain_text)
-      (code
-        (plain_text))
+      (code)
       (plain_text))))

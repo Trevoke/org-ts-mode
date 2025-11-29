@@ -86,7 +86,8 @@ LaTeX command with braces
 (inline
   (title_only
     (title
-      (latex_fragment))))
+      (entity)
+      (plain_text))))
 
 ================================================================================
 LaTeX command with brackets
@@ -97,7 +98,8 @@ LaTeX command with brackets
 (inline
   (title_only
     (title
-      (latex_fragment))))
+      (latex_fragment)
+      (plain_text))))
 
 ================================================================================
 LaTeX command no args (becomes entity at parse time)

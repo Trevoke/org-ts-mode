@@ -616,7 +616,8 @@ static bool is_plain_text_delimiter(int32_t c) {
         return true;
     }
     // Other object markers
-    if (c == '{' || c == '}' || c == '@' || c == '\\') {
+    // Note: '{' needs special handling (could start macro {{{)
+    if (c == '{' || c == '@' || c == '\\') {
         return true;
     }
     // LaTeX markers
@@ -710,7 +711,9 @@ static bool is_valid_script_pattern(TSLexer *lexer) {
 static bool scan_plain_text(ScanContext *ctx) {
     TSLexer *lexer = ctx->lexer;
     const bool *valid_symbols = ctx->valid_symbols;
+    Scanner *scanner = ctx->scanner;
     bool has_content = false;
+    int32_t last_consumed = 0;  // Track last character consumed for PRE validation
 
     while (true) {
         // Mark current position as potential token end
@@ -727,6 +730,7 @@ static bool scan_plain_text(ScanContext *ctx) {
         if (c == ' ' || c == '\t') {
             // Consume all consecutive whitespace
             while ((lexer->lookahead == ' ' || lexer->lookahead == '\t') && !lexer->eof(lexer)) {
+                last_consumed = lexer->lookahead;
                 lexer->advance(lexer, false);
                 has_content = true;
             }
@@ -759,6 +763,7 @@ static bool scan_plain_text(ScanContext *ctx) {
         bool is_alnum = (c >= 'a' && c <= 'z') || (c >= 'A' && c <= 'Z') || (c >= '0' && c <= '9');
         if (is_alnum) {
             // Advance past alphanumeric
+            last_consumed = c;
             lexer->advance(lexer, false);
             int32_t next = lexer->lookahead;
 
@@ -781,6 +786,7 @@ static bool scan_plain_text(ScanContext *ctx) {
                     if (has_content) {
                         // Emit up to mark (includes alnum). Subscript won't match next.
                         // Not ideal but better than ERROR
+                        scanner->last_char = last_consumed;  // Track for PRE validation
                         lexer->result_symbol = PLAIN_TEXT;
                         return true;
                     }
@@ -792,6 +798,7 @@ static bool scan_plain_text(ScanContext *ctx) {
                 // Token ends AFTER alnum, BEFORE _/^ (mark is already set correctly)
                 // The _/^ will be handled by next scan (e.g., UNDERLINE_CLOSE)
                 has_content = true;
+                scanner->last_char = last_consumed;  // Track for PRE validation
                 lexer->result_symbol = PLAIN_TEXT;
                 return true;
             }
@@ -804,11 +811,13 @@ static bool scan_plain_text(ScanContext *ctx) {
         }
 
         // Regular character - consume it
+        last_consumed = c;
         lexer->advance(lexer, false);
         has_content = true;
     }
 
     if (has_content) {
+        scanner->last_char = last_consumed;  // Track for PRE validation
         lexer->result_symbol = PLAIN_TEXT;
         return true;
     }
@@ -1371,13 +1380,16 @@ bool tree_sitter_org_inline_external_scanner_scan(
                 if (valid_symbols[PLAIN_TEXT]) {
                     lexer->mark_end(lexer);
                     lexer->result_symbol = PLAIN_TEXT;
-                    scanner->last_char = 0;
+                    scanner->last_char = next;  // Track the _/^ we consumed
                     return true;
                 }
             }
 
             // Not subscript/superscript - check for plain_link
             // We've consumed one letter, check if rest looks like protocol://
+            // Track last consumed char for PRE validation
+            int32_t prev_char = c;  // c was first alphanumeric consumed
+
             if (valid_symbols[PLAIN_LINK]) {
                 // Continue checking for protocol pattern
                 // Need letters followed by ://
@@ -1391,26 +1403,50 @@ bool tree_sitter_org_inline_external_scanner_scan(
                     }
                     if ((c >= 'a' && c <= 'z') || (c >= 'A' && c <= 'Z') ||
                         (c >= '0' && c <= '9') || c == '.' || c == '-') {
+                        prev_char = c;  // Track before advancing
                         lexer->advance(lexer, false);
                     } else {
                         break;
                     }
                 }
 
-                // Check for ://
+                // Check for :// or mailto:
                 if (lexer->lookahead == ':') {
+                    prev_char = ':';
                     lexer->advance(lexer, false);
                     if (lexer->lookahead == '/') {
+                        prev_char = '/';
                         lexer->advance(lexer, false);
                         if (lexer->lookahead == '/') {
+                            prev_char = '/';
                             lexer->advance(lexer, false);
                             // It's a plain link! Consume the path
                             while (is_plain_link_path_char(lexer->lookahead) && !lexer->eof(lexer)) {
+                                prev_char = lexer->lookahead;
                                 lexer->advance(lexer, false);
                             }
                             lexer->mark_end(lexer);
                             lexer->result_symbol = PLAIN_LINK;
-                            scanner->last_char = 0;
+                            scanner->last_char = prev_char;  // Track last char of URL
+                            return true;
+                        }
+                    } else {
+                        // Not ://, check for mailto: pattern
+                        // After consuming protocol letters and ':', if next looks like an email, it's mailto
+                        // Email format: local@domain (simplified check)
+                        int32_t email_char = lexer->lookahead;
+                        if ((email_char >= 'a' && email_char <= 'z') ||
+                            (email_char >= 'A' && email_char <= 'Z') ||
+                            (email_char >= '0' && email_char <= '9')) {
+                            // Could be mailto: - consume email-like content until whitespace
+                            while (is_plain_link_path_char(lexer->lookahead) && !lexer->eof(lexer)) {
+                                prev_char = lexer->lookahead;
+                                lexer->advance(lexer, false);
+                            }
+                            // Emit as plain_link (mailto:address)
+                            lexer->mark_end(lexer);
+                            lexer->result_symbol = PLAIN_LINK;
+                            scanner->last_char = prev_char;
                             return true;
                         }
                     }
@@ -1421,7 +1457,7 @@ bool tree_sitter_org_inline_external_scanner_scan(
             if (valid_symbols[PLAIN_TEXT]) {
                 lexer->mark_end(lexer);
                 lexer->result_symbol = PLAIN_TEXT;
-                scanner->last_char = 0;
+                scanner->last_char = prev_char;  // Track last consumed char
                 return true;
             }
         }
@@ -1457,12 +1493,39 @@ bool tree_sitter_org_inline_external_scanner_scan(
         return true;
     }
 
-    // Priority 5: Plain text with subscript/superscript boundary detection
+    // Priority 5: Handle { - could be macro {{{ or standalone brace
+    // If it's {{{, let grammar match macro. Otherwise emit as plain text.
+    if (lexer->lookahead == '{') {
+        lexer->advance(lexer, false);
+        if (lexer->lookahead == '{') {
+            lexer->advance(lexer, false);
+            if (lexer->lookahead == '{') {
+                // It's {{{ - macro start. Return false to let grammar handle.
+                return false;
+            }
+            // Just {{, not a macro. Emit both braces as plain text.
+            if (valid_symbols[PLAIN_TEXT]) {
+                lexer->mark_end(lexer);
+                lexer->result_symbol = PLAIN_TEXT;
+                scanner->last_char = '{';
+                return true;
+            }
+        }
+        // Single { - emit as plain text
+        if (valid_symbols[PLAIN_TEXT]) {
+            lexer->mark_end(lexer);
+            lexer->result_symbol = PLAIN_TEXT;
+            scanner->last_char = '{';
+            return true;
+        }
+    }
+
+    // Priority 6: Plain text with subscript/superscript boundary detection
     // Stops before alphanumeric + _ or ^ patterns to let sub/superscript match
     if (valid_symbols[PLAIN_TEXT]) {
         bool result = scan_plain_text(&ctx);
         if (result) {
-            scanner->last_char = 0;  // Reset - grammar consumes characters
+            // scan_plain_text sets scanner->last_char directly
             return true;
         }
     }

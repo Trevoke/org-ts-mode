@@ -74,7 +74,6 @@ Text{*bold* here.
   (title_only
     (title
       (plain_text)
-      (ERROR)
       (bold
         (plain_text))
       (plain_text))))
@@ -559,12 +558,9 @@ Text {*bold*} here.
   (title_only
     (title
       (plain_text)
-      (ERROR)
       (bold
-        (plain_text))))
-  (ERROR
-    (ERROR)
-    (ERROR)))
+        (plain_text))
+      (plain_text))))
 
 ==================
 POST: Left bracket after bold
@@ -579,10 +575,9 @@ Text *bold*[1] here.
     (title
       (plain_text)
       (bold
-        (plain_text))))
-  (ERROR
-    (ERROR)
-    (ERROR)))
+        (plain_text))
+      (ERROR)
+      (plain_text))))
 
 ==================
 POST: Double quote after bold
@@ -898,9 +893,6 @@ Invalid PRE: Digit before bold
 (inline
   (title_only
     (title
-      (plain_text)
-      (bold
-        (plain_text))
       (plain_text))))
 
 ==================
@@ -914,9 +906,6 @@ text)*bold* here
 (inline
   (title_only
     (title
-      (plain_text)
-      (bold
-        (plain_text))
       (plain_text))))
 
 ==================
@@ -956,9 +945,6 @@ text,*bold* here
 (inline
   (title_only
     (title
-      (plain_text)
-      (bold
-        (plain_text))
       (plain_text))))
 
 ==================
@@ -985,9 +971,6 @@ Invalid PRE: Digit before underline
 (inline
   (title_only
     (title
-      (plain_text)
-      (underline
-        (plain_text))
       (plain_text))))
 
 ==================

@@ -155,5 +155,6 @@ Project progress [3/10] :work:
   (title_with_tags
     (title
       (plain_text)
-      (statistics_cookie))
+      (statistics_cookie)
+      (plain_text))
     (tags)))
