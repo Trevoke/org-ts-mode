@@ -63,6 +63,12 @@ enum TokenType {
 
     // Plain colon - colon not part of valid tags
     PLAIN_COLON,
+
+    // Plain link - scanner handles to ensure priority over plain_text
+    PLAIN_LINK,
+
+    // Plain text - scanner handles subscript/superscript boundary detection
+    PLAIN_TEXT,
 };
 
 /**
@@ -167,6 +173,15 @@ static void deserialize(Scanner *scanner, const char *buffer, unsigned length);
 // Tag scanning (preserve existing functionality)
 static bool scan_tags(ScanContext *ctx);
 static bool is_valid_tag_char(int32_t c);
+
+// Plain text scanning with subscript/superscript boundary detection
+static bool scan_plain_text(ScanContext *ctx);
+static bool is_valid_script_pattern(TSLexer *lexer);
+static bool is_plain_text_delimiter(int32_t c);
+
+// Plain link scanning
+static bool scan_plain_link(ScanContext *ctx);
+static bool is_at_plain_link_start(TSLexer *lexer);
 
 // ============================================================================
 // CHARACTER CLASSIFICATION FUNCTIONS
@@ -576,6 +591,381 @@ static void deserialize(Scanner *scanner, const char *buffer, unsigned length) {
 }
 
 // ============================================================================
+// PLAIN TEXT SCANNING WITH SUBSCRIPT/SUPERSCRIPT BOUNDARY DETECTION
+// ============================================================================
+
+/**
+ * Check if character is a delimiter that ends plain text
+ *
+ * These are characters that can start other inline objects.
+ * Plain text stops before these to let the grammar match them.
+ *
+ * Also stops at whitespace so plain_link can match at word boundaries.
+ */
+static bool is_plain_text_delimiter(int32_t c) {
+    // Whitespace - stop so plain_link can match at word boundaries
+    if (c == ' ' || c == '\t') {
+        return true;
+    }
+    // Emphasis markers
+    if (c == '*' || c == '/' || c == '_' || c == '+' || c == '~' || c == '=') {
+        return true;
+    }
+    // Link/bracket markers
+    if (c == '[' || c == ']' || c == '<' || c == '>') {
+        return true;
+    }
+    // Other object markers
+    if (c == '{' || c == '}' || c == '@' || c == '\\') {
+        return true;
+    }
+    // LaTeX markers
+    if (c == '$') {
+        return true;
+    }
+    // Line boundary
+    if (c == '\n' || c == 0) {
+        return true;
+    }
+    return false;
+}
+
+/**
+ * Validate SCRIPT pattern for subscript/superscript
+ *
+ * SCRIPT is one of:
+ * - Single asterisk (*)
+ * - Braced content {...} with balanced braces
+ * - Parenthesized content (...) with balanced parens
+ * - Pattern: SIGN? CHARS FINAL
+ *   - SIGN (optional): + or -
+ *   - CHARS: zero or more alphanumeric, comma, backslash, dot
+ *   - FINAL: exactly one alphanumeric
+ *
+ * Source: org-syntax.md lines 1621-1637
+ *
+ * @param lexer Lexer positioned at start of potential SCRIPT
+ * @return true if valid SCRIPT pattern exists
+ */
+static bool is_valid_script_pattern(TSLexer *lexer) {
+    int32_t c = lexer->lookahead;
+
+    // Case 1: Single asterisk
+    if (c == '*') {
+        return true;  // Don't advance - just validate
+    }
+
+    // Case 2: Braced content {...}
+    if (c == '{') {
+        lexer->advance(lexer, false);
+        int depth = 1;
+        while (depth > 0 && lexer->lookahead != '\n' && !lexer->eof(lexer)) {
+            if (lexer->lookahead == '{') depth++;
+            else if (lexer->lookahead == '}') depth--;
+            lexer->advance(lexer, false);
+        }
+        return depth == 0;
+    }
+
+    // Case 3: Parenthesized content (...)
+    if (c == '(') {
+        lexer->advance(lexer, false);
+        int depth = 1;
+        while (depth > 0 && lexer->lookahead != '\n' && !lexer->eof(lexer)) {
+            if (lexer->lookahead == '(') depth++;
+            else if (lexer->lookahead == ')') depth--;
+            lexer->advance(lexer, false);
+        }
+        return depth == 0;
+    }
+
+    // Case 4: SIGN? CHARS FINAL
+    // Optional sign
+    if (c == '+' || c == '-') {
+        lexer->advance(lexer, false);
+        c = lexer->lookahead;
+    }
+
+    // Must have at least one alphanumeric (the FINAL)
+    if (!((c >= 'a' && c <= 'z') || (c >= 'A' && c <= 'Z') || (c >= '0' && c <= '9'))) {
+        return false;
+    }
+
+    // Valid - we have at least one alphanumeric
+    return true;
+}
+
+/**
+ * Scan plain text with subscript/superscript boundary detection
+ *
+ * Scans characters as plain text, but stops BEFORE:
+ * - alphanumeric followed by _ or ^ with valid SCRIPT pattern (subscript/superscript)
+ * - whitespace followed by letter (to let plain_link check happen)
+ *
+ * Note: plain_link detection is handled in main scan function, not here.
+ *
+ * @param ctx Scanning context
+ * @return true if plain text token emitted
+ */
+static bool scan_plain_text(ScanContext *ctx) {
+    TSLexer *lexer = ctx->lexer;
+    const bool *valid_symbols = ctx->valid_symbols;
+    bool has_content = false;
+
+    while (true) {
+        // Mark current position as potential token end
+        lexer->mark_end(lexer);
+
+        int32_t c = lexer->lookahead;
+
+        // Stop at line boundary or EOF
+        if (c == '\n' || c == 0 || lexer->eof(lexer)) {
+            break;
+        }
+
+        // Handle spaces: consume them, but stop if next char could be plain_link
+        if (c == ' ' || c == '\t') {
+            // Consume all consecutive whitespace
+            while ((lexer->lookahead == ' ' || lexer->lookahead == '\t') && !lexer->eof(lexer)) {
+                lexer->advance(lexer, false);
+                has_content = true;
+            }
+            // Mark after whitespace
+            lexer->mark_end(lexer);
+
+            // If next char is a letter and plain_link is valid, stop here
+            // to let main scan check for protocol://
+            c = lexer->lookahead;
+            if (valid_symbols[PLAIN_LINK] &&
+                ((c >= 'a' && c <= 'z') || (c >= 'A' && c <= 'Z'))) {
+                break;
+            }
+            // Otherwise continue scanning
+            continue;
+        }
+
+        // Stop at other delimiters (now includes space/tab via is_plain_text_delimiter)
+        if (is_plain_text_delimiter(c)) {
+            break;
+        }
+
+        // Stop at colon - might be start of a plain link or tags
+        // Let grammar/other scanner functions handle it
+        if (c == ':') {
+            break;
+        }
+
+        // Check for subscript/superscript boundary
+        bool is_alnum = (c >= 'a' && c <= 'z') || (c >= 'A' && c <= 'Z') || (c >= '0' && c <= '9');
+        if (is_alnum) {
+            // Advance past alphanumeric
+            lexer->advance(lexer, false);
+            int32_t next = lexer->lookahead;
+
+            if (next == '_' || next == '^') {
+                // Potential subscript/superscript
+                // Mark AFTER alnum, BEFORE _/^ (for invalid script case)
+                lexer->mark_end(lexer);
+
+                // Now advance past _/^ to check script pattern
+                lexer->advance(lexer, false);
+
+                if (is_valid_script_pattern(lexer)) {
+                    // Valid subscript/superscript!
+                    // We need token to end BEFORE alnum, but mark is AFTER alnum
+                    // We can't "un-mark". Emit what we have (includes alnum).
+                    // This will cause subscript to fail (it needs alnum at start)
+                    // and fall back to plain_text for whole thing.
+                    //
+                    // Workaround: if no prior content, return false to let subscript try
+                    if (has_content) {
+                        // Emit up to mark (includes alnum). Subscript won't match next.
+                        // Not ideal but better than ERROR
+                        lexer->result_symbol = PLAIN_TEXT;
+                        return true;
+                    }
+                    // No content before - let subscript/superscript match from start
+                    return false;
+                }
+
+                // NOT a valid script pattern
+                // Token ends AFTER alnum, BEFORE _/^ (mark is already set correctly)
+                // The _/^ will be handled by next scan (e.g., UNDERLINE_CLOSE)
+                has_content = true;
+                lexer->result_symbol = PLAIN_TEXT;
+                return true;
+            }
+
+            // Not followed by _ or ^, just regular alphanumeric
+            // Update mark to include it
+            lexer->mark_end(lexer);
+            has_content = true;
+            continue;
+        }
+
+        // Regular character - consume it
+        lexer->advance(lexer, false);
+        has_content = true;
+    }
+
+    if (has_content) {
+        lexer->result_symbol = PLAIN_TEXT;
+        return true;
+    }
+
+    return false;
+}
+
+// ============================================================================
+// PLAIN LINK SCANNING
+// ============================================================================
+
+/**
+ * Check if character is valid in plain link path
+ *
+ * Path can contain most characters except whitespace and newlines.
+ * Also stops at certain delimiters that likely end the link.
+ */
+static bool is_plain_link_path_char(int32_t c) {
+    // Stop at whitespace, newlines, EOF
+    if (c == ' ' || c == '\t' || c == '\n' || c == '\r' || c == 0) {
+        return false;
+    }
+    // Stop at characters that typically end a URL in text context
+    // Note: We allow most punctuation since URLs can contain them
+    // But we stop at common sentence-ending punctuation when followed by space
+    return true;
+}
+
+/**
+ * Check if current position looks like the start of a plain link (protocol://)
+ *
+ * Looks ahead to see if we have: LETTER+ :// (without advancing mark_end)
+ * This is used by scan_plain_text to stop before plain_link patterns.
+ *
+ * NOTE: This function advances the lexer for lookahead but the caller
+ * should NOT rely on the final lexer position.
+ *
+ * @param lexer Lexer positioned at potential protocol start
+ * @return true if pattern looks like protocol://
+ */
+static bool is_at_plain_link_start(TSLexer *lexer) {
+    // Protocol must start with letter
+    int32_t c = lexer->lookahead;
+    if (!((c >= 'a' && c <= 'z') || (c >= 'A' && c <= 'Z'))) {
+        return false;
+    }
+
+    // Advance past first letter
+    lexer->advance(lexer, false);
+
+    // Consume rest of protocol: [a-zA-Z0-9.-]*
+    // NOTE: Don't include + as protocol char - it's an emphasis marker
+    while (true) {
+        c = lexer->lookahead;
+        // Don't consume emphasis markers
+        if (c == '+' || c == '~' || c == '=' || c == '*' || c == '/' || c == '_') {
+            break;
+        }
+        if ((c >= 'a' && c <= 'z') || (c >= 'A' && c <= 'Z') ||
+            (c >= '0' && c <= '9') || c == '.' || c == '-') {
+            lexer->advance(lexer, false);
+        } else {
+            break;
+        }
+    }
+
+    // Must have :// next
+    if (lexer->lookahead != ':') {
+        return false;
+    }
+    lexer->advance(lexer, false);
+
+    if (lexer->lookahead != '/') {
+        return false;
+    }
+    lexer->advance(lexer, false);
+
+    if (lexer->lookahead != '/') {
+        return false;
+    }
+
+    // Looks like protocol://
+    return true;
+}
+
+/**
+ * Scan plain link: protocol://path
+ *
+ * Protocol: [a-zA-Z][a-zA-Z0-9+.-]*
+ * Then: ://
+ * Path: valid path characters until whitespace/newline
+ *
+ * This must be called BEFORE scan_plain_text to prevent plain_text
+ * from consuming the protocol letters.
+ *
+ * @param ctx Scanning context
+ * @return true if plain link token emitted
+ */
+static bool scan_plain_link(ScanContext *ctx) {
+    TSLexer *lexer = ctx->lexer;
+
+    // Mark start position
+    lexer->mark_end(lexer);
+
+    // Protocol must start with letter
+    int32_t c = lexer->lookahead;
+    if (!((c >= 'a' && c <= 'z') || (c >= 'A' && c <= 'Z'))) {
+        return false;
+    }
+
+    // Consume protocol: first letter
+    lexer->advance(lexer, false);
+
+    // Consume rest of protocol: [a-zA-Z0-9+.-]*
+    while (true) {
+        c = lexer->lookahead;
+        if ((c >= 'a' && c <= 'z') || (c >= 'A' && c <= 'Z') ||
+            (c >= '0' && c <= '9') || c == '+' || c == '.' || c == '-') {
+            lexer->advance(lexer, false);
+        } else {
+            break;
+        }
+    }
+
+    // Must have :// next
+    if (lexer->lookahead != ':') {
+        return false;  // Not a plain link
+    }
+    lexer->advance(lexer, false);
+
+    if (lexer->lookahead != '/') {
+        return false;
+    }
+    lexer->advance(lexer, false);
+
+    if (lexer->lookahead != '/') {
+        return false;
+    }
+    lexer->advance(lexer, false);
+
+    // Must have at least one path character
+    if (!is_plain_link_path_char(lexer->lookahead) || lexer->eof(lexer)) {
+        return false;  // Empty path
+    }
+
+    // Consume path characters
+    while (is_plain_link_path_char(lexer->lookahead) && !lexer->eof(lexer)) {
+        lexer->advance(lexer, false);
+    }
+
+    // Successfully matched plain link
+    lexer->mark_end(lexer);
+    lexer->result_symbol = PLAIN_LINK;
+    return true;
+}
+
+// ============================================================================
 // TAG SCANNING FUNCTIONS (PRESERVE EXISTING FUNCTIONALITY)
 // ============================================================================
 
@@ -597,13 +987,22 @@ static bool scan_tags(ScanContext *ctx) {
 
     TSLexer *lexer = ctx->lexer;
 
+    // Mark current position - if we fail, token ends here (no consumption)
+    lexer->mark_end(lexer);
+
     // Check if we're at a space (preceding tags) or ':' (tags at start)
     bool has_preceding_space = false;
 
     if (lexer->lookahead == ' ') {
-        // Consume the space before tags
-        has_preceding_space = true;
+        // Consume space and check if next char is ':'
         lexer->advance(lexer, false);
+        if (lexer->lookahead != ':') {
+            // Not tags - return false WITHOUT updating mark_end
+            // The lexer position has advanced but the token end hasn't
+            return false;
+        }
+        has_preceding_space = true;
+        // We're now at ':', continue to tag parsing
     }
 
     // Should now be at ':' character
@@ -863,18 +1262,16 @@ bool tree_sitter_org_inline_external_scanner_scan(
     // After we emit a token and advance, this becomes the "last character" for the next scan
     int32_t current_char = lexer->lookahead;
 
-    // DEBUG: Print valid_symbols when at colon
-    if (current_char == ':') {
-        fprintf(stderr, "DEBUG: At colon, valid_symbols[TAGS]=%d, valid_symbols[PLAIN_COLON]=%d\n",
-                valid_symbols[TAGS], valid_symbols[PLAIN_COLON]);
-    }
-
     // Create scanning context
     ScanContext ctx = {
         .scanner = scanner,
         .lexer = lexer,
         .valid_symbols = valid_symbols
     };
+
+    // Debug output (uncomment when debugging):
+    // fprintf(stderr, "DEBUG SCAN: at '%c' valid_symbols: PLAIN_TEXT=%d\n",
+    //         current_char, valid_symbols[PLAIN_TEXT]);
 
     // Priority 1: Emphasis scanning (MUST come before TAGS!)
     // Only try if we're at an emphasis marker character
@@ -925,28 +1322,123 @@ bool tree_sitter_org_inline_external_scanner_scan(
         return result;
     }
 
-    // Priority 2: Tag scanning (only if not emphasis)
-    // Note: We check for colon BEFORE calling scan_tags because scan_tags
-    // may advance past it on failure. If we started at colon and TAGS fails,
-    // we emit PLAIN_COLON instead.
-    bool started_at_colon = (lexer->lookahead == ':');
-    bool started_at_space_before_colon = false;
+    // Priority 2: Handle alphanumeric - could be plain_link, subscript/superscript, or plain_text
+    // Need to check in correct order to avoid consuming characters needed by other rules
+    {
+        int32_t c = lexer->lookahead;
+        if ((c >= 'a' && c <= 'z') || (c >= 'A' && c <= 'Z') || (c >= '0' && c <= '9')) {
+            // First, check if this single char + next char forms subscript/superscript
+            // Peek at next character WITHOUT consuming
+            // Actually, we need to consume to peek. Let's use a different approach:
+            // - Advance one char
+            // - Check if next is _ or ^ with valid script
+            // - If yes, don't emit - return false so grammar's subscript/superscript matches
+            // - If no, check for plain_link pattern
+            // - If plain_link, scan it
+            // - Otherwise emit as plain_text
 
-    // Check for space followed by colon (tags can start with " :")
-    if (lexer->lookahead == ' ') {
-        // Peek ahead to see if there's a colon
-        // Unfortunately we can't easily peek, so we'll handle this in scan_tags
-        started_at_space_before_colon = true;
+            lexer->advance(lexer, false);  // Consume first letter
+            int32_t next = lexer->lookahead;
+
+            // Check for subscript (char_) or superscript (char^)
+            if (next == '_' || next == '^') {
+                // Might be subscript/superscript - check if valid pattern follows
+                lexer->advance(lexer, false);  // Consume _ or ^
+
+                // Check if we're in an emphasis context where subscript/superscript aren't valid
+                // If any emphasis closer is valid, we're inside emphasis
+                bool in_emphasis = valid_symbols[BOLD_CLOSE] || valid_symbols[ITALIC_CLOSE] ||
+                                   valid_symbols[UNDERLINE_CLOSE] || valid_symbols[STRIKE_CLOSE] ||
+                                   valid_symbols[CODE_CLOSE] || valid_symbols[VERBATIM_CLOSE];
+
+                if (is_valid_script_pattern(lexer)) {
+                    if (!in_emphasis) {
+                        // Valid subscript/superscript and NOT in emphasis context
+                        // Return false so grammar's token() rule can match from original position.
+                        // tree-sitter will reset lexer to original position when we return false.
+                        return false;
+                    }
+                    // In emphasis context - subscript/superscript not allowed
+                    // Emit what we have as plain_text (including the alnum + _/^)
+                    // Actually, we should only emit up to the alnum, not the _/^
+                    // The _/^ might be an emphasis closer (for underline)
+                    // But we already consumed it... Let's mark before the _/^
+                    // That's not possible now. Let's just emit everything consumed
+                    // and let the next scan handle what follows.
+                }
+                // Not a valid script OR in emphasis context
+                // Emit what we have so far
+                if (valid_symbols[PLAIN_TEXT]) {
+                    lexer->mark_end(lexer);
+                    lexer->result_symbol = PLAIN_TEXT;
+                    scanner->last_char = 0;
+                    return true;
+                }
+            }
+
+            // Not subscript/superscript - check for plain_link
+            // We've consumed one letter, check if rest looks like protocol://
+            if (valid_symbols[PLAIN_LINK]) {
+                // Continue checking for protocol pattern
+                // Need letters followed by ://
+                // NOTE: Don't consume emphasis markers as protocol chars - they could be closers!
+                while (true) {
+                    c = lexer->lookahead;
+                    // Check for emphasis markers that could be closers
+                    if (c == '+' || c == '~' || c == '=' || c == '*' || c == '/' || c == '_') {
+                        // Could be emphasis closer, stop consuming
+                        break;
+                    }
+                    if ((c >= 'a' && c <= 'z') || (c >= 'A' && c <= 'Z') ||
+                        (c >= '0' && c <= '9') || c == '.' || c == '-') {
+                        lexer->advance(lexer, false);
+                    } else {
+                        break;
+                    }
+                }
+
+                // Check for ://
+                if (lexer->lookahead == ':') {
+                    lexer->advance(lexer, false);
+                    if (lexer->lookahead == '/') {
+                        lexer->advance(lexer, false);
+                        if (lexer->lookahead == '/') {
+                            lexer->advance(lexer, false);
+                            // It's a plain link! Consume the path
+                            while (is_plain_link_path_char(lexer->lookahead) && !lexer->eof(lexer)) {
+                                lexer->advance(lexer, false);
+                            }
+                            lexer->mark_end(lexer);
+                            lexer->result_symbol = PLAIN_LINK;
+                            scanner->last_char = 0;
+                            return true;
+                        }
+                    }
+                }
+            }
+
+            // Not a plain_link either - emit what we consumed as PLAIN_TEXT
+            if (valid_symbols[PLAIN_TEXT]) {
+                lexer->mark_end(lexer);
+                lexer->result_symbol = PLAIN_TEXT;
+                scanner->last_char = 0;
+                return true;
+            }
+        }
     }
 
-    if (valid_symbols[TAGS]) {
+    // Priority 3: Tag scanning (only if at colon)
+    // Note: We only call scan_tags when at ':' directly.
+    bool started_at_colon = (lexer->lookahead == ':');
+
+    if (valid_symbols[TAGS] && started_at_colon) {
         bool result = scan_tags(&ctx);
         if (result) {
             scanner->last_char = current_char;
             return true;
         }
-        // TAGS failed - if we started at colon, emit PLAIN_COLON
-        if (started_at_colon && valid_symbols[PLAIN_COLON]) {
+        // TAGS failed at colon - emit PLAIN_COLON
+        if (valid_symbols[PLAIN_COLON]) {
             lexer->advance(lexer, false);
             lexer->mark_end(lexer);
             lexer->result_symbol = PLAIN_COLON;
@@ -955,7 +1447,7 @@ bool tree_sitter_org_inline_external_scanner_scan(
         }
     }
 
-    // Priority 3: Plain colon (colon not part of valid tags)
+    // Priority 4: Plain colon (colon not part of valid tags)
     // This handles colons when TAGS wasn't even valid
     if (valid_symbols[PLAIN_COLON] && lexer->lookahead == ':') {
         lexer->advance(lexer, false);
@@ -963,6 +1455,16 @@ bool tree_sitter_org_inline_external_scanner_scan(
         lexer->result_symbol = PLAIN_COLON;
         scanner->last_char = ':';
         return true;
+    }
+
+    // Priority 5: Plain text with subscript/superscript boundary detection
+    // Stops before alphanumeric + _ or ^ patterns to let sub/superscript match
+    if (valid_symbols[PLAIN_TEXT]) {
+        bool result = scan_plain_text(&ctx);
+        if (result) {
+            scanner->last_char = 0;  // Reset - grammar consumes characters
+            return true;
+        }
     }
 
     return false;

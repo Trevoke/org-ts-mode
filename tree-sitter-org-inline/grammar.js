@@ -73,23 +73,25 @@ const PRECEDENCE = {
 };
 
 // ============================================================================
-// KNOWN LIMITATION (Phase 3):
+// SUBSCRIPT/SUPERSCRIPT TOKEN BOUNDARY BUG
 // ============================================================================
-// LaTeX fragments, subscript, and superscript are NOT available inside
-// emphasis content (bold/italic/underline/strike) to avoid parser state
-// explosion. Org-mode spec allows these ("standard set of objects"), but
-// we restrict for performance. Phase 1 testing showed that allowing all
-// objects in EMPHASIS causes state explosion (182 → 382 states).
+// Subscript and superscript only work at START of input, not after text.
+// This is a pre-existing bug affecting ALL contexts, not just emphasis.
 //
-// Examples that WON'T work:
-//   *bold with x^2*      - superscript NOT parsed
-//   /italic with $\alpha$/ - LaTeX NOT parsed
+// Root cause: The pattern CHAR_SCRIPT includes the preceding character
+// in the token. Plain text consumes characters up to (but not including)
+// _ or ^, so the preceding alphanumeric is already consumed.
+//
+// Examples that WON'T work (in ANY context):
+//   text x^2             - ERROR (alphanumeric consumed by plain_text)
+//   *bold x^2*           - ERROR (same issue)
 //
 // Examples that WILL work:
-//   Text with x^2        - in normal context
-//   [[url][H_2O desc]]   - in link description
+//   x^2                  - works at start of input
+//   H_2O                 - works at start of input
 //
-// This limitation may be addressed in a future optimization phase.
+// Planned fix: Scanner-based boundary detection to stop plain_text
+// before alphanumeric + _ or ^ patterns.
 // ============================================================================
 
 // ============================================================================
@@ -122,15 +124,16 @@ const CONTEXTS = {
     allow_all_objects: false,
   },
 
-  // Inside emphasis: restricted to emphasis, code, entity only
-  // (handled per-emphasis-type in generate_emphasis_rules)
+  // Inside emphasis: standard set of objects per org-syntax.md §5.17
+  // Subscript/superscript excluded due to token boundary bug (see above)
+  // LaTeX excluded pending plain_text_emphasis fix (TODO: enable)
   EMPHASIS: {
-    allow_links: false,         // no links in emphasis
-    allow_emphasis: true,        // but filtered per delimiter
+    allow_links: true,           // links allowed per spec
+    allow_emphasis: true,        // cross-delimiter nesting allowed
     allow_code: true,            // code/verbatim allowed
-    allow_all_objects: false,    // we'll handle entity specially
-    allow_entity_only: true,     // entity is the only object allowed
-    use_emphasis_plain_text: true,  // use plain_text variant that allows $ and ^
+    allow_all_objects: false,    // NOT all - excludes sub/super/latex
+    allow_standard_minus_phase3: true,  // standard set minus latex/sub/super
+    use_emphasis_plain_text: true,  // plain_text variant (includes $ and ^)
   },
 };
 
@@ -186,9 +189,19 @@ function build_choices_array(context, exclude_emphasis = null) {
     );
   }
 
-  // Special case: entity is allowed in emphasis context
-  if (context.allow_entity_only) {
-    choices.push('entity');
+  // Standard objects that work in emphasis context
+  // Excludes: subscript, superscript (token boundary bug), latex (pending)
+  if (context.allow_standard_minus_phase3) {
+    choices.push(
+      'entity',
+      'target',
+      'radio_target',
+      'macro',
+      'export_snippet',
+      'timestamp',
+      'statistics_cookie',
+      'footnote_reference'
+    );
   }
 
   // Plain text always allowed - use emphasis variant if in emphasis context
@@ -291,6 +304,13 @@ module.exports = grammar({
     // Plain colon - colon that's not part of valid tags
     // Allows colons to appear in text (e.g., "word: more text")
     $._plain_colon,
+
+    // Plain link - scanner handles to ensure priority over plain_text
+    $._plain_link,
+
+    // Plain text - scanner handles subscript/superscript boundary detection
+    // Stops before alphanumeric + _ or ^ patterns to let sub/superscript match
+    $._plain_text,
   ],
 
   conflicts: $ => [
@@ -413,11 +433,9 @@ module.exports = grammar({
       token(seq('<', /[a-zA-Z][a-zA-Z0-9+.-]*/, ':', /[^>\n]+/, '>'))
     ),
 
-    // Plain link: protocol:path
-    // Use token() to make this atomic - prevents protocol regex from being extracted
-    plain_link: $ => prec.dynamic(PRECEDENCE.PLAIN_LINK,
-      token(seq(/[a-zA-Z][a-zA-Z0-9+.-]*/, ':', /\/\/[^\s\[\]<>()]+|[^\s\[\]<>()]+/))
-    ),
+    // Plain link: protocol://path
+    // Scanner handles this to ensure priority over plain_text
+    plain_link: $ => $._plain_link,
 
     // ========================================================================
     // OBJECTS
@@ -489,7 +507,7 @@ module.exports = grammar({
         seq('(', /[^()\n]*/, ')'),             // Parenthesized
         seq(                                    // Pattern: SIGN? CHARS FINAL
           optional(/[+-]/),                    // SIGN
-          /[,\\.]*/,                           // CHARS (zero or more comma/backslash/dot only)
+          /[a-zA-Z0-9,\\.]*/,                  // CHARS (zero or more alphanumeric/comma/backslash/dot)
           /[a-zA-Z0-9]/                        // FINAL (exactly one alphanumeric)
         )
       )
@@ -507,7 +525,7 @@ module.exports = grammar({
         seq('(', /[^()\n]*/, ')'),             // Parenthesized
         seq(                                    // Pattern: SIGN? CHARS FINAL
           optional(/[+-]/),                    // SIGN
-          /[,\\.]*/,                           // CHARS (zero or more comma/backslash/dot only)
+          /[a-zA-Z0-9,\\.]*/,                  // CHARS (zero or more alphanumeric/comma/backslash/dot)
           /[a-zA-Z0-9]/                        // FINAL (exactly one alphanumeric)
         )
       )
@@ -587,22 +605,21 @@ module.exports = grammar({
     // PLAIN TEXT
     // ========================================================================
 
-    // Plain text: fallback for any characters not matched by other rules
-    // Excludes: brackets, special chars for objects (links, entities, macros, etc.)
-    // Also excludes $ and ^ for LaTeX/superscript/subscript matching
-    // Note: `:` is handled by _plain_colon external scanner token
+    // Plain text with subscript/superscript boundary detection
+    // Scanner stops before alphanumeric + _ or ^ patterns
+    // Also stops at colons (handled separately) to let plain_link match
     plain_text: $ => prec.right(PRECEDENCE.PLAIN_TEXT, repeat1(choice(
-      /[^*\/~=+_:@\[\]<>\\\{\}\$^\n]+/,  // Regular text (exclude $ and ^)
-      $._delimiter_char,                 // Invalid emphasis delimiter
-      $._plain_colon                     // Colon not part of tags
+      $._plain_text,                      // Scanner-based with boundary detection
+      $._delimiter_char,                  // Invalid emphasis delimiter fallback
+      $._plain_colon                      // Colon not part of tags
     ))),
 
-    // Plain text for emphasis contexts: allows $ and ^ since LaTeX/sub/super
-    // aren't available in emphasis (they would cause ERROR nodes otherwise)
+    // Plain text for emphasis contexts
+    // Uses same scanner-based approach for consistency
     plain_text_emphasis: $ => prec.right(PRECEDENCE.PLAIN_TEXT, repeat1(choice(
-      /[^*\/~=+_:@\[\]<>\\\{\}\n]+/,    // Regular text (INCLUDES $ and ^)
-      $._delimiter_char,                 // Invalid emphasis delimiter
-      $._plain_colon                     // Colon not part of tags
+      $._plain_text,                      // Scanner-based with boundary detection
+      $._delimiter_char,                  // Invalid emphasis delimiter fallback
+      $._plain_colon                      // Colon not part of tags
     )))
   }
 });

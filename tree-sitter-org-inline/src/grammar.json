@@ -203,6 +203,18 @@
       "members": [
         {
           "type": "SYMBOL",
+          "name": "plain_link"
+        },
+        {
+          "type": "SYMBOL",
+          "name": "angle_link"
+        },
+        {
+          "type": "SYMBOL",
+          "name": "regular_link"
+        },
+        {
+          "type": "SYMBOL",
           "name": "italic"
         },
         {
@@ -224,6 +236,34 @@
         {
           "type": "SYMBOL",
           "name": "entity"
+        },
+        {
+          "type": "SYMBOL",
+          "name": "target"
+        },
+        {
+          "type": "SYMBOL",
+          "name": "radio_target"
+        },
+        {
+          "type": "SYMBOL",
+          "name": "macro"
+        },
+        {
+          "type": "SYMBOL",
+          "name": "export_snippet"
+        },
+        {
+          "type": "SYMBOL",
+          "name": "timestamp"
+        },
+        {
+          "type": "SYMBOL",
+          "name": "statistics_cookie"
+        },
+        {
+          "type": "SYMBOL",
+          "name": "footnote_reference"
         },
         {
           "type": "ALIAS",
@@ -241,6 +281,18 @@
       "members": [
         {
           "type": "SYMBOL",
+          "name": "plain_link"
+        },
+        {
+          "type": "SYMBOL",
+          "name": "angle_link"
+        },
+        {
+          "type": "SYMBOL",
+          "name": "regular_link"
+        },
+        {
+          "type": "SYMBOL",
           "name": "bold"
         },
         {
@@ -262,6 +314,34 @@
         {
           "type": "SYMBOL",
           "name": "entity"
+        },
+        {
+          "type": "SYMBOL",
+          "name": "target"
+        },
+        {
+          "type": "SYMBOL",
+          "name": "radio_target"
+        },
+        {
+          "type": "SYMBOL",
+          "name": "macro"
+        },
+        {
+          "type": "SYMBOL",
+          "name": "export_snippet"
+        },
+        {
+          "type": "SYMBOL",
+          "name": "timestamp"
+        },
+        {
+          "type": "SYMBOL",
+          "name": "statistics_cookie"
+        },
+        {
+          "type": "SYMBOL",
+          "name": "footnote_reference"
         },
         {
           "type": "ALIAS",
@@ -279,6 +359,18 @@
       "members": [
         {
           "type": "SYMBOL",
+          "name": "plain_link"
+        },
+        {
+          "type": "SYMBOL",
+          "name": "angle_link"
+        },
+        {
+          "type": "SYMBOL",
+          "name": "regular_link"
+        },
+        {
+          "type": "SYMBOL",
           "name": "bold"
         },
         {
@@ -302,6 +394,34 @@
           "name": "entity"
         },
         {
+          "type": "SYMBOL",
+          "name": "target"
+        },
+        {
+          "type": "SYMBOL",
+          "name": "radio_target"
+        },
+        {
+          "type": "SYMBOL",
+          "name": "macro"
+        },
+        {
+          "type": "SYMBOL",
+          "name": "export_snippet"
+        },
+        {
+          "type": "SYMBOL",
+          "name": "timestamp"
+        },
+        {
+          "type": "SYMBOL",
+          "name": "statistics_cookie"
+        },
+        {
+          "type": "SYMBOL",
+          "name": "footnote_reference"
+        },
+        {
           "type": "ALIAS",
           "content": {
             "type": "SYMBOL",
@@ -315,6 +435,18 @@
     "_inline_element_no_strike": {
       "type": "CHOICE",
       "members": [
+        {
+          "type": "SYMBOL",
+          "name": "plain_link"
+        },
+        {
+          "type": "SYMBOL",
+          "name": "angle_link"
+        },
+        {
+          "type": "SYMBOL",
+          "name": "regular_link"
+        },
         {
           "type": "SYMBOL",
           "name": "bold"
@@ -338,6 +470,34 @@
         {
           "type": "SYMBOL",
           "name": "entity"
+        },
+        {
+          "type": "SYMBOL",
+          "name": "target"
+        },
+        {
+          "type": "SYMBOL",
+          "name": "radio_target"
+        },
+        {
+          "type": "SYMBOL",
+          "name": "macro"
+        },
+        {
+          "type": "SYMBOL",
+          "name": "export_snippet"
+        },
+        {
+          "type": "SYMBOL",
+          "name": "timestamp"
+        },
+        {
+          "type": "SYMBOL",
+          "name": "statistics_cookie"
+        },
+        {
+          "type": "SYMBOL",
+          "name": "footnote_reference"
         },
         {
           "type": "ALIAS",
@@ -656,28 +816,8 @@
       }
     },
     "plain_link": {
-      "type": "PREC_DYNAMIC",
-      "value": 60,
-      "content": {
-        "type": "TOKEN",
-        "content": {
-          "type": "SEQ",
-          "members": [
-            {
-              "type": "PATTERN",
-              "value": "[a-zA-Z][a-zA-Z0-9+.-]*"
-            },
-            {
-              "type": "STRING",
-              "value": ":"
-            },
-            {
-              "type": "PATTERN",
-              "value": "\\/\\/[^\\s\\[\\]<>()]+|[^\\s\\[\\]<>()]+"
-            }
-          ]
-        }
-      }
+      "type": "SYMBOL",
+      "name": "_plain_link"
     },
     "entity": {
       "type": "PREC_DYNAMIC",
@@ -1029,7 +1169,7 @@
                     },
                     {
                       "type": "PATTERN",
-                      "value": "[,\\\\.]*"
+                      "value": "[a-zA-Z0-9,\\\\.]*"
                     },
                     {
                       "type": "PATTERN",
@@ -1117,7 +1257,7 @@
                     },
                     {
                       "type": "PATTERN",
-                      "value": "[,\\\\.]*"
+                      "value": "[a-zA-Z0-9,\\\\.]*"
                     },
                     {
                       "type": "PATTERN",
@@ -1421,8 +1561,8 @@
           "type": "CHOICE",
           "members": [
             {
-              "type": "PATTERN",
-              "value": "[^*\\/~=+_:@\\[\\]<>\\\\\\{\\}\\$^\\n]+"
+              "type": "SYMBOL",
+              "name": "_plain_text"
             },
             {
               "type": "SYMBOL",
@@ -1445,8 +1585,8 @@
           "type": "CHOICE",
           "members": [
             {
-              "type": "PATTERN",
-              "value": "[^*\\/~=+_:@\\[\\]<>\\\\\\{\\}\\n]+"
+              "type": "SYMBOL",
+              "name": "_plain_text"
             },
             {
               "type": "SYMBOL",
@@ -1534,6 +1674,14 @@
     {
       "type": "SYMBOL",
       "name": "_plain_colon"
+    },
+    {
+      "type": "SYMBOL",
+      "name": "_plain_link"
+    },
+    {
+      "type": "SYMBOL",
+      "name": "_plain_text"
     }
   ],
   "inline": [],
