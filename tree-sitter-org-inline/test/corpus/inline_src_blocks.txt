@@ -1,0 +1,199 @@
+==================
+Valid: Simple inline source block
+==================
+
+Check this src_python{print("hello")} code.
+
+---
+
+(inline
+  (title_only
+    (title
+      (plain_text)
+      (inline_src_block
+        (src_lang)
+        (src_body))
+      (plain_text))))
+
+==================
+Valid: Inline source block with headers
+==================
+
+Run src_elisp[:results value]{(+ 1 2)} here.
+
+---
+
+(inline
+  (title_only
+    (title
+      (plain_text)
+      (inline_src_block
+        (src_lang)
+        (src_headers)
+        (src_body))
+      (plain_text))))
+
+==================
+Valid: Various languages
+==================
+
+Use src_c{int x = 0;} or src_js{console.log(1)} or src_sh{echo hi} here.
+
+---
+
+(inline
+  (title_only
+    (title
+      (plain_text)
+      (inline_src_block
+        (src_lang)
+        (src_body))
+      (plain_text)
+      (inline_src_block
+        (src_lang)
+        (src_body))
+      (plain_text)
+      (inline_src_block
+        (src_lang)
+        (src_body))
+      (plain_text))))
+
+==================
+Valid: Empty body
+==================
+
+This src_python{} is empty.
+
+---
+
+(inline
+  (title_only
+    (title
+      (plain_text)
+      (inline_src_block
+        (src_lang)
+        (src_body))
+      (plain_text))))
+
+==================
+Valid: Body with special characters
+==================
+
+Code src_python{x = "hello, world!"} here.
+
+---
+
+(inline
+  (title_only
+    (title
+      (plain_text)
+      (inline_src_block
+        (src_lang)
+        (src_body))
+      (plain_text))))
+
+==================
+Valid: Body with nested braces
+==================
+
+Array src_c{int a[] = {1, 2, 3};} init.
+
+---
+
+(inline
+  (title_only
+    (title
+      (plain_text)
+      (inline_src_block
+        (src_lang)
+        (src_body))
+      (plain_text))))
+
+==================
+Valid: Headers with options
+==================
+
+Run src_python[:exports results :session foo]{x + y} now.
+
+---
+
+(inline
+  (title_only
+    (title
+      (plain_text)
+      (inline_src_block
+        (src_lang)
+        (src_headers)
+        (src_body))
+      (plain_text))))
+
+==================
+Valid: At start of line
+==================
+
+src_ruby{puts "hi"} at start.
+
+---
+
+(inline
+  (title_only
+    (title
+      (inline_src_block
+        (src_lang)
+        (src_body))
+      (plain_text))))
+
+==================
+Valid: At end of line
+==================
+
+Code at end: src_python{42}
+
+---
+
+(inline
+  (title_only
+    (title
+      (plain_text)
+      (inline_src_block
+        (src_lang)
+        (src_body)))))
+
+==================
+Invalid: Missing closing brace (plain text)
+==================
+
+This src_python{unclosed is plain.
+
+---
+
+(inline
+  (title_only
+    (title
+      (plain_text))))
+
+==================
+Invalid: Whitespace in language name
+==================
+
+This src_ python{x} is invalid.
+
+---
+
+(inline
+  (title_only
+    (title
+      (plain_text))))
+
+==================
+Invalid: No language name
+==================
+
+This src_{code} is invalid.
+
+---
+
+(inline
+  (title_only
+    (title
+      (plain_text))))

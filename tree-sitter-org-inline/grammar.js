@@ -54,6 +54,8 @@ const PRECEDENCE = {
   RADIO_TARGET: 31,    // <<<radio>>>
   MACRO: 32,           // {{{name}}}
   EXPORT_SNIPPET: 33,  // @@backend:value@@
+  INLINE_SRC_BLOCK: 34, // src_lang{body}
+  INLINE_BABEL_CALL: 35, // call_name(args)
 
   // Time and counting
   TIMESTAMP: 40,       // <2024-01-15>, [2024-01-15]
@@ -189,7 +191,9 @@ function build_choices_array(context, exclude_emphasis = null) {
       'timestamp',
       'statistics_cookie',
       'footnote_reference',
-      'line_break'
+      'line_break',
+      'inline_src_block',
+      'inline_babel_call'
     );
   }
 
@@ -205,7 +209,9 @@ function build_choices_array(context, exclude_emphasis = null) {
       'timestamp',
       'statistics_cookie',
       'footnote_reference',
-      'line_break'
+      'line_break',
+      'inline_src_block',
+      'inline_babel_call'
     );
   }
 
@@ -588,6 +594,40 @@ module.exports = grammar({
       optional(/[^@]+/),  // value
       '@@'
     )),
+
+    // Inline source block: src_LANG{BODY} or src_LANG[HEADERS]{BODY}
+    // LANG: No whitespace, '[', or '{'
+    // HEADERS: Content in square brackets (simplified - no balanced bracket check)
+    // BODY: Content in curly braces (simplified - no balanced brace check)
+    inline_src_block: $ => prec.dynamic(PRECEDENCE.INLINE_SRC_BLOCK, seq(
+      'src_',
+      field('language', $.src_lang),
+      optional(seq('[', field('headers', $.src_headers), ']')),
+      '{', field('body', $.src_body), '}'
+    )),
+
+    src_lang: $ => /[^\s\[\{]+/,
+    src_headers: $ => /[^\]\n]*/,
+    src_body: $ => /[^\}\n]*/,
+
+    // Inline babel call: call_NAME(ARGUMENTS) with optional headers
+    // Pattern: call_NAME[INSIDE](ARGS)[END]
+    // NAME: No whitespace, '[]', or '()'
+    // INSIDE: Optional header before arguments
+    // ARGS: Arguments in parentheses
+    // END: Optional header after arguments
+    inline_babel_call: $ => prec.right(prec.dynamic(PRECEDENCE.INLINE_BABEL_CALL, seq(
+      'call_',
+      field('name', $.call_name),
+      optional(seq('[', field('inside_header', $.call_inside_header), ']')),
+      '(', field('arguments', $.call_arguments), ')',
+      optional(seq('[', field('end_header', $.call_end_header), ']'))
+    ))),
+
+    call_name: $ => /[^\s\[\]\(\)]+/,
+    call_inside_header: $ => /[^\]\n]*/,
+    call_arguments: $ => /[^\)\n]*/,
+    call_end_header: $ => /[^\]\n]*/,
 
     // Footnote reference: [fn:label], [fn:label:definition], [fn::definition]
     footnote_reference: $ => prec.dynamic(PRECEDENCE.FOOTNOTE_REFERENCE, seq(

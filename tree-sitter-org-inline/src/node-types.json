@@ -33,6 +33,14 @@
           "named": true
         },
         {
+          "type": "inline_babel_call",
+          "named": true
+        },
+        {
+          "type": "inline_src_block",
+          "named": true
+        },
+        {
           "type": "italic",
           "named": true
         },
@@ -88,6 +96,16 @@
     }
   },
   {
+    "type": "call_end_header",
+    "named": true,
+    "fields": {}
+  },
+  {
+    "type": "call_inside_header",
+    "named": true,
+    "fields": {}
+  },
+  {
     "type": "code",
     "named": true,
     "fields": {}
@@ -128,6 +146,88 @@
     }
   },
   {
+    "type": "inline_babel_call",
+    "named": true,
+    "fields": {
+      "arguments": {
+        "multiple": false,
+        "required": true,
+        "types": [
+          {
+            "type": "call_arguments",
+            "named": true
+          }
+        ]
+      },
+      "end_header": {
+        "multiple": false,
+        "required": false,
+        "types": [
+          {
+            "type": "call_end_header",
+            "named": true
+          }
+        ]
+      },
+      "inside_header": {
+        "multiple": false,
+        "required": false,
+        "types": [
+          {
+            "type": "call_inside_header",
+            "named": true
+          }
+        ]
+      },
+      "name": {
+        "multiple": false,
+        "required": true,
+        "types": [
+          {
+            "type": "call_name",
+            "named": true
+          }
+        ]
+      }
+    }
+  },
+  {
+    "type": "inline_src_block",
+    "named": true,
+    "fields": {
+      "body": {
+        "multiple": false,
+        "required": true,
+        "types": [
+          {
+            "type": "src_body",
+            "named": true
+          }
+        ]
+      },
+      "headers": {
+        "multiple": false,
+        "required": false,
+        "types": [
+          {
+            "type": "src_headers",
+            "named": true
+          }
+        ]
+      },
+      "language": {
+        "multiple": false,
+        "required": true,
+        "types": [
+          {
+            "type": "src_lang",
+            "named": true
+          }
+        ]
+      }
+    }
+  },
+  {
     "type": "italic",
     "named": true,
     "fields": {},
@@ -157,6 +257,14 @@
         },
         {
           "type": "footnote_reference",
+          "named": true
+        },
+        {
+          "type": "inline_babel_call",
+          "named": true
+        },
+        {
+          "type": "inline_src_block",
           "named": true
         },
         {
@@ -283,6 +391,14 @@
             "named": true
           },
           {
+            "type": "inline_babel_call",
+            "named": true
+          },
+          {
+            "type": "inline_src_block",
+            "named": true
+          },
+          {
             "type": "italic",
             "named": true
           },
@@ -343,6 +459,11 @@
     }
   },
   {
+    "type": "src_headers",
+    "named": true,
+    "fields": {}
+  },
+  {
     "type": "statistics_cookie",
     "named": true,
     "fields": {}
@@ -377,6 +498,14 @@
         },
         {
           "type": "footnote_reference",
+          "named": true
+        },
+        {
+          "type": "inline_babel_call",
+          "named": true
+        },
+        {
+          "type": "inline_src_block",
           "named": true
         },
         {
@@ -480,6 +609,14 @@
         },
         {
           "type": "footnote_reference",
+          "named": true
+        },
+        {
+          "type": "inline_babel_call",
+          "named": true
+        },
+        {
+          "type": "inline_src_block",
           "named": true
         },
         {
@@ -621,6 +758,14 @@
         },
         {
           "type": "footnote_reference",
+          "named": true
+        },
+        {
+          "type": "inline_babel_call",
+          "named": true
+        },
+        {
+          "type": "inline_src_block",
           "named": true
         },
         {
@@ -776,11 +921,35 @@
     "named": false
   },
   {
+    "type": "call_",
+    "named": false
+  },
+  {
+    "type": "call_arguments",
+    "named": true
+  },
+  {
+    "type": "call_name",
+    "named": true
+  },
+  {
     "type": "macro_args",
     "named": true
   },
   {
     "type": "macro_name",
+    "named": true
+  },
+  {
+    "type": "src_",
+    "named": false
+  },
+  {
+    "type": "src_body",
+    "named": true
+  },
+  {
+    "type": "src_lang",
     "named": true
   },
   {

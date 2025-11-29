@@ -1,0 +1,209 @@
+==================
+Valid: Simple inline babel call
+==================
+
+Check call_myblock() here.
+
+---
+
+(inline
+  (title_only
+    (title
+      (plain_text)
+      (inline_babel_call
+        (call_name))
+      (plain_text))))
+
+==================
+Valid: Inline babel call with arguments
+==================
+
+Run call_compute(x, y) now.
+
+---
+
+(inline
+  (title_only
+    (title
+      (plain_text)
+      (inline_babel_call
+        (call_name)
+        (call_arguments))
+      (plain_text))))
+
+==================
+Valid: Inline babel call with inside header
+==================
+
+Call call_test[:results value](arg) here.
+
+---
+
+(inline
+  (title_only
+    (title
+      (plain_text)
+      (inline_babel_call
+        (call_name)
+        (call_inside_header)
+        (call_arguments))
+      (plain_text))))
+
+==================
+Valid: Inline babel call with end header
+==================
+
+Run call_func(args)[output] now.
+
+---
+
+(inline
+  (title_only
+    (title
+      (plain_text)
+      (inline_babel_call
+        (call_name)
+        (call_arguments)
+        (call_end_header))
+      (plain_text))))
+
+==================
+Valid: Inline babel call with both headers
+==================
+
+Full call_block[in](args)[out] here.
+
+---
+
+(inline
+  (title_only
+    (title
+      (plain_text)
+      (inline_babel_call
+        (call_name)
+        (call_inside_header)
+        (call_arguments)
+        (call_end_header))
+      (plain_text))))
+
+==================
+Valid: Multiple inline babel calls
+==================
+
+Run call_a() and call_b(x) here.
+
+---
+
+(inline
+  (title_only
+    (title
+      (plain_text)
+      (inline_babel_call
+        (call_name))
+      (plain_text)
+      (inline_babel_call
+        (call_name)
+        (call_arguments))
+      (plain_text))))
+
+==================
+Valid: At start of line
+==================
+
+call_first() at start.
+
+---
+
+(inline
+  (title_only
+    (title
+      (inline_babel_call
+        (call_name))
+      (plain_text))))
+
+==================
+Valid: At end of line
+==================
+
+Call at end: call_last()
+
+---
+
+(inline
+  (title_only
+    (title
+      (plain_text)
+      (inline_babel_call
+        (call_name)))))
+
+==================
+Valid: Name with underscores and hyphens
+==================
+
+Call call_my-block_v2() here.
+
+---
+
+(inline
+  (title_only
+    (title
+      (plain_text)
+      (inline_babel_call
+        (call_name))
+      (plain_text))))
+
+==================
+Valid: Nested parentheses in arguments
+==================
+
+Run call_func((a + b)) here.
+
+---
+
+(inline
+  (title_only
+    (title
+      (plain_text)
+      (inline_babel_call
+        (call_name)
+        (call_arguments))
+      (plain_text))))
+
+==================
+Invalid: Missing closing paren (plain text)
+==================
+
+This call_func(unclosed is plain.
+
+---
+
+(inline
+  (title_only
+    (title
+      (plain_text))))
+
+==================
+Invalid: Whitespace in name
+==================
+
+This call_ func() is invalid.
+
+---
+
+(inline
+  (title_only
+    (title
+      (plain_text))))
+
+==================
+Invalid: No name
+==================
+
+This call_() is invalid.
+
+---
+
+(inline
+  (title_only
+    (title
+      (plain_text))))

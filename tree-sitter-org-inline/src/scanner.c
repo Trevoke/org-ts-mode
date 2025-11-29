@@ -190,6 +190,12 @@ static bool is_plain_text_delimiter(int32_t c);
 static bool scan_plain_link(ScanContext *ctx);
 static bool is_at_plain_link_start(TSLexer *lexer);
 
+// Inline source block detection
+static bool is_at_inline_src_start(TSLexer *lexer);
+
+// Inline babel call detection
+static bool is_at_inline_babel_call_start(TSLexer *lexer);
+
 // ============================================================================
 // CHARACTER CLASSIFICATION FUNCTIONS
 // ============================================================================
@@ -826,6 +832,36 @@ static bool scan_plain_text(ScanContext *ctx) {
         // Check for subscript/superscript boundary
         bool is_alnum = (c >= 'a' && c <= 'z') || (c >= 'A' && c <= 'Z') || (c >= '0' && c <= '9');
         if (is_alnum) {
+            // Check for inline source block: src_LANG{ or src_LANG[
+            // Must check BEFORE consuming to allow stopping before 's'
+            // Note: is_at_inline_src_start advances lexer, but if we return,
+            // tree-sitter resets to mark_end position (before 's')
+            if (c == 's' && is_at_inline_src_start(lexer)) {
+                // Pattern matches - stop before 's'
+                // Mark is already before 's' (set at top of loop)
+                if (has_content) {
+                    scanner->last_char = last_consumed;
+                    lexer->result_symbol = PLAIN_TEXT;
+                    return true;
+                }
+                // No content before 's' - return false, let Priority 2 handle it
+                return false;
+            }
+
+            // Check for inline babel call: call_NAME(...)
+            // Must check BEFORE consuming to allow stopping before 'c'
+            if (c == 'c' && is_at_inline_babel_call_start(lexer)) {
+                // Pattern matches - stop before 'c'
+                // Mark is already before 'c' (set at top of loop)
+                if (has_content) {
+                    scanner->last_char = last_consumed;
+                    lexer->result_symbol = PLAIN_TEXT;
+                    return true;
+                }
+                // No content before 'c' - return false, let Priority 2 handle it
+                return false;
+            }
+
             // Advance past alphanumeric
             last_consumed = c;
             lexer->advance(lexer, false);
@@ -964,6 +1000,244 @@ static bool is_at_plain_link_start(TSLexer *lexer) {
     }
 
     // Looks like protocol://
+    return true;
+}
+
+/**
+ * Check if current position looks like a COMPLETE inline source block
+ *
+ * Pattern: src_LANG{BODY} or src_LANG[HEADERS]{BODY} where:
+ * - LANG is non-empty and contains no whitespace, '[', or '{'
+ * - HEADERS (optional) is balanced [] with no newlines
+ * - BODY is content followed by closing '}' on the same line
+ *
+ * This function advances the lexer for lookahead. The caller should NOT
+ * rely on the final lexer position - tree-sitter will reset if scan returns false.
+ *
+ * @param lexer Lexer positioned at potential 's' of 'src_'
+ * @return true if pattern is a complete inline_src_block
+ */
+static bool is_at_inline_src_start(TSLexer *lexer) {
+    // Must start with 's'
+    if (lexer->lookahead != 's') {
+        return false;
+    }
+    lexer->advance(lexer, false);
+
+    // Must have 'r'
+    if (lexer->lookahead != 'r') {
+        return false;
+    }
+    lexer->advance(lexer, false);
+
+    // Must have 'c'
+    if (lexer->lookahead != 'c') {
+        return false;
+    }
+    lexer->advance(lexer, false);
+
+    // Must have '_'
+    if (lexer->lookahead != '_') {
+        return false;
+    }
+    lexer->advance(lexer, false);
+
+    // Must have at least one LANG character (not whitespace, '[', '{')
+    int32_t c = lexer->lookahead;
+    if (c == ' ' || c == '\t' || c == '\n' || c == '[' || c == '{' || c == 0) {
+        return false;  // No language name
+    }
+
+    // Consume LANG characters
+    while (true) {
+        c = lexer->lookahead;
+        // Stop at whitespace, '[', '{', EOF, newline
+        if (c == ' ' || c == '\t' || c == '\n' || c == '[' || c == '{' || c == 0 || lexer->eof(lexer)) {
+            break;
+        }
+        lexer->advance(lexer, false);
+    }
+
+    // Optional: [HEADERS] section
+    if (lexer->lookahead == '[') {
+        lexer->advance(lexer, false);  // Consume '['
+        int bracket_depth = 1;
+        while (bracket_depth > 0 && !lexer->eof(lexer)) {
+            c = lexer->lookahead;
+            if (c == '\n' || c == 0) {
+                return false;  // Unclosed headers
+            }
+            if (c == '[') {
+                bracket_depth++;
+            } else if (c == ']') {
+                bracket_depth--;
+            }
+            lexer->advance(lexer, false);
+        }
+        if (bracket_depth != 0) {
+            return false;  // Unclosed headers
+        }
+    }
+
+    // Must have '{' to start body
+    if (lexer->lookahead != '{') {
+        return false;
+    }
+    lexer->advance(lexer, false);  // Consume '{'
+
+    // Scan body looking for closing '}' on same line
+    int brace_depth = 1;
+    while (brace_depth > 0 && !lexer->eof(lexer)) {
+        c = lexer->lookahead;
+        if (c == '\n' || c == 0) {
+            return false;  // Unclosed body - not a valid inline_src_block
+        }
+        if (c == '{') {
+            brace_depth++;
+        } else if (c == '}') {
+            brace_depth--;
+        }
+        lexer->advance(lexer, false);
+    }
+
+    // Valid if we found matching closing brace
+    return (brace_depth == 0);
+}
+
+/**
+ * Check if current position looks like a COMPLETE inline babel call
+ *
+ * Pattern: call_NAME(ARGS) or call_NAME[HEADER](ARGS)[HEADER] where:
+ * - NAME is non-empty and contains no whitespace, '[]', or '()'
+ * - HEADER (optional) is balanced [] with no newlines
+ * - ARGS is content followed by closing ')' on the same line
+ *
+ * This function advances the lexer for lookahead. The caller should NOT
+ * rely on the final lexer position - tree-sitter will reset if scan returns false.
+ *
+ * @param lexer Lexer positioned at potential 'c' of 'call_'
+ * @return true if pattern is a complete inline_babel_call
+ */
+static bool is_at_inline_babel_call_start(TSLexer *lexer) {
+    // Must start with 'c'
+    if (lexer->lookahead != 'c') {
+        return false;
+    }
+    lexer->advance(lexer, false);
+
+    // Must have 'a'
+    if (lexer->lookahead != 'a') {
+        return false;
+    }
+    lexer->advance(lexer, false);
+
+    // Must have 'l'
+    if (lexer->lookahead != 'l') {
+        return false;
+    }
+    lexer->advance(lexer, false);
+
+    // Must have 'l'
+    if (lexer->lookahead != 'l') {
+        return false;
+    }
+    lexer->advance(lexer, false);
+
+    // Must have '_'
+    if (lexer->lookahead != '_') {
+        return false;
+    }
+    lexer->advance(lexer, false);
+
+    // Must have at least one NAME character (not whitespace, '[', ']', '(', ')')
+    int32_t c = lexer->lookahead;
+    if (c == ' ' || c == '\t' || c == '\n' || c == '[' || c == ']' ||
+        c == '(' || c == ')' || c == 0) {
+        return false;  // No name
+    }
+
+    // Consume NAME characters
+    while (true) {
+        c = lexer->lookahead;
+        // Stop at whitespace, brackets, parens, EOF, newline
+        if (c == ' ' || c == '\t' || c == '\n' || c == '[' || c == ']' ||
+            c == '(' || c == ')' || c == 0 || lexer->eof(lexer)) {
+            break;
+        }
+        lexer->advance(lexer, false);
+    }
+
+    // Optional: [INSIDE_HEADER] section
+    if (lexer->lookahead == '[') {
+        lexer->advance(lexer, false);  // Consume '['
+        int bracket_depth = 1;
+        while (bracket_depth > 0 && !lexer->eof(lexer)) {
+            c = lexer->lookahead;
+            if (c == '\n' || c == 0) {
+                return false;  // Unclosed header
+            }
+            if (c == '[') {
+                bracket_depth++;
+            } else if (c == ']') {
+                bracket_depth--;
+            }
+            lexer->advance(lexer, false);
+        }
+        if (bracket_depth != 0) {
+            return false;  // Unclosed header
+        }
+    }
+
+    // Must have '(' to start arguments
+    if (lexer->lookahead != '(') {
+        return false;
+    }
+    lexer->advance(lexer, false);  // Consume '('
+
+    // Scan arguments looking for closing ')' on same line
+    int paren_depth = 1;
+    while (paren_depth > 0 && !lexer->eof(lexer)) {
+        c = lexer->lookahead;
+        if (c == '\n' || c == 0) {
+            return false;  // Unclosed arguments - not a valid inline_babel_call
+        }
+        if (c == '(') {
+            paren_depth++;
+        } else if (c == ')') {
+            paren_depth--;
+        }
+        lexer->advance(lexer, false);
+    }
+
+    // Must have found closing paren
+    if (paren_depth != 0) {
+        return false;
+    }
+
+    // Optional: [END_HEADER] section after arguments
+    if (lexer->lookahead == '[') {
+        lexer->advance(lexer, false);  // Consume '['
+        int bracket_depth = 1;
+        while (bracket_depth > 0 && !lexer->eof(lexer)) {
+            c = lexer->lookahead;
+            if (c == '\n' || c == 0) {
+                return false;  // Unclosed end header
+            }
+            if (c == '[') {
+                bracket_depth++;
+            } else if (c == ']') {
+                bracket_depth--;
+            }
+            lexer->advance(lexer, false);
+        }
+        // Note: We don't strictly require the end header to be closed
+        // for the call itself to be valid, but if it starts it should close
+        if (bracket_depth != 0) {
+            return false;
+        }
+    }
+
+    // Valid inline babel call
     return true;
 }
 
@@ -1611,6 +1885,22 @@ bool tree_sitter_org_inline_external_scanner_scan(
     {
         int32_t c = lexer->lookahead;
         if ((c >= 'a' && c <= 'z') || (c >= 'A' && c <= 'Z') || (c >= '0' && c <= '9')) {
+            // Check for inline source block pattern: src_LANG{ or src_LANG[
+            // Must check BEFORE consuming any characters
+            if (c == 's' && is_at_inline_src_start(lexer)) {
+                // Looks like inline source block - return false so grammar handles it
+                // tree-sitter will reset lexer to original position
+                return false;
+            }
+
+            // Check for inline babel call pattern: call_NAME(...)
+            // Must check BEFORE consuming any characters
+            if (c == 'c' && is_at_inline_babel_call_start(lexer)) {
+                // Looks like inline babel call - return false so grammar handles it
+                // tree-sitter will reset lexer to original position
+                return false;
+            }
+
             // First, check if this single char + next char forms subscript/superscript
             // Peek at next character WITHOUT consuming
             // Actually, we need to consume to peek. Let's use a different approach:
